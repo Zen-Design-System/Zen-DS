@@ -420,16 +420,27 @@ async function layersMoves(ctx) {
 }
 
 /**
- * The user's story on an empty phone page, by real drags only: Top navigation onto the Screen's top, a List box, then
- * content past the phone's height; the canvas draws the Screen whole with its bar on top; Play scrolls it to the end with
- * the bar staying put and nothing wider than the phone.
+ * The user's story on an empty phone page (2026-10-17), by real drags only, the Figma way (user 2026-11-04: since W-12 a
+ * drop on an empty Screen floats, as in a Figma frame without auto layout): Top navigation onto the Screen's top becomes
+ * its bar; a List box and eight more blocks are each dropped under the last one, floating there; when the next one has no
+ * room left, the Screen's bottom edge is dragged down (its height, Figma's longer frame). The canvas draws every block
+ * whole in the taller Screen, the bar on top; Play grows the phone's Screen to its floating layers and scrolls it to the
+ * end with the bar staying put and nothing wider than the phone.
  */
 async function story(ctx) {
   const { page, id } = await seededPage(ctx, emptyPhone, /<Screen id="screen-1"[^>]*\/>/);
   await fit(page);
   const steps = [];
+  let grown = 0;
+  const screen = async () => frameBox(page, "screen-1");
+  const zoomOf = () => page.evaluate(() => { const el = document.querySelector('[data-studio-frame="screen:screen-1"] .studio-builder-screen'); return el ? el.getBoundingClientRect().width / el.offsetWidth : 1; });
+  const screenOf = (text) => chains(text).find(({ chain }) => chain === "Board>Screen#screen-1")?.node ?? null;
+  // The Screen's floating layers in the order they were dropped (each lands after the last).
+  const floatsOf = (text) => layersOf(screenOf(text)).filter((layer) => layer.props.position?.value === "absolute");
+  const rendered = (layer) => until(async () => { const rect = await rectAt(page, id, layer.loc); return rect?.height ? rect : null; }, { timeout: 4000, message: `${ownOf(layer).name} on the canvas` });
   const drop = async (itemId, point, label) => {
     const item = ITEMS.find((one) => one.id === itemId);
+    if (!item) throw new Error(`no Assets item ${itemId}`);
     const before = (await pageText(page, id)) ?? "";
     const from = await tileOf(page, item);
     if (!from) throw new Error(`${item.label} is not in Assets`);
@@ -437,32 +448,86 @@ async function story(ctx) {
     const after = await changed(page, id, before);
     if (!after) throw new Error(`${label}: nothing written (label "${shown.label}")`);
     steps.push(`${label} ("${shown.label}")`);
+    return { item, before, after: await settleWidth(page, id, after, item) };
+  };
+  /** Figma's longer frame: the Screen selected by its name, its bottom edge dragged down (one edit: its height). */
+  const growScreen = async () => {
+    const before = (await pageText(page, id)) ?? "";
+    // Room below the Screen to drag into: two steps out from the whole page (the canvas's tool bar sits at the bottom).
+    await fit(page);
+    await page.keyboard.press("Minus");
+    await page.keyboard.press("Minus");
+    await sleep(300);
+    await page.locator('.studio-frame-label[data-chrome-key="label:screen:screen-1"]').click();
+    await until(async () => (await page.locator('[data-studio-frame="screen:screen-1"]').getAttribute("data-selected")) === "true", { message: "the Screen selected by its name" });
+    const handle = page.locator('.studio-frame-handle[data-handle="s"]');
+    await handle.waitFor({ state: "visible", timeout: 5000 });
+    // The edge strip near its left end, clear of the tool bar in the canvas's middle.
+    const strip = await handle.boundingBox();
+    const from = { x: strip.x + Math.min(12, strip.width / 4), y: strip.y + strip.height / 2 };
+    const hit = await page.evaluate(({ x, y }) => { const el = document.elementFromPoint(x, y); return el?.closest(".studio-frame-handle") ? null : el?.className?.toString() ?? "nothing"; }, from);
+    if (hit) throw new Error(`the Screen's bottom edge is under "${hit}" at ${Math.round(from.x)},${Math.round(from.y)}`);
+    const view = await page.locator(".studio-viewport").boundingBox();
+    const to = Math.min(from.y + 900 * (await zoomOf()), view.y + view.height - 16);
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(from.x, (from.y + to) / 2, { steps: 4 });
+    await page.mouse.move(from.x, to, { steps: 4 });
+    await page.mouse.up();
+    const after = await changed(page, id, before);
+    const height = after && screenOf(after)?.props.height?.value;
+    if (typeof height !== "number" || height <= 844) throw new Error(`dragging the Screen's bottom edge ${Math.round(to - from.y)}px down wrote ${after ? `height ${height}` : "nothing"} (handle at ${Math.round(from.y)} in a canvas ${Math.round(view.y)}–${Math.round(view.y + view.height)}; status: ${await statusText(page).catch(() => "")})`);
+    grown += 1;
+    await fit(page);
     return after;
   };
-  const screen = async () => frameBox(page, "screen-1");
-  let text = await drop("top-navigation", async () => { const box = await screen(); return { x: box.x + box.width / 2, y: box.y + 20 }; }, "Top navigation → top");
+  /** Room for `need` px (the Screen's own px) under `y` (client px), else the Screen made taller until there is. */
+  const roomUnder = async (y, need) => {
+    for (let tries = 0; tries < 6; tries += 1) {
+      const frame = await screen();
+      if ((frame.y + frame.height - (await y())) / (await zoomOf()) >= need) return;
+      await growScreen();
+    }
+    throw new Error(`no room for ${need}px under the last block after making the Screen taller ${grown} times`);
+  };
+  const lastBottom = async () => { const last = floatsOf((await pageText(page, id)) ?? "").at(-1); const rect = await rendered(last); return rect.y + rect.height; };
+  const gap = async () => 16 * (await zoomOf());
+
+  let { after: text } = await drop("top-navigation", async () => { const box = await screen(); return { x: box.x + box.width / 2, y: box.y + 20 }; }, "Top navigation → top");
   if (!/topNavigation=\{<TopNavigation/.test(text)) throw new Error(`the Top navigation is not the Screen's bar:\n${text.slice(text.indexOf("<Screen"), text.indexOf("<Screen") + 300)}`);
-  text = await drop("list-box", async () => center(await screen()), "List box → Screen");
-  if (!chains(text).some(({ chain }) => chain === "Board>Screen#screen-1>ListBox")) throw new Error("the List box is not in the Screen");
-  // Content past the phone: cards and charts below the list, each dropped under the last layer.
-  // Each goes right before the last block (its top band: beside it in the Screen), so the page keeps growing at its end
-  // whatever the last block is (a Card's own area would take the drop into it).
-  const fill = ["card", "bar-chart", "metric-card", "card", "list-box", "line-chart", "card", "card"];
-  for (const [k, itemId] of fill.entries()) {
-    if (!ITEMS.some((one) => one.id === itemId)) throw new Error(`no Assets item ${itemId}`);
-    text = await drop(itemId, async () => {
-      const last = await page.locator('[data-studio-frame="screen:screen-1"] .studio-builder-screen__content > *:last-child').first().boundingBox();
-      return { x: last.x + last.width / 2, y: last.y + 3 };
-    }, `${itemId} #${k + 1} → before the last block`);
+  const barBottom = async () => { const top = await page.locator('[data-studio-frame="screen:screen-1"] .studio-builder-screen__top').first().boundingBox(); return top.y + top.height; };
+  // The List box under the bar, then the rest each under the last block, 16 px apart, from the Screen's left margin.
+  const blocks = ["list-box", "card", "bar-chart", "metric-card", "card", "list-box", "line-chart", "card", "card"];
+  for (const [k, itemId] of blocks.entries()) {
+    const label = `${itemId} #${k + 1} → ${k ? "under the last block" : "under the bar"}`;
+    const under = k ? lastBottom : barBottom;
+    await roomUnder(async () => (await under()) + (await gap()), 520);
+    const dropped = await drop(itemId, async () => ({ x: (await screen()).x + (await gap()), y: (await under()) + (await gap()) }), label);
+    text = dropped.after;
+    const floats = floatsOf(text);
+    const own = floats.length ? ownOf(floats.at(-1)) : null;
+    if (floats.length !== k + 1 || own?.name !== dropped.item.root) throw new Error(`${label}: not a floating layer of the Screen (${added(dropped.before, text, dropped.item.root)?.chain ?? "nothing added"}; ${floats.length} floating)`);
     await fit(page);
   }
-  // The canvas: the Screen is drawn whole (taller than a phone), its bar at its top.
+  // The person makes room for the last block too, then the canvas: every block drawn whole in the taller Screen, in the
+  // order dropped without overlapping, the bar at the Screen's top.
+  await roomUnder(async () => (await lastBottom()) + (await gap()), 0);
+  text = (await pageText(page, id)) ?? text;
   const frame = await screen();
+  const zoom = await zoomOf();
+  const height = screenOf(text)?.props.height?.value;
+  const rects = await Promise.all(floatsOf(text).map(rendered));
+  let above = await barBottom();
+  for (const [k, rect] of rects.entries()) {
+    if (rect.y < above - 1) throw new Error(`block ${k + 1} (${blocks[k]}) overlaps the one above it by ${Math.round((above - rect.y) / zoom)}px`);
+    if (rect.y + rect.height > frame.y + frame.height + 1) throw new Error(`block ${k + 1} (${blocks[k]}) is cut ${Math.round((rect.y + rect.height - frame.y - frame.height) / zoom)}px at the Screen's foot on the canvas`);
+    above = rect.y + rect.height;
+  }
+  if (frame.height / zoom <= 844) throw new Error(`the Screen is ${Math.round(frame.height / zoom)}px tall after ${blocks.length} blocks: dragging its bottom edge did not grow it`);
   const top = await page.locator('[data-studio-frame="screen:screen-1"] .studio-builder-screen__top').first().boundingBox();
-  const zoom = await page.evaluate(() => { const el = document.querySelector('[data-studio-frame="screen:screen-1"] .studio-builder-screen'); return el ? el.getBoundingClientRect().width / el.offsetWidth : 1; });
-  if (frame.height / zoom < 900) throw new Error(`the Screen is ${Math.round(frame.height / zoom)}px tall after ${fill.length} blocks: the content does not grow it`);
   if (!top || Math.abs(top.y - frame.y) > 2 * zoom + 1) throw new Error(`the Top navigation is ${top ? Math.round((top.y - frame.y) / zoom) : "?"}px from the Screen's top on the canvas`);
-  // Play: scroll to the end; the bar stays at the top, the last block shows whole, nothing scrolls sideways.
+  // Play: the phone's Screen grows to its floating layers; scroll to the end: the bar stays at the top, the last block
+  // shows whole, nothing scrolls sideways.
   await page.locator(".studio-viewport").focus();
   await page.keyboard.press("Escape");
   await page.keyboard.press("ControlOrMeta+Alt+Enter");
@@ -492,9 +557,10 @@ async function story(ctx) {
   if (measured.error) throw new Error(measured.error);
   if (measured.scrolled < 200) throw new Error(`Play scrolled ${measured.scrolled}px of ${measured.height}px (view ${measured.view}px)`);
   if (Math.abs(measured.navTop) > 2) throw new Error(`after scrolling to the end the Top navigation is ${Math.round(measured.navTop)}px from the top`);
-  if (measured.lastBottom !== null && measured.lastBottom < -2) throw new Error(`the last block is cut ${Math.round(-measured.lastBottom)}px at the end of the scroll`);
+  if (measured.lastBottom === null) throw new Error("Play shows no last block");
+  if (measured.lastBottom < -2) throw new Error(`the last block is cut ${Math.round(-measured.lastBottom)}px at the end of the scroll`);
   if (measured.sideways > 1) throw new Error(`the phone page scrolls sideways by ${measured.sideways}px`);
-  return `${steps.length} drops (${steps.slice(0, 2).join(" · ")} …); canvas Screen ${Math.round(frame.height / zoom)}px with its bar on top; Play scrolled ${measured.scrolled}px, bar at ${Math.round(measured.navTop)}px, last block whole`;
+  return `${steps.length} drops (${steps.slice(0, 2).join(" · ")} …), all floating; the Screen's bottom edge dragged ${grown}× to ${height}px, every block whole on the canvas, bar on top; Play scrolled ${measured.scrolled}px, bar at ${Math.round(measured.navTop)}px, last block whole`;
 }
 
 /* ── Add / Remove auto layout (user, 2026-10-17: "test luôn phần add auto layout và detach auto layout") ─────────── */
@@ -728,5 +794,5 @@ export const rows = [
   { id: "DND-06", feature: "Layers panel drags: a row onto an empty Screen's frame row goes into that Screen; onto a row's upper half goes above it (after it in the code: Layers lists the front-most first); onto a Card's row goes inside it (one ⌘Z each)", wp: "dnd campaign 2026-10-17", timeout: 300_000, run: layersMoves },
   { id: "DND-07", feature: "Auto layout on every Assets item: dropped into an empty Frame (floats there), ⇧A (a column, item then caption, no X / Y), ⌥⇧A (a Box of its size, nothing moves on the canvas), three ⌘Z back", wp: "auto layout campaign 2026-10-17", timeout: 600_000, run: (ctx) => autoLayoutItems(ctx, ITEMS) },
   { id: "DND-08", feature: "Auto layout cases: 3 Shapes drawn out of order in a centred row (Inspector + → row, left to right, centred; −), a painted empty Frame (canvas menu → Box > Stack), an Action bar keeps position, a row ⌥⇧A then ⇧A comes back the same, ⇧A on one Text wraps it", wp: "auto layout campaign 2026-10-17", timeout: 600_000, run: autoLayoutCases },
-  { id: "DND-05", feature: "The user's story on an empty phone page: Top navigation dropped on the top becomes the Screen's bar, a List box, content past the phone; the canvas draws it whole, Play scrolls to the end with the bar in place", wp: "dnd campaign 2026-10-17", timeout: 300_000, run: story },
+  { id: "DND-05", feature: "The user's story on an empty phone page, the Figma way: Top navigation dropped on the top becomes the Screen's bar; a List box and 8 blocks float, each dropped under the last; the Screen's bottom edge dragged down for room; the canvas draws every block whole, Play grows the Screen to its floating layers and scrolls to the end with the bar in place", wp: "dnd campaign 2026-10-17", timeout: 300_000, run: story },
 ];
