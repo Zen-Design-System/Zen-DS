@@ -49,15 +49,18 @@ pattern, only the Document line "More than five → a Sidebar / drawer or a More
 (4 tabs + More; More → action Bottom-Sheet of the rest) on the QA page was shown; the user chose **no library change**
 (Studio draws the sheet itself) and to delete the draft (deleted).
 
-- `tools/studio/responsive-header.mjs`: with more than five rows the derived bar's `onValueChange` is
-  `proto.run(<the Sidebar's navigate>, proto.open({ more: "tab-bar-more" }))` (just the open without one), and
-  `derivePhoneChrome` returns `moreSheet`: `<Overlay id="tab-bar-more" title="More">` holding `<BottomSheet
-  type="action">` of the rows past the fourth, `onSelect` = the Sidebar's per-item navigate narrowed to them (else
-  `proto.close()`, no dead rows). `planPhoneSync`, once the Screens' parts are settled, keeps that Overlay with the bars
-  that open it: added last on the Board (BottomSheet imported), redrawn in its place (x/y kept; moving it is no edit)
-  when the rows change, removed with More; one that is not the sheet drawn before the edit is the person's own and
-  stays. One per page, from the first root Screen whose bar opens it. `browser-engine.d.mts` types follow.
+- First build (commits a7442c51…86c45e92) wrote an Overlay `tab-bar-more` onto the board and made the bar's
+  onValueChange `proto.run(navigate, proto.open({ more }))`. The gate's E2E caught 9 regressions (B-14, B-15, B-20,
+  PT-01…03, PT-08, PT-09, PT-36): a new page's Sidebar has 6 placeholder rows, so every new page got the Overlay (frame
+  counts, arrows, a new Screen's place) and the Prototype tab's per-tab ⊕ (one per-item navigate) broke on the run.
+- Rebuilt with Giám sát's agreement, nothing written to the page: `responsive-header.mjs` keeps the bar's
+  onValueChange as the Sidebar's navigate and exports `playMoreSheet(screen)`: the action BottomSheet of the rows past
+  the fourth (`onSelect` = the Sidebar's per-item navigate narrowed to them; the sheet closes after a row), when the Screen's
+  bar (or its AppShell's own) has a More that leads nowhere of its own. `render/renderPage.tsx` wraps a Screen's
+  `bottomNavigation` in Play with `PlayMoreTab` (`proto/runtime.tsx`): More opens that sheet, the other tabs keep
+  their handler. Export (compile.mjs) does not draw the sheet: the exported app's More stays a plain tab.
 - Docs: §17's Sidebar row and the bottom-navigation guideline say how More works in app code.
-- Tests: responsive-header selftest 58 checks (sheet code, More selected, sync add / move / redraw / remove / own);
-  E2E PT-63 (id from Giám sát): seven rows, Play More → sheet Tasks · Hiring · Reports → Tasks, More marked → Overview.
+- Tests: responsive-header selftest 54 checks (sheet code, More selected, no Overlay on the page, a More with its own
+  target, an AppShell's own bar); E2E PT-63 (id from Giám sát): seven rows, the page holds no sheet, Play More → sheet
+  Tasks · Hiring · Reports → Tasks, More marked → Overview. `docs/ai-ui/catalog.json` rebuilt (the guideline line).
 

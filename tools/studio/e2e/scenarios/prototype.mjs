@@ -2565,16 +2565,17 @@ export const rows = [
     },
   },
   {
-    id: "PT-63", feature: "The phone tab bar's More (BACKLOG P3, user 2026-11-04: the library stays, Studio draws the sheet): a Sidebar of seven rows gives four tabs + More and an Overlay tab-bar-more holding an action BottomSheet of the other rows; in phone Play More opens it, Tasks in it opens Tasks with More marked, Overview's tab comes back", wp: "phone tab bar More 2026-11-04", timeout: 40_000,
+    id: "PT-63", feature: "The phone tab bar's More (BACKLOG P3, user 2026-11-04: the library stays, Play draws the sheet): a Sidebar of seven rows gives four tabs + More, the page holding no sheet and the tabs the Sidebar's navigate; in phone Play More opens an action Bottom Sheet of the other rows, Tasks in it opens Tasks with More marked, Overview's tab comes back", wp: "phone tab bar More 2026-11-04", timeout: 40_000,
     async run(ctx) {
       const seeded = await seededPage(ctx, moreTabPage, /<Screen id="tasks"/);
       const { page } = seeded;
       await until(async () => {
         const code = await seeded.text();
-        return (code.match(/phoneLinked=\{\["topNavigation", ?"bottomNavigation"\]\}/g) ?? []).length === 2 && code.includes('proto.open({ more: "tab-bar-more" })') && /<Overlay id="tab-bar-more" title="More">\s*<BottomSheet type="action" title="More"/.test(code);
-      }, { message: "both Screens' tab bars linked, More opening the drawn tab-bar-more sheet" }).catch(async (error) => { throw new Error(`${error.message} (${(await seeded.text()).match(/bottomNavigation=\{.{0,300}/)?.[0] ?? "no bottomNavigation"})`); });
+        return (code.match(/phoneLinked=\{\["topNavigation", ?"bottomNavigation"\]\}/g) ?? []).length === 2 && (code.match(/\{ id: "more", label: "More"/g) ?? []).length === 2;
+      }, { message: "both Screens' tab bars linked, four tabs + More" }).catch(async (error) => { throw new Error(`${error.message} (${(await seeded.text()).match(/bottomNavigation=\{.{0,300}/)?.[0] ?? "no bottomNavigation"})`); });
       const code = await seeded.text();
-      if (!code.includes('onSelect={proto.navigate({ tasks: "tasks" })}')) throw new Error("the More sheet's rows do not go where the Sidebar's rows go");
+      if (/<Overlay|<BottomSheet/.test(code)) throw new Error("the page holds a More sheet (Play draws it; nothing goes on the board)");
+      if ((code.match(/onValueChange=\{proto\.navigate\(\{ home: "overview", tasks: "tasks" \}\)\}/g) ?? []).length !== 2) throw new Error("the tab bars do not keep the Sidebar's per-item navigate");
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
       await page.keyboard.press("ControlOrMeta+Alt+Enter");
@@ -2583,7 +2584,7 @@ export const rows = [
       const tab = (name) => playing(page).locator(".zen-bottom-nav__item", { hasText: name });
       const tabs = await playing(page).locator(".zen-bottom-nav__item").allInnerTexts();
       if (tabs.map((name) => name.trim()).join() !== "Overview,People,Time,Payroll,More") throw new Error(`the tab bar shows ${tabs.join(", ")}`);
-      // Play's sheet (the canvas draws the Overlay frame's sheet too): it opens in Play's device, its overlay root.
+      // Play's sheet opens in Play's device, its overlay root.
       const sheet = playing(page).getByRole("dialog", { name: "More" });
       await step("press the More tab", () => tab("More").click());
       await sheet.waitFor({ state: "visible", timeout: 3000 });

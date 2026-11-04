@@ -21,11 +21,6 @@ export const PHONE_PARTS = ["topNavigation", "bottomNavigation"];
 const TRAILING_PLACES = 3;
 /** Destinations a BottomNavigation takes one to one; more → the first 4 + More. */
 const BOTTOM_ROOTS = 5;
-/** The Overlay the tab bar's More opens: a BottomSheet of the rows past the fourth (user 2026-11-04: the library's
- *  BottomNavigation stays as it is, Studio draws the sheet). One per page, from the first Screen whose bar has More. */
-export const MORE_OVERLAY = "tab-bar-more";
-/** A frame's place on the board (moving the frame is not an edit of what it holds). */
-const PLACE_PROPS = ["x", "y", "width", "height"];
 
 /* ── reading the desktop header ─────────────────────────────────────────────────────────────────────────────────── */
 
@@ -154,18 +149,18 @@ function rowsGo(sidebar, rows) {
   return sidebar?.props.onItemClick ?? (Object.keys(rowTargets).length ? { kind: "proto", action: "navigate", args: [rowTargets] } : undefined);
 }
 
-/** More's sheet (§17: "the full list in a sheet"): an Overlay holding an action BottomSheet of the folded rows, each going
- *  where its Sidebar row goes; rows going nowhere close it (no dead rows; the desktop's go nowhere either). */
+/** More's sheet (§17: "the full list in a sheet"): an action BottomSheet of the folded rows, each going where its Sidebar
+ *  row goes (the sheet closes after a row either way). */
 function moreSheetOf(folded, go) {
   const targets = targetMap(go);
   const foldedTargets = targets && Object.fromEntries(folded.filter((row) => typeof targets[row.id] === "string").map((row) => [row.id, targets[row.id]]));
-  const onSelect = (!targets ? go : Object.keys(foldedTargets).length ? { kind: "proto", action: go.action, args: [foldedTargets, ...go.args.slice(1)] } : undefined) ?? { kind: "proto", action: "close", args: [] };
-  return el("Overlay", { id: lit(MORE_OVERLAY), title: lit("More") }, [el("BottomSheet", {
+  const onSelect = !targets ? go : Object.keys(foldedTargets).length ? { kind: "proto", action: go.action, args: [foldedTargets, ...go.args.slice(1)] } : undefined;
+  return el("BottomSheet", {
     type: lit("action"),
     title: lit("More"),
     items: { kind: "array", items: folded.map((row) => obj({ id: lit(row.id), label: lit(row.label), icon: lit(row.icon) })) },
     onSelect,
-  })]);
+  });
 }
 
 /**
@@ -278,18 +273,15 @@ export function derivePhoneChrome(screen, { mock = {} } = {}) {
     const selected = literalOf(sidebar, "selectedId");
     const value = shown.some((row) => row.id === selected) ? selected : folded.some((row) => row.id === selected) ? "more" : shown[0].id;
     const go = rowsGo(sidebar, rows);
-    // More opens the sheet of the folded rows (§17: "the full list in a sheet"), whose rows go where their Sidebar rows go.
-    const openMore = folded.length ? { kind: "proto", action: "open", args: [{ more: MORE_OVERLAY }] } : undefined;
-    const onValueChange = openMore && go?.kind === "proto" ? { kind: "proto", action: "run", args: [go, openMore] } : go ?? openMore;
     bottomNavigation = el("BottomNavigation", {
       value: lit(value),
-      onValueChange,
+      onValueChange: go,
       showLabels: lit(true),
       items: { kind: "array", items: shown.map((row) => obj({ id: lit(row.id), label: lit(row.label), icon: lit(row.icon), dot: row.dot ? lit(true) : undefined })) },
     });
     if (folded.length) {
       moreSheet = moreSheetOf(folded, go);
-      notes.push(`${folded.map((row) => row.label).join(", ")} go into More (its sheet: the "${MORE_OVERLAY}" Overlay)`);
+      notes.push(`${folded.map((row) => row.label).join(", ")} go into More (its sheet opens in Play)`);
     }
   }
   return { kind: child ? "child" : "root", topNavigation, bottomNavigation, moreSheet, notes };
@@ -368,46 +360,23 @@ export function planPhoneSync(before, after, { components } = {}) {
     if (listChanged) ops.push({ op: "setProp", name: PHONE_LINKED_PROP, value: { kind: "expression", code: JSON.stringify(linked) } });
     if (ops.length) plans.push({ loc: screen.loc, name: "Screen", ops, notes: derived.notes });
   }
-  if (plans.length) return plans;
-  // The Screens' parts settled: the More sheet their tab bars open follows them.
-  const sheet = planMoreSheet(was, now);
-  return sheet ? [sheet] : [];
+  return plans;
 }
-
-/** The More sheet a page's tab bars open (MORE_OVERLAY): drawn from the first root Screen whose bar (its own, or its
- *  AppShell's) opens it and has More; null when no bar opens it. */
-function wantedSheet(tree) {
-  const opens = (code) => Boolean(code?.includes(JSON.stringify(MORE_OVERLAY)));
-  for (const screen of screensOf(tree)) {
-    const shell = rootShell(screen);
-    const own = shell && elementsIn(shell.props.bottomNavigation).find((node) => node.name === "BottomNavigation");
-    if (!shell || !(opens(partCode(screen, "bottomNavigation")) || opens(own ? elementText(own) : null))) continue;
-    const sheet = derivePhoneChrome(screen, { mock: tree.mock ?? {} }).moreSheet;
-    if (sheet) return sheet;
-  }
-  return null;
-}
-
-/** An Overlay's code without its place on the board. */
-const unplacedCode = (node) => elementText({ ...node, props: Object.fromEntries(Object.entries(node.props).filter(([name]) => !PLACE_PROPS.includes(name))) });
 
 /**
- * The edit that keeps the More sheet with the tab bars: added (last on the Board) when a bar opens it and it is missing,
- * redrawn in its place when the Sidebar's rows change, removed when no bar opens it. An Overlay that is not the one drawn
- * before this edit is the person's own (edited, or written by hand) and stays as it is. Null: nothing to do.
+ * The sheet Play opens for a Screen's tab bar More (user 2026-11-04: BottomNavigation stays as it is, nothing is written to
+ * the page): the action BottomSheet of its root AppShell's Sidebar rows past the fourth, when the bar it shows (its
+ * `bottomNavigation`, or its AppShell's own) has a More tab that leads nowhere of its own. Null otherwise.
  */
-function planMoreSheet(was, now) {
-  const wanted = wantedSheet(now);
-  const sheet = now.board.children.find((child) => child.kind === "element" && child.name === "Overlay" && literalOf(child, "id") === MORE_OVERLAY) ?? null;
-  const notes = [`the tab bar's More opens the "${MORE_OVERLAY}" Overlay`];
-  if (!sheet) return wanted ? { loc: now.board.loc, name: "Board", ops: [{ op: "insertChild", code: elementText(wanted) }], notes } : null;
-  const code = unplacedCode(sheet);
-  if (wanted && code === elementText(wanted)) return null;
-  const earlier = was?.board && !was.errors.length ? wantedSheet(was) : null;
-  if (!earlier || code !== elementText(earlier)) return null;
-  if (!wanted) return { loc: sheet.loc, name: "Overlay", ops: [{ op: "removeElement" }], notes };
-  const place = Object.fromEntries(PLACE_PROPS.filter((name) => sheet.props[name]).map((name) => [name, sheet.props[name]]));
-  return { loc: sheet.loc, name: "Overlay", ops: [{ op: "replaceElement", code: elementText({ ...wanted, props: { ...wanted.props, ...place } }) }], notes };
+export function playMoreSheet(screen, { mock = {} } = {}) {
+  const shell = rootShell(screen);
+  const bar = [...elementsIn(screen.props.bottomNavigation), ...(shell ? elementsIn(shell.props.bottomNavigation) : [])].find((node) => node.name === "BottomNavigation");
+  const items = plain(bar?.props.items, { mock });
+  if (!Array.isArray(items) || !items.some((item) => item?.id === "more")) return null;
+  const handler = bar.props.onValueChange;
+  const targets = targetMap(handler);
+  if (handler && (!targets || typeof targets.more === "string")) return null;
+  return derivePhoneChrome(screen, { mock }).moreSheet ?? null;
 }
 
 /** A Screen's linked phone parts (for the Screen section), from its dialect node. */
