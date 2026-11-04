@@ -147,6 +147,27 @@ const lit = (value) => ({ kind: "literal", value });
 const obj = (fields) => ({ kind: "object", fields: Object.fromEntries(Object.entries(fields).filter(([, field]) => field !== undefined)) });
 const el = (name, props, children = []) => ({ kind: "element", name, loc: "0:0", props: Object.fromEntries(Object.entries(props).filter(([, value]) => value !== undefined)), children });
 
+/** Where the Sidebar's rows go: its onItemClick (a per-item navigate keyed by the rows' ids), else the rows' own
+ *  navigates as one per-item navigate. */
+function rowsGo(sidebar, rows) {
+  const rowTargets = Object.fromEntries(rows.map((row) => [row.id, row.onClick?.kind === "proto" && row.onClick.action === "navigate" && typeof row.onClick.args[0] === "string" ? row.onClick.args[0] : null]).filter(([, target]) => target));
+  return sidebar?.props.onItemClick ?? (Object.keys(rowTargets).length ? { kind: "proto", action: "navigate", args: [rowTargets] } : undefined);
+}
+
+/** More's sheet (§17: "the full list in a sheet"): an Overlay holding an action BottomSheet of the folded rows, each going
+ *  where its Sidebar row goes; rows going nowhere close it (no dead rows; the desktop's go nowhere either). */
+function moreSheetOf(folded, go) {
+  const targets = targetMap(go);
+  const foldedTargets = targets && Object.fromEntries(folded.filter((row) => typeof targets[row.id] === "string").map((row) => [row.id, targets[row.id]]));
+  const onSelect = (!targets ? go : Object.keys(foldedTargets).length ? { kind: "proto", action: go.action, args: [foldedTargets, ...go.args.slice(1)] } : undefined) ?? { kind: "proto", action: "close", args: [] };
+  return el("Overlay", { id: lit(MORE_OVERLAY), title: lit("More") }, [el("BottomSheet", {
+    type: lit("action"),
+    title: lit("More"),
+    items: { kind: "array", items: folded.map((row) => obj({ id: lit(row.id), label: lit(row.label), icon: lit(row.icon) })) },
+    onSelect,
+  })]);
+}
+
 /**
  * The phone's TopNavigation and BottomNavigation for a Screen, by §17: a root (no Back, Breadcrumbs of one crumb or
  * none) gets the large title, the account in leading and the BottomNavigation; a child (Breadcrumbs of two or more, or
@@ -163,8 +184,11 @@ export function derivePhoneChrome(screen, { mock = {} } = {}) {
   // desktop header it does not have (that drew the page's title and dropped the Search and the tabs).
   const ownTop = elementsIn(shell.props.topNavigation).find((node) => node.name === "TopNavigation") ?? null;
   const ownBottom = elementsIn(shell.props.bottomNavigation).find((node) => node.name === "BottomNavigation") ?? null;
-  if (ownTop || ownBottom) return { kind: "own", topNavigation: ownTop, bottomNavigation: ownBottom, moreSheet: null, notes: [] };
   const scope = { mock };
+  const sidebar = elementsIn(shell.props.sidebar).find((node) => node.name === "Sidebar");
+  const rows = sidebarRows(sidebar, scope);
+  // Its sheet still goes with a More in its bar (the canvas's Add Bottom Navigation writes the drawn bar there).
+  if (ownTop || ownBottom) return { kind: "own", topNavigation: ownTop, bottomNavigation: ownBottom, moreSheet: rows.length > BOTTOM_ROOTS ? moreSheetOf(rows.slice(BOTTOM_ROOTS - 1), rowsGo(sidebar, rows)) : null, notes: [] };
   const notes = [];
   // Header/AppShell: its top row (leading · center · actions) and its Main row (main, then sections).
   const appHeader = elementsIn(shell.props.header).find((node) => node.name === "AppShellHeader") ?? null;
@@ -246,8 +270,6 @@ export function derivePhoneChrome(screen, { mock = {} } = {}) {
   });
 
   // The roots: a child screen shows none (R14).
-  const sidebar = elementsIn(shell.props.sidebar).find((node) => node.name === "Sidebar");
-  const rows = sidebarRows(sidebar, scope);
   let bottomNavigation = null;
   let moreSheet = null;
   if (!child && rows.length >= 2) {
@@ -255,10 +277,7 @@ export function derivePhoneChrome(screen, { mock = {} } = {}) {
     const shown = folded.length ? [...rows.slice(0, BOTTOM_ROOTS - 1), { id: "more", label: "More", icon: "icon-dots-horizontal-line", dot: folded.some((row) => row.dot) }] : rows;
     const selected = literalOf(sidebar, "selectedId");
     const value = shown.some((row) => row.id === selected) ? selected : folded.some((row) => row.id === selected) ? "more" : shown[0].id;
-    // A tab goes where its Sidebar row goes: the Sidebar's onItemClick (a per-item navigate keyed by the same ids), else
-    // the rows' own navigates as one per-item navigate.
-    const rowTargets = Object.fromEntries(rows.map((row) => [row.id, row.onClick?.kind === "proto" && row.onClick.action === "navigate" && typeof row.onClick.args[0] === "string" ? row.onClick.args[0] : null]).filter(([, target]) => target));
-    const go = sidebar.props.onItemClick ?? (Object.keys(rowTargets).length ? { kind: "proto", action: "navigate", args: [rowTargets] } : undefined);
+    const go = rowsGo(sidebar, rows);
     // More opens the sheet of the folded rows (§17: "the full list in a sheet"), whose rows go where their Sidebar rows go.
     const openMore = folded.length ? { kind: "proto", action: "open", args: [{ more: MORE_OVERLAY }] } : undefined;
     const onValueChange = openMore && go?.kind === "proto" ? { kind: "proto", action: "run", args: [go, openMore] } : go ?? openMore;
@@ -269,16 +288,7 @@ export function derivePhoneChrome(screen, { mock = {} } = {}) {
       items: { kind: "array", items: shown.map((row) => obj({ id: lit(row.id), label: lit(row.label), icon: lit(row.icon), dot: row.dot ? lit(true) : undefined })) },
     });
     if (folded.length) {
-      const targets = targetMap(go);
-      const foldedTargets = targets && Object.fromEntries(folded.filter((row) => typeof targets[row.id] === "string").map((row) => [row.id, targets[row.id]]));
-      // Rows going nowhere close the sheet (no dead rows; the desktop's rows go nowhere either).
-      const onSelect = (!targets ? go : Object.keys(foldedTargets).length ? { kind: "proto", action: go.action, args: [foldedTargets, ...go.args.slice(1)] } : undefined) ?? { kind: "proto", action: "close", args: [] };
-      moreSheet = el("Overlay", { id: lit(MORE_OVERLAY), title: lit("More") }, [el("BottomSheet", {
-        type: lit("action"),
-        title: lit("More"),
-        items: { kind: "array", items: folded.map((row) => obj({ id: lit(row.id), label: lit(row.label), icon: lit(row.icon) })) },
-        onSelect,
-      })]);
+      moreSheet = moreSheetOf(folded, go);
       notes.push(`${folded.map((row) => row.label).join(", ")} go into More (its sheet: the "${MORE_OVERLAY}" Overlay)`);
     }
   }
@@ -364,11 +374,14 @@ export function planPhoneSync(before, after, { components } = {}) {
   return sheet ? [sheet] : [];
 }
 
-/** The More sheet a page's tab bars open (MORE_OVERLAY): drawn from the first root Screen whose bar opens it and has
- *  More; null when no bar opens it. */
+/** The More sheet a page's tab bars open (MORE_OVERLAY): drawn from the first root Screen whose bar (its own, or its
+ *  AppShell's) opens it and has More; null when no bar opens it. */
 function wantedSheet(tree) {
+  const opens = (code) => Boolean(code?.includes(JSON.stringify(MORE_OVERLAY)));
   for (const screen of screensOf(tree)) {
-    if (!rootShell(screen) || !partCode(screen, "bottomNavigation")?.includes(JSON.stringify(MORE_OVERLAY))) continue;
+    const shell = rootShell(screen);
+    const own = shell && elementsIn(shell.props.bottomNavigation).find((node) => node.name === "BottomNavigation");
+    if (!shell || !(opens(partCode(screen, "bottomNavigation")) || opens(own ? elementText(own) : null))) continue;
     const sheet = derivePhoneChrome(screen, { mock: tree.mock ?? {} }).moreSheet;
     if (sheet) return sheet;
   }

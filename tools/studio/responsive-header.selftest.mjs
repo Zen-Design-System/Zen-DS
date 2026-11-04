@@ -205,6 +205,10 @@ function synced(before, text) {
   const own = opened.replace('<BottomSheet type="action" title="More"', '<BottomSheet type="action" title="All sections"');
   const kept = synced(own, own.replace('id="reports" label="Reports"', 'id="reports" label="Analytics"'));
   ok("more sheet: an edited sheet is the person's own", /title="All sections"/.test(kept) && /label: "Reports"/.test(kept.slice(kept.indexOf("<Overlay"))));
+  // The drawn bar written into the AppShell (the canvas's Add Bottom Navigation): its More gets the sheet too.
+  const bar = phoneChromeCode(screenOf(ROOT)).bottomNavigation;
+  const inShell = synced(null, ROOT.replace("        <AppShell\n", `        <AppShell\n          bottomNavigation={${bar}}\n`));
+  ok("more sheet: an AppShell's own bar with More gets the sheet", parsePage(inShell).errors.length === 0 && /<Overlay id="tab-bar-more" title="More">/.test(inShell));
 }
 {
   // A linked part redrawn with a component the page does not import (the control bar's Stack) is swapped in, imported.
