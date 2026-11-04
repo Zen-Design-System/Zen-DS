@@ -2583,7 +2583,8 @@ export const rows = [
       const tab = (name) => playing(page).locator(".zen-bottom-nav__item", { hasText: name });
       const tabs = await playing(page).locator(".zen-bottom-nav__item").allInnerTexts();
       if (tabs.map((name) => name.trim()).join() !== "Overview,People,Time,Payroll,More") throw new Error(`the tab bar shows ${tabs.join(", ")}`);
-      const sheet = page.getByRole("dialog", { name: "More" });
+      // Play's sheet (the canvas draws the Overlay frame's sheet too): it opens in Play's device, its overlay root.
+      const sheet = playing(page).getByRole("dialog", { name: "More" });
       await step("press the More tab", () => tab("More").click());
       await sheet.waitFor({ state: "visible", timeout: 3000 });
       const rows = (await sheet.locator(".zen-bottom-sheet__item").allInnerTexts()).map((name) => name.trim()).join();
