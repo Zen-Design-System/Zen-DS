@@ -57,7 +57,8 @@ export function shareStore({ now = Date.now, ttl = SHARE_TTL } = {}) {
   };
 }
 
-/** A share's body checked (the page's text, title, first Screen, preview modes, project theme, uploaded photos), or an Error. */
+/** A share's body checked (the page's text, title, first Screen, preview modes, project theme and language, uploaded
+ *  photos), or an Error. */
 export function sharePayload(body) {
   const text = body?.text;
   if (typeof text !== "string" || !text.trim() || text.length > MAX_TEXT) return new Error("Send the page's `text` (up to 2 MB)");
@@ -79,7 +80,9 @@ export function sharePayload(body) {
   if (given.length > MAX_PAGES || given.some(([page, value]) => !PAGE_ID.test(page) || typeof value !== "string")) return new Error(`pages is up to ${MAX_PAGES} page ids → their text`);
   if (given.reduce((sum, [, value]) => sum + value.length, 0) > MAX_PAGES_TEXT) return new Error("The project's pages are too large to share (over 4 MB)");
   const pages = Object.fromEntries(given);
-  return { title: string(body.title, "Untitled"), text, start: typeof body.start === "string" && body.start ? body.start : null, modes, brand: string(body.brand, "zen"), themeCss, uploads: photos, ...(id ? { id } : {}), ...(given.length ? { pages } : {}) };
+  // A BCP 47 language and region ("vi-VN"); anything else plays in US English.
+  const locale = typeof body.locale === "string" && /^[a-z]{2,3}(?:-[A-Z]{2})?$/.test(body.locale) ? body.locale : null;
+  return { title: string(body.title, "Untitled"), text, start: typeof body.start === "string" && body.start ? body.start : null, modes, brand: string(body.brand, "zen"), themeCss, ...(locale ? { locale } : {}), uploads: photos, ...(id ? { id } : {}), ...(given.length ? { pages } : {}) };
 }
 
 /** This machine's IPv4 addresses a phone on the same network can reach: Wi-Fi and Ethernet first, virtual adapters last. */

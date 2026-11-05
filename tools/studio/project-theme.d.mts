@@ -21,7 +21,9 @@ export type ProjectTheme = {
 };
 /** The libraries a project's pages use (its Libraries dialog): Zen, the project's own components, its theme. */
 export type ProjectLibraries = { zen: boolean; components: boolean; theme: boolean };
-export type Project = { format: 1; id: string; name: string; createdAt: number; updatedAt: number; theme: ProjectTheme; libraries: ProjectLibraries };
+/** The language of a project's pages (ZenProvider `locale`). */
+export type ProjectLocale = "en-US" | "vi-VN";
+export type Project = { format: 1; id: string; name: string; createdAt: number; updatedAt: number; theme: ProjectTheme; libraries: ProjectLibraries; locale: ProjectLocale };
 export type Palette = { lightSolid: string[]; darkSolid: string[]; lightAlpha: string[]; darkAlpha: string[]; darkBackground: string; anchor: string; alias: RampName | null };
 export type OnBrand = { default: string; hover: string; pressed: string; lc: number };
 
@@ -43,6 +45,9 @@ export function normalizeProject(input: unknown): { project: Project | null; err
 export const PROJECT_LIBRARIES: ReadonlyArray<keyof ProjectLibraries>;
 export function defaultLibraries(): ProjectLibraries;
 export function normalizeLibraries(input: unknown): ProjectLibraries;
+export const PROJECT_LOCALES: Record<ProjectLocale, string>;
+export const DEFAULT_LOCALE: ProjectLocale;
+export function normalizeLocale(input: unknown): ProjectLocale;
 export function tintedNeutralAnchor(primaryHex: string): string;
 export function projectPalettes(theme: ProjectTheme): { primary: Palette; neutral: Palette; onBrand: { light: OnBrand; dark: OnBrand } };
 export function projectThemeCss(id: string, theme: ProjectTheme, options?: { name?: string; brand?: string }): string;

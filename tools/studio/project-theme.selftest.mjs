@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { generateExpectedPalette } from "./zen-ramp.generated.mjs";
-import { RAMPS, SECTOR_NAMES, SUPPORT_FAMILIES, defaultLibraries, defaultProjectTheme, normalizeLibraries, projectBaseValues, normalizeProject, projectIdFor, projectModes, projectPalettes, projectThemeCss, tintedNeutralAnchor } from "./project-theme.mjs";
+import { DEFAULT_LOCALE, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, SUPPORT_FAMILIES, defaultLibraries, defaultProjectTheme, normalizeLibraries, projectBaseValues, normalizeProject, projectIdFor, projectModes, projectPalettes, projectThemeCss, tintedNeutralAnchor } from "./project-theme.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const collection = (file) => Object.values(JSON.parse(fs.readFileSync(path.join(root, "tokens/source/figma", file), "utf8")))[0];
@@ -80,6 +80,11 @@ ok(() => assert.equal(normalizeProject({ id: "acme", name: "  " }).project, null
 ok(() => assert.deepEqual(normalizeProject({ id: "acme", name: "Acme" }).project.libraries, defaultLibraries()), "an old project uses every library");
 ok(() => assert.deepEqual(normalizeLibraries({ zen: false, theme: "no", extra: false }), { zen: false, components: true, theme: true }), "only false turns one off");
 ok(() => assert.deepEqual(normalizeLibraries(null), { zen: true, components: true, theme: true }), "no value: all on");
+// 6c. Language: an old project (none written) is US English; Vietnamese kept; anything else falls back with a reason.
+ok(() => assert.equal(normalizeProject({ id: "acme", name: "Acme" }).project.locale, DEFAULT_LOCALE), "an old project is en-US");
+ok(() => assert.equal(normalizeProject({ id: "acme", name: "Acme", locale: "vi-VN" }).project.locale, "vi-VN"), "vi-VN kept");
+ok(() => { const { project, errors } = normalizeProject({ id: "acme", name: "Acme", locale: "fr-FR" }); assert.equal(project.locale, "en-US"); assert.match(errors.join(";"), /locale/); }, "an unknown language → en-US with a reason");
+ok(() => assert.deepEqual(Object.keys(PROJECT_LOCALES), ["en-US", "vi-VN"]), "the languages labels.ts ships");
 ok(() => assert.deepEqual(projectModes(defaultProjectTheme()), { componentTheme: "brand-s1", density: "compact", radius: "rounded", typography: "dashboard", emphasis: "medium" }), "modes");
 
 // 6b. The project's Figma values: the default theme gives exactly the Zen mode's Base Colors (Project) values.

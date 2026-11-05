@@ -3,6 +3,6 @@ import type { PageDoc } from "./browser-engine.mjs";
 import type { FigmaMapping } from "./figma-map.mjs";
 
 export function figmaReadCode(nodeId: string, options?: { part?: number }): string;
-export function pageFromFigma(frame: Record<string, unknown>, options: { title?: string; mapping: FigmaMapping; file?: string | null }): { text: string; notes: string[]; doc: PageDoc };
+export function pageFromFigma(frame: Record<string, unknown>, options: { title?: string; mapping: FigmaMapping; file?: string | null; /** The language the push wrote dates in (BCP 47, default en-US). */ locale?: string }): { text: string; notes: string[]; doc: PageDoc };
 export function figmaDocId(figmaId: string, part?: string): string;
 export function repoMapping(rootDir?: string): Promise<FigmaMapping>;

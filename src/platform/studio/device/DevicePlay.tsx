@@ -73,7 +73,7 @@ function DevicePage({ page }: { page: SharedPage }) {
   const library = useSharedLibrary(page, tree);
   const { modes } = page;
   return (
-    <ZenProvider className="studio-device-play" brand={page.brand as ZenBrand} theme={modes.theme} componentTheme={modes.componentTheme} density={modes.density} radius={modes.radius} emphasis={modes.emphasis} contrast={modes.contrast} typography={modes.typography}>
+    <ZenProvider className="studio-device-play" brand={page.brand as ZenBrand} locale={page.locale} theme={modes.theme} componentTheme={modes.componentTheme} density={modes.density} radius={modes.radius} emphasis={modes.emphasis} contrast={modes.contrast} typography={modes.typography}>
       <ToastProvider placement="bottom-center">
         <DeviceFlow tree={tree} start={page.start} library={library} />
       </ToastProvider>

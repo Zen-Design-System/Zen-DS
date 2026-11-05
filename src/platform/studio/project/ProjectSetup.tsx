@@ -6,13 +6,13 @@ import { ZenProvider, type ZenBrand } from "../../../components/Provider";
 import { Segmented } from "../../../components/Segmented";
 import { Heading, Text } from "../../../components/Text";
 import { announceEditStatus } from "../api";
-import { InspectorFields, InspectorSection } from "../inspector/Section";
+import { InspectorFields, InspectorSection, SectionNote } from "../inspector/Section";
 import { ChromeScope } from "../shell/ChromeScope";
 import { previewValueLabel } from "../shell/modes";
 import { useStudio } from "../store";
 import {
-  MODE_VALUES, PRIMARY_RAMPS, RAMPS, SECTOR_NAMES, STATUS_ROLES, SUPPORT_FAMILIES, SUPPORT_LABELS, defaultProjectTheme, projectPalettes,
-  type ProjectModes, type ProjectTheme, type RampName, type StatusRole, type SupportFamily,
+  DEFAULT_LOCALE, MODE_VALUES, PRIMARY_RAMPS, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, STATUS_ROLES, SUPPORT_FAMILIES, SUPPORT_LABELS, defaultProjectTheme, projectPalettes,
+  type ProjectLocale, type ProjectModes, type ProjectTheme, type RampName, type StatusRole, type SupportFamily,
 } from "../../../../tools/studio/project-theme.mjs";
 import { openProjectHome } from "./activeProject";
 import { DRAFT_BRAND, createProject, setDraftStyles, updateProject, useProject, useProjects } from "./projectStore";
@@ -20,8 +20,9 @@ import { ThemePreview, type GalleryId } from "./ThemePreview";
 import "./project.css";
 
 /*
- * New project / Project settings (user, 2026-10-17): the project's name and theme on one page — the settings on the
- * left (Primary, Neutral, status colours, chart sectors, corner radius, component theme, size, typography, emphasis),
+ * New project / Project settings (user, 2026-10-17): the project's name, language and theme on one page — the settings
+ * on the left (the language of its pages, 2026-11-05; Primary, Neutral, status colours, chart sectors, corner radius,
+ * component theme, size, typography, emphasis),
  * Zen components on the right in the draft's own mode, Light, Dark or both. The draft is a mode of its own
  * ([data-brand="studio-draft"]) until Create / Save; Cancel leaves the project as it was. ⌘Z / ⇧⌘Z step through the
  * page's changes. A full-window layer like Present: the Studio under it is inert.
@@ -60,6 +61,8 @@ function SetupLayer({ setup: current }: { setup: Exclude<Setup, null> }) {
   // selected so typing replaces it (user, 2026-10-18: "Không bấm tạo project được" with an empty name field).
   const [name, setName] = useState(() => project?.name ?? untitledName(new Set(projects.map((item) => item.name))));
   const [nameError, setNameError] = useState<string | null>(null);
+  // The pages' language (project.json `locale`): saved with the theme, outside its undo history.
+  const [locale, setLocale] = useState<ProjectLocale>(project?.locale ?? DEFAULT_LOCALE);
   const [history, setHistory] = useState<History>(() => ({ past: [], present: project?.theme ?? defaultProjectTheme(), future: [] }));
   const [view, setView] = useState<"light" | "dark" | "both">(chromeTheme);
   const [busy, setBusy] = useState(false);
@@ -89,12 +92,12 @@ function SetupLayer({ setup: current }: { setup: Exclude<Setup, null> }) {
     setBusy(true);
     try {
       if (current.kind === "create") {
-        const made = await createProject(value, theme);
+        const made = await createProject(value, theme, locale);
         say("saved", `Created “${made.name}”`);
         closeProjectSetup();
         openProjectHome(made.id);
       } else {
-        await updateProject(current.id, { name: value, theme });
+        await updateProject(current.id, { name: value, theme, locale });
         say("saved", `Saved “${value}”`);
         closeProjectSetup();
       }
@@ -121,7 +124,7 @@ function SetupLayer({ setup: current }: { setup: Exclude<Setup, null> }) {
     <div ref={layerRef} className="studio-project-setup" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} onKeyDown={onKeyDown}>
       <ChromeScope as="header" className="studio-project-setup__bar">
         <IconButton icon="icon-arrow-left-line" aria-label="Close" appearance="flat" level="secondary" size="sm" onClick={closeProjectSetup} />
-        <Heading id={titleId} level={2} textStyle="Body/Base/Bold" className="studio-project-setup__title">{editing ? `${project?.name} · Theme` : "New project"}</Heading>
+        <Heading id={titleId} level={2} textStyle="Body/Base/Bold" className="studio-project-setup__title">{editing ? `${project?.name} · Settings` : "New project"}</Heading>
         <div className="studio-project-setup__history">
           <IconButton icon="icon-reverse-left-line" aria-label="Undo" appearance="flat" level="secondary" size="sm" disabled={!history.past.length} onClick={undo} />
           <IconButton icon="icon-reverse-right-line" aria-label="Redo" appearance="flat" level="secondary" size="sm" disabled={!history.future.length} onClick={redo} />
@@ -134,12 +137,18 @@ function SetupLayer({ setup: current }: { setup: Exclude<Setup, null> }) {
         </div>
       </ChromeScope>
       <div className="studio-project-setup__body">
-        <ChromeScope as="aside" className="studio-project-setup__settings" aria-label="Theme settings">
+        <ChromeScope as="aside" className="studio-project-setup__settings" aria-label="Project settings">
           <InspectorSection title="Project" fieldGrid>
             <InspectorFields labels={["Name"]} fields={[
               <InputField key="name" size="sm" aria-label="Project name" placeholder="Untitled project" value={name} autoFocus={!editing} onFocus={(event) => { if (!editing) event.currentTarget.select(); }}
                 error={nameError ?? undefined} onChange={(event) => { setName(event.target.value); if (nameError) setNameError(null); }}
                 onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) { event.preventDefault(); void save(); } }} />,
+            ]} />
+          </InspectorSection>
+          <InspectorSection title="Language" fieldGrid note={<SectionNote text="Dates and built-in words on its pages" more="On the canvas, in Play, on a phone, in Figma and in the export. Drafts stay in English." />}>
+            <InspectorFields name="locale" fields={[
+              <SelectField key="locale" size="sm" aria-label="Language" value={locale} onValueChange={(value) => setLocale(value as ProjectLocale)}
+                options={(Object.keys(PROJECT_LOCALES) as ProjectLocale[]).map((code) => ({ value: code, label: PROJECT_LOCALES[code] }))} />,
             ]} />
           </InspectorSection>
           <ThemeSettings theme={theme} swatches={swatches} onChange={(next) => { if (next.chart !== theme.chart) setGallery("charts"); change(next); }} />

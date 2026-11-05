@@ -15,15 +15,16 @@ import { projectPageTexts } from "../project/projectLibrary";
 /*
  * Open on phone (user, 2026-10-21: Play on a real phone, "Tương tác (Play)"): Play's bar shares the page with the dev
  * server and shows a QR code of its link. A phone on the same Wi-Fi opens it and plays the page in its own browser, from
- * the Screen Play is on, in Play's modes and the project's theme (device/DevicePlay.tsx). The link works for two hours.
+ * the Screen Play is on, in Play's modes, the project's theme and its language (device/DevicePlay.tsx). The link works
+ * for two hours.
  */
 
-type Props = { page: string; title: string; text: string | undefined; start: string | null; modes: StudioPreviewSettings; brand: string };
+type Props = { page: string; title: string; text: string | undefined; start: string | null; modes: StudioPreviewSettings; brand: string; locale: string };
 type State = { status: "sharing" } | ShareResult;
 
 const timeOf = (time: number) => new Date(time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-export function OpenOnPhone({ page, title, text, start, modes, brand }: Props) {
+export function OpenOnPhone({ page, title, text, start, modes, brand, locale }: Props) {
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<State>({ status: "sharing" });
   const [copied, setCopied] = useState(false);
@@ -35,7 +36,7 @@ export function OpenOnPhone({ page, title, text, start, modes, brand }: Props) {
     const themeCss = project ? projectThemeCss(project.id, project.theme, { name: project.name }) : "";
     // Instances of the project's other pages' components (Libraries' project components) draw on the phone too.
     const pages = text.includes("page=") ? await projectPageTexts(page, text) : {};
-    setState(await sharePage({ title, text, start, modes, brand, themeCss, id: page, pages }));
+    setState(await sharePage({ title, text, start, modes, brand, themeCss, locale, id: page, pages }));
   };
   const link = "ok" in state && state.ok ? state.urls[0] ?? null : null;
   const copy = (value: string) => { void navigator.clipboard?.writeText(value).then(() => setCopied(true), () => setCopied(false)); };

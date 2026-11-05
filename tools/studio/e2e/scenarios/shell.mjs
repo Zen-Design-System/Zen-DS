@@ -1,5 +1,8 @@
 // Shell rows: the Studio loads the fixture page, menus open on screen, view commands do what they say; ST-30…32: how a
-// page you made opens (its first view, and the viewport it reopens at).
+// page you made opens (its first view, and the viewport it reopens at); S-12: a project's language.
+import fs from "node:fs";
+import path from "node:path";
+import { pagesDirOf } from "../lib/server.mjs";
 import { focusFrame, inViewport, openAssetLibrary, sleep, until } from "../lib/studio.mjs";
 import { newPage, seededPage } from "./builder.mjs";
 import { pageFromTemplate } from "./starters.mjs";
@@ -56,6 +59,24 @@ const frameView = (page) => page.evaluate((canvasSel) => {
   });
   return { frames, zoom: document.querySelector(".studio-zoom__value")?.textContent?.trim() ?? null, visible: [Math.round(x0), Math.round(x1)] };
 }, CANVAS);
+
+/** A page of project `project` with a Table whose date column holds this year's 25 October (S-12). */
+const languagePage = (project, year) => (title) => `// @zen-page ${JSON.stringify({ format: 1, title, project })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Table } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop">
+        <Table aria-label="Due" columns={[{ id: "title", header: "Task" }, { id: "due", header: "Due", edit: "date" }]} rows={[{ id: "a", title: "Agenda", due: "${year}-10-25" }]} />
+      </Screen>
+    </Board>
+  );
+}
+`;
 
 /** Opens the page `id` in a fresh browser context (no viewport remembered for it): its first view. */
 async function openFirst(ctx, id) {
@@ -310,6 +331,52 @@ export const rows = [
         await bar.getByRole("navigation", { name: "Project" }).getByRole("link", { name: "Home" }).click();
         await page.locator(".studio-canvas-area .studio-projects__grid").waitFor({ state: "visible", timeout: 4000 });
         return `docs: Home › Docs · name ${Math.round(centred)} px off centre · Switch project › Drafts → its home · Home → Projects grid`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    // BACKLOG-user-and-later P3 (user 2026-10-25 "Để đợt sau"; approved 2026-11-05): a project's language.
+    id: "S-12", feature: "Project language: a project's page is US English until Project settings › Language picks Tiếng Việt; then its Table date column reads 25/10 on the canvas and in Play, the canvas world and Play's page say lang vi-VN while Play's bar stays en-US, and project.json keeps the locale", wp: "backlog P3 2026-11-05", timeout: 90_000,
+    async run(ctx) {
+      const project = "e2e-language";
+      const { defaultProjectTheme } = await import("../../project-theme.mjs");
+      const now = Date.now();
+      await ctx.api.writeProject({ id: project, name: "E2E Language", theme: defaultProjectTheme(), createdAt: now, updatedAt: now });
+      try {
+        const { page, id } = await seededPage(ctx, languagePage(project, new Date().getFullYear()), /Agenda/);
+        const world = page.locator(".studio-world");
+        const table = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Table"]`).first();
+        await until(async () => /\b10\/25\b/.test(await table.innerText()), { message: "US English first: the due day reads 10/25" });
+        const before = await world.getAttribute("lang");
+        if (before !== "en-US") throw new Error(`the canvas world says lang ${before} before the change`);
+        // Project settings from the Page panel (nothing selected), Language › Tiếng Việt, Save.
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Escape");
+        await page.getByRole("button", { name: "E2E Language settings" }).click();
+        const settings = page.getByRole("dialog", { name: "E2E Language · Settings" });
+        await settings.waitFor({ state: "visible", timeout: 5000 });
+        await settings.locator('[data-prop="locale"] button').first().click();
+        await page.getByRole("option", { name: "Tiếng Việt", exact: true }).click();
+        await settings.getByRole("button", { name: "Save", exact: true }).click();
+        await settings.waitFor({ state: "hidden", timeout: 8000 });
+        await until(async () => /\b25\/10\b/.test(await table.innerText()), { message: "Tiếng Việt: the due day reads 25/10 on the canvas" });
+        const lang = await world.getAttribute("lang");
+        if (lang !== "vi-VN") throw new Error(`the canvas world says lang ${lang}`);
+        const file = path.join(ctx.root, path.dirname(pagesDirOf(ctx.server.port)), "projects", project, "project.json");
+        await until(() => JSON.parse(fs.readFileSync(file, "utf8")).locale === "vi-VN", { message: "project.json keeps locale vi-VN" });
+        // Play: the page in the project's language, its bar in the Studio's.
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Escape");
+        await page.keyboard.press("ControlOrMeta+Alt+Enter");
+        const player = page.locator(".studio-player");
+        await player.waitFor({ state: "visible", timeout: 5000 });
+        await until(async () => /\b25\/10\b/.test(await player.locator(".studio-player__device").innerText()), { message: "Play: the due day reads 25/10" });
+        const langs = await player.evaluate((layer) => [layer.querySelector(".studio-present__page")?.getAttribute("lang"), layer.querySelector(".studio-present-bar")?.getAttribute("lang")]);
+        if (langs[0] !== "vi-VN" || langs[1] !== "en-US") throw new Error(`Play's page says lang ${langs[0]}, its bar ${langs[1]}`);
+        await page.keyboard.press("Escape");
+        return "10/25 → Language Tiếng Việt → canvas 25/10 (lang vi-VN) · Play 25/10, bar en-US · project.json locale vi-VN";
       } finally {
         await ctx.studio({ fresh: true });
       }

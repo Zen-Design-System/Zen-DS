@@ -8,6 +8,7 @@ import type { CodeLanguage } from "../../code/tokenize";
 import { inspectorStatus } from "../../inspector/status";
 import { loadCompile } from "../engine";
 import { getPage } from "../store/pageStore";
+import { pageLocale } from "../../project/activeProject";
 import { closeExport, exportPageId, subscribeExport } from "./exportState";
 import type { HandoffPackage, HtmlExport } from "./htmlExport";
 import type { FigmaExport } from "./figmaExport";
@@ -74,7 +75,7 @@ async function read(id: string): Promise<Result | null> {
   const page = await getPage(id);
   if (!page) return null;
   const { compileReact } = await loadCompile();
-  const compiled = compileReact(page.text, { file: `${id}.zen.tsx` });
+  const compiled = compileReact(page.text, { file: `${id}.zen.tsx`, locale: pageLocale(id, page.text) });
   const doc = (page.doc as PageDoc | undefined) ?? null;
   if ("error" in compiled) return { id, title: page.title, design: page.text, doc, react: { error: compiled.error } };
   const parts = [

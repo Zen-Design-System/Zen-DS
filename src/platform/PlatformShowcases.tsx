@@ -24,9 +24,10 @@ const ExampleCardThemeContext = createContext<(theme: "light" | "dark" | null) =
 /** One example: header, stage and code. `bare` (Zen Studio canvas frames, docs thumbnails) keeps only the stage: the
  * frame shows the title, the inspector the code, and the Studio's Present view the full screen. `presented` (the Studio's
  * Present of a `screen`) lays the card out full window like its own full screen, without the card's dialog, inert or
- * Exit. `onClose` (an example played from its thumbnail) adds Close, which takes focus when the card opens. */
+ * Exit. `onClose` (an example played from its thumbnail) adds Close, which takes focus when the card opens. `locale`
+ * (Zen Studio's Present of a project's Screen) is the card's ZenProvider language: dates, built-in labels, `lang`. */
 // zen-studio-chrome: docs chrome, not a selectable layer in Zen Studio (tools/studio skips its JSX).
-export function ExampleCard({ title, description, code, wide, screen, bare, presented, onClose, children }: { title: string; description: string; code: string; wide?: boolean; screen?: boolean; bare?: boolean; presented?: boolean; onClose?: () => void; children: ReactNode }) {
+export function ExampleCard({ title, description, code, wide, screen, bare, presented, onClose, locale, children }: { title: string; description: string; code: string; wide?: boolean; screen?: boolean; bare?: boolean; presented?: boolean; onClose?: () => void; locale?: string; children: ReactNode }) {
   const [showCode, setShowCode] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
   const closable = Boolean(onClose);
@@ -44,7 +45,7 @@ export function ExampleCard({ title, description, code, wide, screen, bare, pres
         from the docs (the viewport), so responsive layouts in an example reflow on a phone like the copied code will. */}
     <ZenProvider as="article" className="pe-card" data-wide={wide ? "true" : undefined} data-screen={screen ? "true" : undefined} data-fullscreen={fullScreen || presented ? "true" : undefined}
       role={fullScreen ? "dialog" : undefined} aria-labelledby={fullScreen ? titleId : undefined}
-      theme={theme ?? undefined} paint={false} portal={false}>
+      theme={theme ?? undefined} locale={locale} paint={false} portal={false}>
       {bare ? null : <header className="pe-card__head">
         <div className="pe-card__titles">
           <h3 id={titleId} className={typographyStyles["Heading/4"]}>{title}</h3>

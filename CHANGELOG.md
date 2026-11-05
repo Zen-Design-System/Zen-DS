@@ -14,6 +14,12 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a project has a language (Project settings › Language: English or Tiếng Việt; user 2026-10-25, approved
+  2026-11-05). Its pages render in it on the canvas, in Present, Play and on a phone: a Table date column reads
+  "25/10" in Vietnamese, the components' built-in labels follow, the frames say `lang`. The Figma push writes its dates
+  and built-in words in it, and the export names it (handoff `<ZenProvider locale>`, the React code's first lines, the
+  HTML's `lang`). Projects without one, and Drafts, stay US English. The Page panel's project button is now Project
+  settings.
 - Zen Studio Export: the phone tab bar's More works in the exported React page too (user 2026-11-05): More opens an
   action Bottom Sheet of the other Sidebar rows (`moreOpen` state), each going where its row goes, as in Play.
 - Zen Studio: the phone tab bar's More works in Play (user 2026-11-04). A Sidebar of more than five rows gives the tab

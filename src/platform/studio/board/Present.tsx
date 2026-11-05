@@ -56,7 +56,7 @@ function versionFrame(frames: ReadonlyArray<StudioFrameEntry>, frame: StudioFram
 }
 
 function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportChange, framed, onFramedChange }: { frame: StudioFrameEntry; example: StudioExample; own: PresentModes; onModeChange: (key: ModeKey, value: string) => void; viewport: PresentViewport; onViewportChange: (viewport: PresentViewport) => void; framed: boolean; onFramedChange: (framed: boolean) => void }) {
-  const { preview: canvasModes, brand } = useCanvasPreview();
+  const { preview: canvasModes, brand, locale } = useCanvasPreview();
   const key = useStudio((state) => pageKey(state.page, state.collection, state.localPage));
   const override = useStudio((state) => state.frameOverrides[key]?.[frame.id]);
   const [portalRoot, setPortalRoot] = useState<HTMLDivElement | null>(null);
@@ -158,7 +158,7 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
                     <DeviceFrame device={device} fit={fit} part="body" />
                     <div className="studio-present__viewport" data-viewport={fit.mode} style={fit.boxStyle} data-zen-overlay-root={fit.mode === "fixed" ? "" : undefined}>
                       <SimulatedDeviceContext value={device ?? null}>
-                        <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
+                        <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen} presented={example.screen} locale={locale}>{example.render()}</ExampleCard>
                       </SimulatedDeviceContext>
                     </div>
                     {/* Beside the viewport, its size: the viewport scrolls its example, and the toasts stay at the device's foot. */}
@@ -172,7 +172,7 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
           </PlatformTypographyContext>
         </ZenPortalProvider>
         {/* The presented example's overlays (Dialog, Menu, Tooltip…) stay above it and in its modes. */}
-        <div ref={setPortalRoot} className="official-portal-root studio-portal-root" {...modes} />
+        <div ref={setPortalRoot} className="official-portal-root studio-portal-root" lang={locale} {...modes} />
       </div>
     </div>
   );
