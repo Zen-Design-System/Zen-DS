@@ -109,7 +109,7 @@ const elementCode = (text: string) => text.replace(/<([A-Z][\w.]*)>/g, (_match, 
 const frameName = (frame: string | null) => (frame ?? "").replace(/^screen:/, "").replace(/^overlay:/, "overlay ").replace(/:/, " · state ");
 
 /** What a prototype action does, and its code. */
-const ANIMATION_WORDS: Record<string, string> = { instant: "instantly", dissolve: "dissolving", move: "moving in", push: "pushing", slide: "sliding in" };
+const ANIMATION_WORDS: Record<string, string> = { instant: "instantly", dissolve: "dissolving", smart: "with Smart animate (layers named alike move)", move: "moving in", push: "pushing", slide: "sliding in" };
 
 /** How the design animates an action and how long it waits first (", pushing left (Motion/Duration/Slow) after 800 ms"). */
 function optionsText(action: HandoffAction): string {

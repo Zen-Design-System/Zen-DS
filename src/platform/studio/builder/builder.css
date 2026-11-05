@@ -176,6 +176,22 @@
   from { opacity: var(--studio-play-from-opacity, 1); translate: calc(var(--studio-play-from-x, 0%) * var(--zen-motion-movement, 1)) calc(var(--studio-play-from-y, 0%) * var(--zen-motion-movement, 1)); }
   to { opacity: var(--studio-play-to-opacity, 1); translate: calc(var(--studio-play-to-x, 0%) * var(--zen-motion-movement, 1)) calc(var(--studio-play-to-y, 0%) * var(--zen-motion-movement, 1)); }
 }
+/* Smart animate (proto/playSmart.ts, W-51b): the Screen coming in is on top; its canvas fades in over the one going away,
+   its matching layers move from where their match was (FLIP: translate and scale, times Motion/Movement), its other
+   layers fade in, and the matches going away hide. The frame's duration and curve, inherited. */
+.studio-player__screen[data-smart] > .studio-builder-screen:not([data-smart-fade]) { animation: studio-play-smart-canvas var(--studio-play-duration, var(--zen-motion-duration-base, 200ms)) var(--studio-play-ease, var(--zen-motion-ease-emphasized, ease)) both; }
+.studio-player__screen [data-smart-move] { animation: studio-play-smart-move var(--studio-play-duration, var(--zen-motion-duration-base, 200ms)) var(--studio-play-ease, var(--zen-motion-ease-emphasized, ease)) both; }
+.studio-player__screen [data-smart-fade] { animation: studio-play-smart-fade var(--studio-play-duration, var(--zen-motion-duration-base, 200ms)) var(--studio-play-ease, var(--zen-motion-ease-emphasized, ease)) both; }
+.studio-player__screen [data-smart-hide] { visibility: hidden; }
+@keyframes studio-play-smart-canvas { from { background-color: transparent; } }
+@keyframes studio-play-smart-move {
+  from {
+    opacity: var(--studio-smart-opacity, 1);
+    translate: calc(var(--studio-smart-x, 0px) * var(--zen-motion-movement, 1)) calc(var(--studio-smart-y, 0px) * var(--zen-motion-movement, 1));
+    scale: calc(1 + (var(--studio-smart-sx, 1) - 1) * var(--zen-motion-movement, 1)) calc(1 + (var(--studio-smart-sy, 1) - 1) * var(--zen-motion-movement, 1));
+  }
+}
+@keyframes studio-play-smart-fade { from { opacity: 0; } }
 /* An overlay the Overlay places (not a Dialog, Side Panel…: those place themselves): Figma's overlay position, inside the
    device's safe areas, over Background/Overlay when the Overlay asks for a background. One shown While hovering lets the
    pointer through, so the layer under it keeps the hover. */

@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: Smart animate in the Prototype tab's Animation (W-51b, approved 2026-10-31). In Play, layers that carry
+  the same name on both Screens (and the same parent names, as Figma matches them) move from where they were to where
+  they are, at their size, while the rest fades; Back plays it too. With reduced motion it is a fade. Push to Figma
+  writes Smart animate, and a pull reads it back.
 - Zen Studio: a project has a language (Project settings › Language: English or Tiếng Việt; user 2026-10-25, approved
   2026-11-05). Its pages render in it on the canvas, in Present, Play and on a phone: a Table date column reads
   "25/10" in Vietnamese, the components' built-in labels follow, the frames say `lang`. The Figma push writes its dates
