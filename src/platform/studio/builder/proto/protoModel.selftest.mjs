@@ -3,6 +3,7 @@
 // connections and Play read from a page — trigger words, a choice control's items, per-item actions and their links.
 // Run: node src/platform/studio/builder/proto/protoModel.selftest.mjs
 import { parsePage } from "../../../../../tools/studio/dialect.mjs";
+import { smartName, smartPairs, smartPaths } from "./smartMatch.ts";
 import { actionsIn, actionsFor, actionTriggerLabel, actionTriggersOf, cellText, choicesOf, frameNamed, layerWordsOf, choiceItemsOf, columnsOf, connectTrigger, EASINGS, filterCode, filterOf, filterRows, filterValuesOf, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, layersIn, linksOf, openerOf, optionsOf, playStartOf, protoOf, stepsOf, protoActionCode, protoSourcesOf, screenTargetOf, stepCode, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, targetOfFrame, targetsByItem, triggerLabel, triggerValue } from "./protoModel.ts";
 
 const failures = [];
@@ -271,6 +272,46 @@ check("vars: a bound sheet is no Play group, and the Chip that reads the variabl
 check("vars: several actions list one by one; Set variable is an action of the tab (B2)", [protoOf(boundRow.props.onClick), protoOf({ kind: "proto", action: "set", args: ["range", "x"] })?.action, stepsOf(boundRow.props.onClick).map((step) => step.action)], [null, "set", ["set", "close"]]);
 check("vars: a link inside several actions is the layer's link", linksOf(boundTree).filter((link) => link.target === "orders").map((link) => link.trigger), ["onClick", "onClick"]);
 check("vars: actionsIn sees nested actions", actionsIn(boundTree.board).filter((entry) => entry.action === "set").length, 2);
+
+// W-51b Smart animate: written like any animation (no direction), and Figma's matching by name path.
+check("smart: written as an animation, never with a direction; read back", [protoActionCode("navigate", "b", { animation: "smart", direction: "up", easing: "exit" }), optionsOf("navigate", ["b", { animation: "smart" }])], ['proto.navigate("b", { animation: "smart", easing: "exit" })', { animation: "smart" }]);
+const smartPage = [
+  `// @zen-page {"format":1,"title":"Smart"}`,
+  `import { Board, Screen, proto } from "@zen-ds/react/builder";`,
+  `import { Avatar, Box, Button, Stack, Text } from "@zen-ds/react";`,
+  "",
+  "export const mock = {};",
+  "",
+  "export default function Page() {",
+  "  return (",
+  "    <Board>",
+  '      <Screen id="a" title="A" device="phone">',
+  '        <Stack gap="md">',
+  '          <Box data-name="Ball" />',
+  "          <Text>Title</Text>",
+  '          <Avatar name="An" />',
+  '          <Button onClick={proto.navigate("b", { animation: "smart" })}>Go</Button>',
+  "          <Box />",
+  "        </Stack>",
+  "      </Screen>",
+  '      <Screen id="b" title="B" device="phone">',
+  '        <Stack gap="lg">',
+  "          <Text>Other words</Text>",
+  '          <Avatar name="An" size="lg" />',
+  "          <Box />",
+  '          <Box data-name="Ball" />',
+  "        </Stack>",
+  "      </Screen>",
+  "    </Board>",
+  "  );",
+  "}",
+].join("\n");
+const smartTree = parsePage(smartPage, { components: new Set(["Avatar", "Box", "Button", "Stack", "Text"]) });
+check("smart: the page parses", smartTree.errors, []);
+const [screenA, screenB] = smartTree.board.children.filter((child) => child.kind === "element");
+const nameAt = (loc) => { const found = []; const visit = (node) => { if (node.loc === loc) found.push(node); node.children.forEach((child) => child.kind === "element" && visit(child)); }; visit(smartTree.board); return found[0] ? smartName(found[0]) : null; };
+check("smart: names are the given one, a frame's kind, a text's words, an instance's component", [...smartPaths(screenA).keys()], ["Frame#0", "Frame#0/Ball#0", "Frame#0/Title#0", "Frame#0/Avatar#0", "Frame#0/Button#0", "Frame#0/Frame#0"]);
+check("smart: what matches by name path (any variant, any order; other words and a missing layer do not)", smartPairs(screenA, screenB).map((pair) => `${nameAt(pair.from)}→${nameAt(pair.to)}`), ["Frame→Frame", "Avatar→Avatar", "Frame→Frame", "Ball→Ball"]);
 
 if (failures.length) {
   console.error(`✗ protoModel selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);

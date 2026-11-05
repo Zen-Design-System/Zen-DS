@@ -2600,7 +2600,96 @@ export const rows = [
       return `tabs ${tabs.map((name) => name.trim()).join(" · ")} · Play: More → sheet ${rows} → Tasks → tasks (More marked) → Overview tab → overview`;
     },
   },
+  {
+    id: "PT-64", feature: "Prototype Smart animate (W-51b): Navigate to → Animation Smart animate writes { animation: \"smart\" } with no Direction; in Play the layer named Ball on both Screens starts where it was, at its size, and moves to its place on B (the one on A hides); with reduced motion B only fades in and Ball stays put", wp: "prototype smart animate 2026-11-05", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, text } = await seededPage(ctx, smartPage, /<Screen id="b"/);
+      await step("Go › Animation › Smart animate", async () => {
+        await clickNamed(page, id, "Button");
+        await prototypeTab(page);
+        await pickOption(page, "proto:onClick:animation", "Smart animate");
+      });
+      await until(async () => (await text()).includes('onClick={proto.navigate("b", { animation: "smart" })}'), { message: "Smart animate written" });
+      if (await inspectorRow(page, "proto:onClick:direction").count()) throw new Error("Smart animate shows a Direction row");
+      await pickOption(page, "proto:onClick:duration", "Slow");
+      await until(async () => (await text()).includes('onClick={proto.navigate("b", { animation: "smart", duration: "slow" })}'), { message: "Slow written" });
+      const play = async () => {
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Escape");
+        await page.keyboard.press("ControlOrMeta+Alt+Enter");
+        await playing(page).waitFor({ state: "visible", timeout: 5000 });
+        await until(async () => (await playScreen(page)) === "a", { message: "Play starts on A" });
+      };
+      // Go is pressed in the page and the first frame read at once (the motion lasts Motion/Duration/Slow): every
+      // animation of B's frame and its Ball paused at its start, then finished.
+      const go = () => playing(page).evaluate(async (player) => {
+        const rect = (element) => { if (!element) return null; const box = element.getBoundingClientRect(); return { x: Math.round(box.left), y: Math.round(box.top), w: Math.round(box.width) }; };
+        const ball = (where) => player.querySelector(`.studio-player__screen${where} [data-name="Ball"]`);
+        const button = [...player.querySelectorAll("button")].find((element) => element.textContent?.trim() === "Go");
+        if (!button) return null;
+        button.click();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        const coming = player.querySelector(".studio-player__screen:not([data-leaving])");
+        const moving = ball(":not([data-leaving])");
+        const left = ball("[data-leaving]");
+        const animations = [...(coming?.getAnimations() ?? []), ...(moving?.getAnimations() ?? [])];
+        const names = (moving?.getAnimations() ?? []).map((animation) => animation.animationName);
+        animations.forEach((animation) => { animation.pause(); animation.currentTime = 0; });
+        const first = rect(moving);
+        const opacity = coming ? getComputedStyle(coming).opacity : null;
+        animations.forEach((animation) => animation.finish());
+        return { smart: Boolean(coming?.hasAttribute("data-smart")), moves: Boolean(moving?.hasAttribute("data-smart-move")), names, was: rect(left), hidden: left ? getComputedStyle(left).visibility : null, first, last: rect(moving), opacity };
+      });
+      const near = (a, b) => Boolean(a && b) && Math.abs(a.x - b.x) <= 1 && Math.abs(a.y - b.y) <= 1 && Math.abs(a.w - b.w) <= 1;
+      try {
+        await page.emulateMedia({ reducedMotion: "no-preference" });
+        await play();
+        const moved = await step("Play › Go (motion on)", go);
+        if (!moved?.smart || !moved.moves || !moved.names.includes("studio-play-smart-move")) throw new Error(`Ball does not run Smart animate: ${JSON.stringify(moved)}`);
+        if (!near(moved.first, moved.was) || moved.hidden !== "hidden") throw new Error(`Ball does not start where it was on A, or A's stays shown: ${JSON.stringify(moved)}`);
+        if (!(moved.last.y - moved.was.y > 100) || moved.last.w !== 96 || moved.opacity !== "1") throw new Error(`Ball does not end in its place on B, or B's frame fades as a whole: ${JSON.stringify(moved)}`);
+        await until(async () => (await playScreen(page)) === "b", { timeout: 3000, message: "B once Smart animate is over" });
+        await page.keyboard.press("Escape");
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        await play();
+        const faded = await step("Play › Go (reduced motion)", go);
+        if (!faded || faded.moves || faded.opacity !== "0" || faded.hidden !== "visible" || !near(faded.first, faded.last)) throw new Error(`with reduced motion B does not only fade in: ${JSON.stringify(faded)}`);
+        await until(async () => (await playScreen(page)) === "b", { timeout: 3000, message: "B once the fade is over" });
+        await page.keyboard.press("Escape");
+        return `smart written, no Direction · Slow · Play: Ball ${moved.was.w}px at y ${moved.was.y} → starts there → ${moved.last.w}px at y ${moved.last.y} · reduced motion: frame from opacity ${faded.opacity}, Ball still`;
+      } finally {
+        await page.emulateMedia({ reducedMotion: "reduce" });
+      }
+    },
+  },
 ];
+
+/** Two phone Screens that share a layer named Ball, smaller and higher on A, larger and lower on B (PT-64). */
+const smartPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { Box, Button, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="a" title="A" device="phone">
+        <Stack gap="md" padding="lg">
+          <Button onClick={proto.navigate("b")}>Go</Button>
+          <Box data-name="Ball" surface="surface" radius="md" width={64} height={64} />
+        </Stack>
+      </Screen>
+      <Screen id="b" title="B" device="phone">
+        <Stack gap="md" padding="lg">
+          <Box width={240} height={320} />
+          <Box data-name="Ball" surface="surface" radius="md" width={96} height={96} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
 
 /** The Prototype tab with nothing selected: its Variables section (W-52 B2). */
 async function varsPanel(page) {

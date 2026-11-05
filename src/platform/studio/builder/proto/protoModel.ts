@@ -63,13 +63,15 @@ export const HOVER_TRIGGER = "whileHovering";
 /** The actions a trigger offers: While hovering shows an overlay for as long as the pointer stays. */
 export const actionsFor = (trigger: string) => (trigger === HOVER_TRIGGER ? ACTIONS.filter((entry) => entry.value === "none" || entry.value === "open") : ACTIONS);
 
-/** Figma's animations between frames (Smart animate aside): the next one fades in (Dissolve), moves in over the current
- *  one (Move in), pushes it out (Push) or slides in while the current one shifts a little (Slide in). Back plays the
- *  way in backwards. No animation written = Dissolve (Play's look before animations could be picked). */
-export type ProtoAnimation = "instant" | "dissolve" | "move" | "push" | "slide";
+/** Figma's animations between frames: the next one fades in (Dissolve), its layers named as the current one's move from
+ *  where they were and the rest fade (Smart animate, W-51b: playSmart.ts), it moves in over the current one (Move in),
+ *  pushes it out (Push) or slides in while the current one shifts a little (Slide in). Back plays the way in backwards.
+ *  No animation written = Dissolve (Play's look before animations could be picked). */
+export type ProtoAnimation = "instant" | "dissolve" | "smart" | "move" | "push" | "slide";
 export const ANIMATIONS: ReadonlyArray<{ value: ProtoAnimation; label: string }> = [
   { value: "instant", label: "Instant" },
   { value: "dissolve", label: "Dissolve" },
+  { value: "smart", label: "Smart animate" },
   { value: "move", label: "Move in" },
   { value: "push", label: "Push" },
   { value: "slide", label: "Slide in" },

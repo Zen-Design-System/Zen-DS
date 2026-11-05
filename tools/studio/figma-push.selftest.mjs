@@ -9,7 +9,7 @@ import fs from "node:fs";
 import { figmaFromPage, figmaIdOf, figmaPackage, sidebarPatternProps } from "./figma-push.mjs";
 import { figmaDocId, pageFromFigma, repoMapping } from "./figma-pull.mjs";
 import { figmaChanges, mergeFigma } from "./figma-diff.mjs";
-import { DURATION_MS, EASING, EASINGS, protoOfReaction, transitionOf } from "./figma-proto.mjs";
+import { DURATION_MS, EASING, EASINGS, protoOfReaction, reactionOf, transitionOf } from "./figma-proto.mjs";
 import { NESTED_LAYERS } from "../../src/platform/studio/inspector/nestedLayers.generated.ts";
 
 let passed = 0;
@@ -3045,6 +3045,9 @@ export default function Page() {
   check("flow: the curves are Motion/Ease/Standard·Emphasized·Exit·Linear", [EASINGS.standard, EASINGS.emphasized, EASINGS.exit, EASINGS.linear], [token("Motion/Ease/Standard"), token("Motion/Ease/Emphasized"), token("Motion/Ease/Exit"), token("Motion/Ease/Linear")]);
   check("flow: an action's easing is its transition's curve; none or an unknown one is Emphasized", [transitionOf({ easing: "linear" }).easing, transitionOf({ animation: "push", easing: "exit" }).easing, transitionOf({}).easing, transitionOf({ easing: "toString" }).easing], [[0, 0, 1, 1], [0.4, 0, 1, 1], EASING, EASING]);
   const pulledEase = (easing) => protoOfReaction({ trigger: "ON_CLICK", action: "NAVIGATE", to: "screen:details", transition: { type: "DISSOLVE", duration: 0.2, easing } }).args;
+  // W-51b: Smart animate is Figma's SMART_ANIMATE (no direction; its duration and curve), and comes back as it went.
+  check("flow: Smart animate is SMART_ANIMATE with its duration and curve, no direction", [transitionOf({ animation: "smart", direction: "up", duration: "slow", easing: "standard" }), reactionOf("onClick", { action: "navigate", args: ["details", { animation: "smart" }] }).transition], [{ type: "SMART_ANIMATE", duration: 0.28, easing: [0.2, 0, 0, 1] }, { type: "SMART_ANIMATE", duration: 0.2, easing: EASING }]);
+  check("flow: pulled back, SMART_ANIMATE is Smart animate", protoOfReaction({ trigger: "ON_CLICK", action: "NAVIGATE", to: "screen:details", transition: { type: "SMART_ANIMATE", duration: 0.12, easing: [0.4, 0, 1, 1] } }).args, ["details", { animation: "smart", duration: "fast", easing: "exit" }]);
   check("flow: pulled back, a token's curve is its easing (float noise kept out), Emphasized and any other curve left out", [pulledEase([0.2, 0, 0, 1]), pulledEase([0.4000000059604645, 0, 1, 1]), pulledEase([0.16, 1, 0.3, 1]), pulledEase([0.42, 0, 0.58, 1])], [["details", { easing: "standard" }], ["details", { easing: "exit" }], ["details"], ["details"]]);
   // Round trip: the reactions come back as the page's actions.
   const back = (frameId) => pageFromFigma({ ...byId[frameId], id: "9:1" }, { mapping }).text;

@@ -45,7 +45,9 @@ Last updated: 2026-11-05.
   Figma push/pull (`figma-proto.mjs` `EASINGS`; the plugin already writes any curve); E2E PT-60. W-58 required field:
   Conditional "is empty" / "is not empty" (`varTestOf` / `varTestCode` in `protoVarsModel.ts`), Assets template
   "Form · required field" (palette `vars`, op pasteCode / insertChild `vars` declares them: `declareVarsEdit`); E2E
-  PT-61, PT-62. Next: Smart animate (W-51b, M); B4 pull optional.
+  PT-61, PT-62. W-51b Smart animate (2026-11-05, branch `claude/studio-smart-animate-20261105`): Animation "Smart
+  animate", Play matches layers by name path (`smartMatch.ts`) and moves them FLIP (`playSmart.ts`, builder.css
+  `studio-play-smart-*`), reduced motion = Dissolve, push/pull `SMART_ANIMATE`; E2E PT-64. Next: B4 pull optional.
 - **Studio Popover option (2026-10-30, user 2026-10-28 via Bug):** branch `zen/feat/studio-popover-option-20261030`.
   Every layer that takes a click: Design tab switch "Popover" and Prototype On click › Open popover (an Overlay holding a
   Popover, `proto.open`; a Chip uses `popoverItems`); rows Sample or a page-data list (`builder/proto/popoverModel.ts`,

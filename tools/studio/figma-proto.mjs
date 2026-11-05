@@ -5,7 +5,7 @@
 //   A node's reaction (push and pull share it):
 //     { trigger: "ON_CLICK" | "ON_HOVER" | "AFTER_TIMEOUT", timeout?: seconds,
 //       action: "NAVIGATE" | "OVERLAY" | "CLOSE" | "BACK", to?: "screen:<id>[:<state>]" | "overlay:<id>",
-//       transition?: { type: "DISSOLVE" | "MOVE_IN" | "PUSH" | "SLIDE_IN", direction?: "LEFT" | "RIGHT" | "TOP" | "BOTTOM",
+//       transition?: { type: "DISSOLVE" | "SMART_ANIMATE" | "MOVE_IN" | "PUSH" | "SLIDE_IN", direction?: "LEFT" | "RIGHT" | "TOP" | "BOTTOM",
 //                      duration: seconds, easing: [x1, y1, x2, y2] },
 //       layer?: a nested layer's path in the instance (a Dialog's Primary button), or its names one by one }
 //   With prototype variables (W-52 B3, docs/research/studio-prototype-variables-2026-10-31.md §4) a reaction holds several
@@ -21,7 +21,8 @@
 //
 // The Studio's own words (src/platform/studio/builder/proto/protoModel.ts): an action is `proto.<action>(target?,
 // options?)`, its trigger the prop it sits in (onClick, whileHovering; a Screen's onDelay), its options { animation,
-// direction, duration, easing, delay }. Instant has no transition (Figma's Instant). Figma has no Show toast, Open link (here),
+// direction, duration, easing, delay }. Instant has no transition (Figma's Instant); Smart animate is Figma's SMART_ANIMATE
+// (W-51b: Figma matches the layers by the names the push writes). Figma has no Show toast, Open link (here),
 // Filter table or Change step: they stay in the Studio, with a note.
 
 /** Motion/Duration (tokens/source/motion.json, ms) and Motion/Ease, the curves an action picks (W-51a); Play's own,
@@ -33,9 +34,9 @@ export const DEFAULT_DELAY_MS = 800;
 
 /** The Studio's trigger props as Figma's triggers. */
 export const TRIGGERS = { onClick: "ON_CLICK", whileHovering: "ON_HOVER", onDelay: "AFTER_TIMEOUT" };
-const TRANSITIONS = { dissolve: "DISSOLVE", move: "MOVE_IN", push: "PUSH", slide: "SLIDE_IN" };
+const TRANSITIONS = { dissolve: "DISSOLVE", smart: "SMART_ANIMATE", move: "MOVE_IN", push: "PUSH", slide: "SLIDE_IN" };
 const DIRECTIONS = { left: "LEFT", right: "RIGHT", up: "TOP", down: "BOTTOM" };
-const ANIMATIONS = ["instant", "dissolve", "move", "push", "slide"];
+const ANIMATIONS = ["instant", "dissolve", "smart", "move", "push", "slide"];
 const MOVES = new Set(["move", "push", "slide"]);
 
 /** Where an action keeps its options: after its target (navigate, open), first for close and back (protoModel optionsAt). */

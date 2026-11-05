@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { useToast, type ToastOptions } from "../../../../components/Toast";
 import { componentsOf, renderNode, type LocalComponents, type PageNode, type PageTree } from "../render/renderPage";
-import { frameMotion, motionProps } from "./playMotion";
+import { frameMotion, motionProps, overlayMotion } from "./playMotion";
+import { smartAnimate } from "./playSmart";
+import { smartPairs, smartPaths } from "./smartMatch";
 import { useAnchoredPosition } from "../../../../components/Popover/useAnchoredPosition";
 import { itemElement, layerElements } from "./protoDom";
 import { choiceItemsOf, choicesOf, DEFAULT_DELAY, filterOf, filterValuesOf, findNode, linksOf, openerOf, optionsOf, OVERLAY_START, screenTargetOf, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, type ProtoOptions } from "./protoModel";
@@ -25,6 +27,9 @@ import { protoHandler, Screen, type PageDevice, type PlayFilter, type PlayLive, 
  * opens next to the element pressed (or the layer that opens it on the Screen), and a DatePicker or Popover in an Overlay
  * anchors itself to it (its own `anchorRef`), as Figma's Manual overlay sits by its trigger; Filter table and Change step
  * drive the shown Screen's Table and Stepper, until the next Screen shows (each visit starts as drawn).
+ *
+ * Smart animate (W-51b): Navigate to and Back between two Screens move the layers they share by name (smartMatch.ts,
+ * playSmart.ts); an overlay opened with it dissolves.
  *
  * Prototype variables (W-52 B, docs/research/studio-prototype-variables-2026-10-31.md §2.4): the page's `vars` start as
  * written and Set variable changes them for the whole run, through Navigate to, Back and overlays (Figma's); Restart starts
@@ -304,13 +309,24 @@ export function PlayScreens({ flow, file, overlaySafe, library }: { flow: PlayFl
   const manual = Boolean(overlayNode && !selfPlaced && literal(overlayNode, "position") === "manual");
   const anchor = useOverlayAnchor(flow, file, screensRef, Boolean(overlayChild && (selfPlaced ? anchorsItself(overlayChild.name) : manual)));
   const anchorRef = useMemo(() => ({ current: (anchor ?? null) as HTMLElement | null }), [anchor]);
+  // Smart animate (playSmart.ts): once both frames are laid out, before the first paint, the matching layers start where
+  // they were; put back when the frame going away is dropped.
+  const enteringRef = useRef<HTMLDivElement>(null);
+  const leavingRef = useRef<HTMLDivElement>(null);
+  const smart = entering?.options?.animation === "smart" && leaving && leavingNode && screen ? { from: leavingNode, to: screen } : null;
+  useLayoutEffect(() => {
+    if (!smart || !enteringRef.current || !leavingRef.current) return undefined;
+    return smartAnimate(leavingRef.current, enteringRef.current, file, smartPairs(smart.from, smart.to), [...smartPaths(smart.to).values()]);
+    // Once per change of frames: the pairs are read from the trees the frames were drawn from.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leaving, currentKey]);
   const safe = (value: number | string) => (typeof value === "number" ? `${value}px` : value);
   const blankSize = (prop: string) => { const value = blank ? literal(blank, prop) : undefined; return typeof value === "number" ? value : undefined; };
   const closeOn = (open: boolean) => { if (!open) closeOverlay(); };
   /** The Overlay's box: its layer where the Overlay says (Figma's overlay position; Manual: by its anchor), over a dimmed
    *  screen when asked; a press outside it closes it unless the Overlay says not to. */
   const placed = (node: PageNode, open: NonNullable<typeof overlay>, content: ReactNode) => {
-    const motion = motionProps(open.hover ? null : frameMotion(open.options, "enter"));
+    const motion = motionProps(open.hover ? null : overlayMotion(open.options));
     // Manual with nothing to sit by (no layer that opens it is drawn) shows at the center.
     const position = String(literal(node, "position") ?? "center");
     const anchored = manual && anchor ? anchor : null;
@@ -341,7 +357,7 @@ export function PlayScreens({ flow, file, overlaySafe, library }: { flow: PlayFl
     <>
       <div ref={screensRef} className="studio-player__screens">
         {screen ? (
-          <div key={currentKey} className="studio-player__screen" {...motionProps(entering ? frameMotion(entering.options, "enter", entering.reverse) : null)}>
+          <div key={currentKey} ref={enteringRef} className="studio-player__screen" {...motionProps(entering ? frameMotion(entering.options, "enter", entering.reverse) : null)}>
             {renderNode(screen, { mock: ctx.mock }, shownCtx)}
           </div>
         ) : alone ? (
@@ -352,6 +368,7 @@ export function PlayScreens({ flow, file, overlaySafe, library }: { flow: PlayFl
         {leaving && leavingNode ? (
           <div
             key={leaving.key}
+            ref={leavingRef}
             className="studio-player__screen"
             data-leaving=""
             inert

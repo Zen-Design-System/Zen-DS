@@ -10,6 +10,8 @@ import { DEFAULT_ANIMATION, DEFAULT_DIRECTION, DEFAULT_DURATION, DEFAULT_EASING,
  * Forward, the frame coming in is on top: it fades in (Dissolve) or moves in from the side the direction points away
  * from (Move in, Push, Slide in); the one going away stays (Dissolve, Move in), is pushed out (Push) or shifts by a third
  * (Slide in). Back plays the same way in backwards: the frame going away is on top and leaves the way it came.
+ * Smart animate, both ways: the frame coming in is on top and the one going away stays; its layers move (playSmart.ts).
+ * With reduced motion it is Dissolve: the frame coming in starts at Motion/Movement's opacity (0 then, else 1).
  */
 
 /** Where the next frame comes from, per direction it moves (a fraction of its size on each axis). */
@@ -17,7 +19,7 @@ const FROM: Readonly<Record<ProtoDirection, readonly [number, number]>> = { left
 /** How far the current frame shifts under a Slide in. */
 const SLIDE_SHIFT = 0.3;
 
-export type Motion = { style: CSSProperties; top: boolean };
+export type Motion = { style: CSSProperties; top: boolean; smart?: boolean };
 
 const percent = (value: number) => `${Math.round(value * 1000) / 10}%`;
 
@@ -30,6 +32,10 @@ export function frameMotion(options: ProtoOptions | undefined, role: "enter" | "
     "--studio-play-duration": `var(--zen-motion-duration-${options?.duration ?? DEFAULT_DURATION})`,
     "--studio-play-ease": `var(--zen-motion-ease-${options?.easing ?? DEFAULT_EASING})`,
   };
+  if (animation === "smart") {
+    if (role === "enter") vars["--studio-play-from-opacity"] = "var(--zen-motion-movement, 1)";
+    return { style: vars as CSSProperties, top: role === "enter", smart: role === "enter" };
+  }
   const from = (factor: number) => { vars["--studio-play-from-x"] = percent(x * factor); vars["--studio-play-from-y"] = percent(y * factor); };
   const to = (factor: number) => { vars["--studio-play-to-x"] = percent(x * factor); vars["--studio-play-to-y"] = percent(y * factor); };
   if (!reverse && role === "enter") {
@@ -49,5 +55,8 @@ export function frameMotion(options: ProtoOptions | undefined, role: "enter" | "
   return { style: vars as CSSProperties, top: role === "enter" ? !reverse : reverse };
 }
 
+/** The motion of an overlay coming in: Smart animate has no layers to match there, so it dissolves (Figma's). */
+export const overlayMotion = (options: ProtoOptions | undefined) => frameMotion(options?.animation === "smart" ? { ...options, animation: "dissolve" } : options, "enter");
+
 /** The attributes that run a motion on its element (none for Instant). */
-export const motionProps = (motion: Motion | null) => (motion ? { "data-motion": "", "data-top": motion.top ? "" : undefined, style: motion.style } : {});
+export const motionProps = (motion: Motion | null) => (motion ? { "data-motion": "", "data-top": motion.top ? "" : undefined, "data-smart": motion.smart ? "" : undefined, style: motion.style } : {});

@@ -44,3 +44,25 @@ Approved 2026-11-05 (Giám sát picked BACKLOG-user-and-later P3 "A language set
   works · 0 broken; "Page mapping" ✗ (PlatformShowcases.tsx maps to no page) → `--only=button,table` PASS (audit,
   dark, behaviour; contact sheets unchanged). After the Language-section move: `qa:quick` PASS (75 E2E rows), S-12
   works. `npm run build` exit 0.
+
+## Smart animate in prototypes (W-51b, session "Add Smart animate to Studio prototypes", tier M; branch claude/studio-smart-animate-20261105)
+
+Approved 2026-10-31 (`docs/research/studio-prototype-variables-2026-10-31.md` §5 / §7 item 10); the user asked on
+2026-11-05 for a session on the next item. E2E id PT-64 confirmed by Giám sát.
+
+Spec card:
+
+| What | Decision |
+| --- | --- |
+| Where | Prototype tab › Interactions › Animation: "Smart animate" after Dissolve, Figma's word and order. No Direction row; Duration and Easing (W-51a) as for any animation. Written `{ animation: "smart" }`. |
+| Matching (`proto/smartMatch.ts`) | Figma's: same layer name and same parent names, from the Screen's top-level layers down; siblings sharing a name pair in order. A name = data-name if given, else a frame or shape by its kind without the page-wide number ("Frame": a ⌘D-duplicated Screen keeps them), a text by its words, an instance by its component (any variant). |
+| Play (`proto/playSmart.ts`, `playMotion.ts`, `builder.css`) | Both ways (Navigate to, Back): the Screen coming in is on top; each matched layer starts at its match's place, size and opacity and moves (FLIP: `translate` + `scale` only, times `--zen-motion-movement`, its nested matches relative to it); the match going away hides; B's canvas colour and its other layers fade in, so what A does not share fades out under it. Duration and curve are the action's Motion tokens. `.map` rows pair in order. |
+| Reduced motion | Movement 0: nothing moves; the frame coming in starts at opacity `var(--zen-motion-movement)` = 0, i.e. Dissolve. |
+| Overlay | Open overlay with Smart animate dissolves (nothing to match). |
+| Figma | Push `SMART_ANIMATE` (duration, curve, no direction); pull reads it back. The plugin writes any transition type (`applyReactions` passes `t.type`): no plugin change. Figma matches by the names the push writes. |
+| Export | The code switches screens without animating (as before); the handoff says "with Smart animate (layers named alike move)". |
+
+Checks: protoModel selftest 67 (written code, names, pairs), figma-push selftest 526 (push and pull), handoff 15, the
+whole `studio:selftest`, tsc, style-guard, usage harness on builder.css. E2E PT-64 (Smart animate picked → code; Play
+with motion: Ball starts where it was at 64 px, ends lower at 96 px, A's hidden, B's frame not faded; reduced motion:
+the frame from opacity 0, Ball still).
