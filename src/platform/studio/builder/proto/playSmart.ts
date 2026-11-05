@@ -2,8 +2,9 @@ import { elementFiber, hitOf, walkAnnotated } from "../../select/picker";
 
 /*
  * Play's Smart animate (W-51b, Figma's): the Screen coming in is drawn on top, where it ends; each of its layers that
- * matches one of the Screen going away (smartMatch.ts) starts where that one was, at its size and opacity, and moves to
- * its own place (FLIP: transform and opacity only, harness motion/no-layout-animation); the one going away hides. Its
+ * matches one of the Screen going away (smartMatch.ts) starts where that one was, at its opacity (and its size, for a
+ * layer that holds no other), and moves to its own place (FLIP: transform and opacity only, harness
+ * motion/no-layout-animation); the one going away hides. Its
  * other layers fade in, and its canvas fades in over the Screen going away, so what that one does not share fades out.
  * The keyframes are builder.css's `studio-play-smart-*`: the action's Motion/Duration and Motion/Ease, distances and
  * scale steps times --zen-motion-movement. With reduced motion (movement 0) nothing here runs: the Screen coming in fades
@@ -68,19 +69,28 @@ export function smartAnimate(leaving: Element, entering: Element, file: string, 
   }
   const touched: Element[] = [];
   const mark = (element: Element, attribute: string) => { element.setAttribute(attribute, ""); touched.push(element); };
-  // Each moved layer starts where its match was, inside the moved layer that holds it (whose own start it rides).
-  for (const [element, { from, was, box }] of moved) {
-    let holder: { was: Box; box: Box } | undefined;
-    for (let up = element.parentElement; up && up !== entering && !holder; up = up.parentElement) holder = moved.get(up);
-    const scaleX = holder ? holder.was.width / holder.box.width : 1;
-    const scaleY = holder ? holder.was.height / holder.box.height : 1;
-    const x = holder ? (was.x - holder.was.x) / scaleX - (box.x - holder.box.x) : was.x - box.x;
-    const y = holder ? (was.y - holder.was.y) / scaleY - (box.y - holder.box.y) : was.y - box.y;
+  // The layers the Screen coming in draws (every instance).
+  const own = new Set([...after.values()].flat(2));
+  // Each moved layer starts where its match was. One that holds other layers only moves, its top-left corner from its
+  // match's (scaling it would squash what it holds while they move on their own); one that holds none moves its centre
+  // and scales from its match's size. A layer inside another moved one rides that one's start and adds its own.
+  const holdsLayers = (element: Element) => [...own].some((layer) => layer !== element && element.contains(layer));
+  const start = new Map<Element, { x: number; y: number; scaleX: number; scaleY: number }>();
+  for (const [element, { was, box }] of moved) {
+    const whole = holdsLayers(element);
+    start.set(element, whole
+      ? { x: was.x - was.width / 2 - (box.x - box.width / 2), y: was.y - was.height / 2 - (box.y - box.height / 2), scaleX: 1, scaleY: 1 }
+      : { x: was.x - box.x, y: was.y - box.y, scaleX: was.width / box.width, scaleY: was.height / box.height });
+  }
+  for (const [element, { from }] of moved) {
+    const mine = start.get(element)!;
+    let holder: { x: number; y: number } | undefined;
+    for (let up = element.parentElement; up && up !== entering && !holder; up = up.parentElement) holder = start.get(up);
     const style = (element as HTMLElement | SVGElement).style;
-    style.setProperty("--studio-smart-x", px(x));
-    style.setProperty("--studio-smart-y", px(y));
-    style.setProperty("--studio-smart-sx", ratio(was.width / box.width / scaleX));
-    style.setProperty("--studio-smart-sy", ratio(was.height / box.height / scaleY));
+    style.setProperty("--studio-smart-x", px(mine.x - (holder?.x ?? 0)));
+    style.setProperty("--studio-smart-y", px(mine.y - (holder?.y ?? 0)));
+    style.setProperty("--studio-smart-sx", ratio(mine.scaleX));
+    style.setProperty("--studio-smart-sy", ratio(mine.scaleY));
     style.setProperty("--studio-smart-opacity", getComputedStyle(from).opacity || "1");
     mark(element, MOVE);
     mark(from, HIDE);
@@ -89,7 +99,6 @@ export function smartAnimate(leaving: Element, entering: Element, file: string, 
   // only its own layers (a Card's new child), never the parts of the component.
   const holds = new Set<Element>();
   for (const element of moved.keys()) for (let up = element.parentElement; up && up !== entering && !holds.has(up); up = up.parentElement) holds.add(up);
-  const own = new Set([...after.values()].flat(2));
   const walk = (parent: Element, inMoved: boolean) => {
     for (const child of parent.children) {
       if (moved.has(child)) walk(child, true);
