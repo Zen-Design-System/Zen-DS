@@ -161,11 +161,11 @@ function PresentButton() {
 /** Open on phone for a page you made (Play's QR code, here as B4's Share), from the selected Screen. */
 function PhoneShare({ id }: { id: string }) {
   const record = usePage(id);
-  const { preview, brand } = useCanvasPreview();
+  const { preview, brand, locale } = useCanvasPreview();
   const selection = useStudio((state) => state.selection);
   const frameId = selection?.kind === "frame" ? selection.frameId : selection?.frameId;
   const start = frameId?.startsWith("screen:") ? frameId.slice("screen:".length) : null;
-  return <OpenOnPhone page={id} title={record?.title ?? id} text={record?.text} start={start} modes={preview} brand={brand} />;
+  return <OpenOnPhone page={id} title={record?.title ?? id} text={record?.text} start={start} modes={preview} brand={brand} locale={locale} />;
 }
 
 /** The admin's drafts (count · Save all) or the viewer's note, then Export on a page you made (B4's primary action; the

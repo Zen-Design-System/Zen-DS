@@ -200,7 +200,7 @@ export function StudioApp() {
   const localPage = useStudio((state) => state.localPage);
   const selection = useStudio((state) => state.selection);
   const chromeTheme = useStudio((state) => state.chromeTheme);
-  const { preview, brand } = useCanvasPreview();
+  const { preview, brand, locale } = useCanvasPreview();
   const leftTab = useStudio((state) => state.leftTab);
   const drawer = useStudio((state) => state.drawer);
   const presenting = useStudio((state) => state.presenting);
@@ -681,7 +681,7 @@ export function StudioApp() {
               zoom with it); this layer takes what renders outside a frame, and a frame's portals until its layer mounts. The class official-portal-root is what examples and the full-screen code
               look for. data-zen-isolation-root: a modal's isolation (inert) stays inside this layer, so the canvas keeps
               taking Studio's clicks (Select, E2E O-02/O-04) and the chrome stays usable. */}
-          <div ref={setPreviewPortal} className="official-portal-root studio-portal-root" data-zen-isolation-root="" {...previewAttributes(preview, brand)} />
+          <div ref={setPreviewPortal} className="official-portal-root studio-portal-root" data-zen-isolation-root="" lang={locale} {...previewAttributes(preview, brand)} />
           {/* Zoom, tools and tip float above that layer: an overlay left open never covers them (canvas/CanvasChrome). */}
           {docPage ? null : <CanvasChrome />}
           {docPage ? null : <AiChip />}

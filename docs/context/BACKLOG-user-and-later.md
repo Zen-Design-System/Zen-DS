@@ -43,10 +43,6 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
   asks for it.
-- **P3 · A language setting for Studio projects (user, 2026-10-25: "Để đợt sau"; new):** Studio pages set no
-  `locale`, so every page renders en-US: Table date cells (`edit: "date"`, #294) show "10/25", not "25/10", on the
-  canvas, in Play and in Figma. A project (or page) setting such as "Ngôn ngữ: Tiếng Việt" would set ZenProvider
-  `locale`, each frame's `lang` and the push's text.
 - **P3 · Figma screens older than the 2026-10-24 rules (the designer's file; audit warnings; user 2026-10-25: "sẽ làm
   sau"):** ◇ Master-Layout · Example › B1 · Column has a 280 Search in Trailing-Slots (`search/toolbar-width`);
   ◆ HR-Platform has 6 Paid / Unpaid Badges and Master-Layout Example › B4 · Column a Draft Badge with Leading-Icon off

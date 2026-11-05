@@ -3,14 +3,15 @@ import { cachedPage, usePageProject } from "../builder/store/pageStore";
 import { headerProject } from "../builder/store/pageModel";
 import { studioStore, useStudio } from "../store";
 import type { StudioPreviewSettings } from "../types";
-import { projectBrand, projectModes, type Project } from "../../../../tools/studio/project-theme.mjs";
+import { DEFAULT_LOCALE, projectBrand, projectModes, type Project, type ProjectLocale } from "../../../../tools/studio/project-theme.mjs";
 import { DRAFTS, projectById, useProject } from "./projectStore";
 
 /*
  * Which Studio project is open (2026-10-17): on a page, the project its header names (none: Drafts); on the Studio home,
  * the one picked there (?space=studio&project=<id>; "drafts" for Drafts, nothing for the projects grid). The canvas then
  * draws in that project's modes: its Base Colors mode (data-brand="p-<id>") and its component theme, size, radius,
- * typography and emphasis, over the Studio's own preview modes (Light / Dark stays the canvas switch).
+ * typography and emphasis, over the Studio's own preview modes (Light / Dark stays the canvas switch), and in its
+ * language (`locale`: dates, built-in labels, `lang`; project/projectLocale.tsx), US English for Drafts.
  */
 
 type HomeView = null | typeof DRAFTS | string;
@@ -87,19 +88,29 @@ export function useActiveProjectId(): string | null {
 
 export const useActiveProject = (): Project | null => useProject(useActiveProjectId());
 
-/** The canvas's preview modes and brand with a project's modes over them (none while its theme library is off). */
-export function withProject(preview: StudioPreviewSettings, project: Project | null): { preview: StudioPreviewSettings; brand: string } {
-  return project && project.libraries.theme ? { preview: { ...preview, ...projectModes(project.theme) }, brand: projectBrand(project.id) } : { preview, brand: "zen" };
+export type CanvasPreview = { preview: StudioPreviewSettings; brand: string; locale: ProjectLocale };
+
+/** The canvas's preview modes and brand with a project's modes over them (none while its theme library is off), and the
+ *  project's language (a language is not part of the theme: it stays with the theme library off). */
+export function withProject(preview: StudioPreviewSettings, project: Project | null): CanvasPreview {
+  const locale = project?.locale ?? DEFAULT_LOCALE;
+  return project && project.libraries.theme ? { preview: { ...preview, ...projectModes(project.theme) }, brand: projectBrand(project.id), locale } : { preview, brand: "zen", locale };
 }
 
 /** The canvas's modes for the open project (the world, its overlay layer, Present, Play, the insert previews). */
-export function useCanvasPreview(): { preview: StudioPreviewSettings; brand: string } {
+export function useCanvasPreview(): CanvasPreview {
   const preview = useStudio((state) => state.preview);
   const project = useActiveProject();
   return useMemo(() => withProject(preview, project), [preview, project]);
 }
 
 /** The modes a page's frames render in, outside React (the export): its project's over the Studio's. */
-export function previewForPage(pageId: string, preview: StudioPreviewSettings): { preview: StudioPreviewSettings; brand: string } {
+export function previewForPage(pageId: string, preview: StudioPreviewSettings): CanvasPreview {
   return withProject(preview, projectById(headerProject(cachedPage(pageId)?.text ?? "")));
+}
+
+/** A page's language, outside React (the Figma push, the exported code): its project's, US English for a draft. `text`:
+ *  the page's text when the caller has it (a page read for the export, not cached yet). */
+export function pageLocale(pageId: string, text = cachedPage(pageId)?.text ?? ""): ProjectLocale {
+  return projectById(headerProject(text))?.locale ?? DEFAULT_LOCALE;
 }

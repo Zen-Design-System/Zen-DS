@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { authorized } from "../api";
 import { run, SETTINGS } from "../builder/store/pageStore";
-import { normalizeProject, projectIdFor, projectThemeCss, type Project, type ProjectLibraries, type ProjectTheme } from "../../../../tools/studio/project-theme.mjs";
+import { normalizeProject, projectIdFor, projectThemeCss, type Project, type ProjectLibraries, type ProjectLocale, type ProjectTheme } from "../../../../tools/studio/project-theme.mjs";
 
 /*
  * Studio projects (user, 2026-10-17: "tạo dự án như Figma … set theme cho Dự án … sau vẫn vào setting của Project điều
@@ -132,20 +132,20 @@ async function commit(next: Project[]) {
   channel?.postMessage("changed");
 }
 
-/** Creates a project from a name and a theme; returns it (its id is free and never "drafts"). */
-export async function createProject(name: string, theme: ProjectTheme): Promise<Project> {
+/** Creates a project from a name, a theme and its pages' language; returns it (its id is free and never "drafts"). */
+export async function createProject(name: string, theme: ProjectTheme, locale?: ProjectLocale): Promise<Project> {
   await load();
   const now = Date.now();
   const id = projectIdFor(name, new Set([DRAFTS, ...projects.map((project) => project.id)]));
-  const { project, errors } = normalizeProject({ id, name, theme, createdAt: now, updatedAt: now });
+  const { project, errors } = normalizeProject({ id, name, theme, locale, createdAt: now, updatedAt: now });
   if (!project) throw new Error(errors[0] ?? "Not a project");
   markSynced(project.id, await serverWrite("write", { project }));
   await commit([...projects, project]);
   return project;
 }
 
-/** Saves a project's new name or theme (Project settings), or its libraries (the Libraries dialog). */
-export async function updateProject(id: string, change: { name?: string; theme?: ProjectTheme; libraries?: ProjectLibraries }): Promise<Project> {
+/** Saves a project's new name, theme or language (Project settings), or its libraries (the Libraries dialog). */
+export async function updateProject(id: string, change: { name?: string; theme?: ProjectTheme; libraries?: ProjectLibraries; locale?: ProjectLocale }): Promise<Project> {
   await load();
   const current = projects.find((project) => project.id === id);
   if (!current) throw new Error("The project is gone");

@@ -6,6 +6,7 @@
 //
 //   defaultProjectTheme()            the Zen look (Zen + Gray, Brand-S1, Compact, Rounded, Dashboard)
 //   normalizeProject(input)          { project, errors }: a project.json made safe (unknown values → defaults)
+//   PROJECT_LOCALES                  the languages a project's pages can be in (its `locale`, en-US by default)
 //   projectBrand(id)                 "p-<id>": the project's data-brand value
 //   projectPalettes(theme)           the Primary / Neutral ramps (12 solid + 12 alpha, Light and Dark) and On-Brand
 //   projectThemeCss(id, theme)       the mode as CSS (what theme.css holds and Studio injects)
@@ -122,6 +123,16 @@ export function normalizeLibraries(input) {
   return Object.fromEntries(PROJECT_LIBRARIES.map((key) => [key, value[key] !== false]));
 }
 
+/**
+ * The language a project's pages are in (user, 2026-10-25, BACKLOG-user-and-later P3): ZenProvider's `locale` for its
+ * frames on the canvas, in Play and Present, on a phone and in the exports (dates, the components' built-in labels, the
+ * frames' `lang`), and the Figma push's text. The languages labels.ts ships; a project without one is US English, so
+ * nothing changes until the person picks another. Each named in its own language.
+ */
+export const PROJECT_LOCALES = { "en-US": "English", "vi-VN": "Tiếng Việt" };
+export const DEFAULT_LOCALE = "en-US";
+export const normalizeLocale = (input) => (Object.hasOwn(PROJECT_LOCALES, input) ? input : DEFAULT_LOCALE);
+
 /** project.json made safe. `errors` names what was replaced by a default; a bad id or name is fatal (project null). */
 export function normalizeProject(input) {
   const errors = [];
@@ -138,7 +149,9 @@ export function normalizeProject(input) {
     updatedAt: Number.isFinite(value.updatedAt) ? value.updatedAt : now,
     theme: normalizeTheme(value.theme, errors),
     libraries: normalizeLibraries(value.libraries),
+    locale: normalizeLocale(value.locale),
   };
+  if (value.locale !== undefined && project.locale !== value.locale) errors.push(`locale: ${JSON.stringify(value.locale)} is not one of ${Object.keys(PROJECT_LOCALES).join(", ")}`);
   return { project, errors };
 }
 

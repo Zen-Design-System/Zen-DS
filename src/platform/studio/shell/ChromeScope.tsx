@@ -10,7 +10,8 @@ import "./shell.css";
  * corner ladder on a Base of 8, buttons still pills),
  * Emphasis Light (Figma UI3's lighter weights and 1px focus stroke; user, 2026-10-15), Standard contrast, the chrome light/dark. Every mode is set, so chrome inside a preview (Play and Present's bar and
  * Modes panel sit in the presented example's layer) never takes the example's modes (user, 2026-10-09).
- * Each chrome region (toolbar, side panels, canvas overlays) is its own scope instead of one provider around the app:
+ * The chrome is in US English whatever the open project's language (project/projectLocale.tsx): a bar inside a played
+ * page keeps its own words. Each chrome region (toolbar, side panels, canvas overlays) is its own scope instead of one provider around the app:
  * tokens.css re-resolves the component theme for every [data-theme] under a [data-component-theme] ancestor, so an
  * S7 ancestor would leak into the canvas previews. Overlays of the chrome portal into one shared chrome portal root.
  */
@@ -38,6 +39,7 @@ export function ChromeScope({ as = "div", className, children, ...rest }: Chrome
       contrast={chromeModes.contrast}
       brand="zen"
       breakpoint="desktop"
+      locale="en-US"
       paint={false}
       portal={false}
       syncDocument={false}

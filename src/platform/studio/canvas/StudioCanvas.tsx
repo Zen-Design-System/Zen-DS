@@ -21,6 +21,7 @@ import { CANVAS_STATUS_ID } from "./CanvasStatus";
 import { useKeepSelectionInView } from "./keepInView";
 import "./canvas.css";
 import { useCanvasPreview } from "../project/activeProject";
+import { LocaleScope } from "../project/projectLocale";
 
 /** Keys and controls that keep Space for themselves (a focused button presses on Space). */
 const SPACE_OWNERS = "input, textarea, select, [contenteditable]:not([contenteditable='false']), button, a[href], [role='button'], [role='tab'], [role='menuitem'], [role='option'], [role='switch'], [role='checkbox'], [role='radio'], [role='slider'], [role='spinbutton']";
@@ -78,7 +79,7 @@ function canScroll(element: Element, dx: number, dy: number) {
  */
 export function StudioCanvas({ label, viewKey, children }: { label: string; viewKey: string; children: ReactNode }) {
   const tool = useStudio((state) => state.tool);
-  const { preview, brand } = useCanvasPreview();
+  const { preview, brand, locale } = useCanvasPreview();
   const [viewport, setViewportElement] = useState<HTMLDivElement | null>(null);
   const [world, setWorld] = useState<HTMLDivElement | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -344,8 +345,8 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
       data-layout-guides={view.layoutGuides || undefined}
     >
       <div ref={gridRef} className="studio-grid" aria-hidden="true" />
-      <div ref={setWorld} className="studio-world" {...previewAttributes(preview, brand)}>
-        <PlatformTypographyContext value={preview.typography}>{children}</PlatformTypographyContext>
+      <div ref={setWorld} className="studio-world" lang={locale} {...previewAttributes(preview, brand)}>
+        <LocaleScope locale={locale}><PlatformTypographyContext value={preview.typography}>{children}</PlatformTypographyContext></LocaleScope>
       </div>
       <div ref={pixelRef} className="studio-pixel-grid" data-hidden="true" aria-hidden="true" />
       {/* Figma's layout guides over the frames (⌃G, F10). */}

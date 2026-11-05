@@ -25,6 +25,7 @@ import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma, subActionFromFigma
 import { BADGE_STATUS, changedProgress, propertyValueElement } from "./figma-property.mjs";
 import { runsFromSegments } from "./text-runs.mjs";
 import { dayFromText } from "../../src/components/Table/tableDates.ts";
+import { zenLabels } from "../../src/components/_shared/labels.ts";
 import { ACTION_LAYERS, protoOfReaction } from "./figma-proto.mjs";
 import { instanceLayerPaths } from "./instance-paths.mjs";
 import { gradientFillProps, READ_GRADIENT_FILL } from "./figma-gradient.mjs";
@@ -37,6 +38,9 @@ import { tokens } from "../../src/tokens/generated.ts";
 import { contentTones, contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { arcFromData, parseVectorPath, STAR_RATIO } from "../../src/components/Shape/geometry.ts";
 import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL, shapeFillTokens, shapeStrokeTokens } from "../../src/components/Shape/paint.ts";
+
+/** Date-Picker/Mobile's own heading words: Figma's "Heading" and the default title in each language the push writes. */
+const DEFAULT_SHEET_TITLES = new Set(["Heading", ...Object.values(zenLabels).flatMap((labels) => [labels.chooseDate, labels.chooseDates])]);
 
 /* ── layer names ────────────────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -2649,7 +2653,8 @@ function convertNode(node, ctx) {
       if (/^Multiple/.test(node.props?.Variant ?? "")) props.selectionMode = literal("range");
       const title = (node.nested ?? []).find((nested) => nested.path.split("/").pop() === "Main-Heading-Text");
       const text = title?.texts?.["Header-Text"] ?? title?.text;
-      if (text && !["Choose date", "Choose dates", "Heading"].includes(text)) props.title = literal(text);
+      // The default heading in any language the push writes (labels.ts) stays the default.
+      if (text && !DEFAULT_SHEET_TITLES.has(text)) props.title = literal(text);
     }
     if (set.code === "ChatMessage") chatMessageParts(node, props, ctx);
     // An Avatar's Status layer: its .Primitives/Avatar/Status option is the status (figma-push writes it there).
@@ -3661,14 +3666,15 @@ if (typeof process !== "undefined" && process.argv?.[1] && import.meta.url === (
     // Each use_figma answer saved to a file: one file, or one per part.
     const files = process.argv.slice(3).filter((item) => !item.startsWith("--"));
     const frame = joinParts(files.map((file) => fs.readFileSync(file, "utf8").replace(/\r?\n$/, "")));
-    const { doc, notes } = pageFromFigma(frame, { title: option("title"), mapping: await repoMapping(), file: option("file") ?? null });
+    // --locale: the project's language the push wrote its dates in (a Vietnamese project's "25/10").
+    const { doc, notes } = pageFromFigma(frame, { title: option("title"), mapping: await repoMapping(), file: option("file") ?? null, locale: option("locale") ?? "en-US" });
     // With each element's Figma id (data-zen-id): Import in the Studio keeps them, and a later pull updates the page.
     const text = printPage(doc, { ids: !process.argv.includes("--no-ids") });
     if (option("out")) fs.writeFileSync(option("out"), text);
     else process.stdout.write(text);
     for (const note of notes) console.error(`note: ${note}`);
   } else {
-    console.error("usage: figma-pull.mjs code <nodeId> | page <part files…> [--title=…] [--file=<figma file key>] [--out=<file.zen.tsx>] [--no-ids]");
+    console.error("usage: figma-pull.mjs code <nodeId> | page <part files…> [--title=…] [--file=<figma file key>] [--locale=vi-VN] [--out=<file.zen.tsx>] [--no-ids]");
     process.exit(1);
   }
 }

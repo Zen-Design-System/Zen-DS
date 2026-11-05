@@ -121,9 +121,9 @@ export function PagePanel() {
           <InspectorFields name="os" labels={["Mobile OS"]} fields={[<PageOs key="os" id={localPage} text={builderPage.text} />]} />
           {/* Figma's page Background: the canvas behind the frames, Zen background tokens (canvas/CanvasBackground.tsx, F10). */}
           <InspectorFields name="canvas-background" labels={["Background"]} fields={[<CanvasBackgroundField key="background" id={localPage} text={builderPage.text} />]} />
-          {/* Studio projects (2026-10-17): the page draws in its project's theme; Drafts keep Zen's. */}
+          {/* Studio projects (2026-10-17): the page draws in its project's theme and language; Drafts keep Zen's, in English. */}
           <InspectorFields name="project" labels={["Project"]} fields={[<PageProject key="project" id={localPage} />]}
-            icon={project ? <IconButton icon="icon-palette-line" aria-label={`${project.name} theme`} tooltip="Project theme" appearance="flat" level="secondary" size="xs" onClick={() => openProjectSetup({ kind: "edit", id: project.id })} /> : null} />
+            icon={project ? <IconButton icon="icon-settings-01-line" aria-label={`${project.name} settings`} tooltip="Project settings" appearance="flat" level="secondary" size="xs" onClick={() => openProjectSetup({ kind: "edit", id: project.id })} /> : null} />
         </InspectorSection>
       ) : (
         <header className="studio-inspector__head-block">

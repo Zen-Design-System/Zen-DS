@@ -15,7 +15,7 @@ import { componentsOf, renderFrame, type PageNode, type PageTree } from "../rend
 import { pageKey, studioStore } from "../../store";
 import { designNames, guidelineNotes, handoffMarkdown, type FocusStop, type GuidelineNotes, type HandoffFrame } from "./handoff";
 import { drawPng, pictureSvg, undrawable } from "./screenshot";
-import { previewForPage } from "../../project/activeProject";
+import { pageLocale, previewForPage } from "../../project/activeProject";
 import { libraryOf } from "../../project/projectLibrary";
 
 /*
@@ -299,16 +299,18 @@ function fileOf(node: PageNode): string {
 
 
 type RenderedFrame = { node: PageNode; frame: PageFrame; file: string; title: string; root: HTMLElement | null };
-type Rendered = { tree: PageTree; frames: RenderedFrame[]; dispose: () => void };
+/** `locale`: the page's project's language, which the frames rendered in. */
+type Rendered = { tree: PageTree; frames: RenderedFrame[]; dispose: () => void; locale: string };
 
 /** The ZenProvider props the canvas draws a frame in: the Studio's Modes with the page's project's over them
  *  (project/activeProject.ts), a frame's own theme over those (the open page). `brand`: the project's Base Colors mode
- *  ("p-<id>", a Studio-only mode the Studio injects; ZenProvider's type names the shipped brands only). */
+ *  ("p-<id>", a Studio-only mode the Studio injects; ZenProvider's type names the shipped brands only). `locale`: the
+ *  project's language. */
 export function canvasModes(id: string, frameId?: string) {
   const state = studioStore.getState();
-  const { preview, brand } = previewForPage(id, state.preview);
+  const { preview, brand, locale } = previewForPage(id, state.preview);
   const own = frameId && state.localPage === id ? state.frameOverrides[pageKey(state.page, state.collection, state.localPage)]?.[frameId]?.theme : undefined;
-  return { theme: own ?? preview.theme, componentTheme: preview.componentTheme, density: preview.density, typography: preview.typography, radius: preview.radius, emphasis: preview.emphasis, contrast: preview.contrast ?? "standard", brand: brand as ZenBrand };
+  return { theme: own ?? preview.theme, componentTheme: preview.componentTheme, density: preview.density, typography: preview.typography, radius: preview.radius, emphasis: preview.emphasis, contrast: preview.contrast ?? "standard", brand: brand as ZenBrand, locale };
 }
 
 /** Renders the page's frames off screen, as the canvas draws them; `dispose` unmounts them. */
@@ -335,13 +337,14 @@ async function renderFrames(id: string, text: string): Promise<Rendered | { erro
   const dispose = () => { root.unmount(); host.remove(); };
   // Its own file name, so the copy's data-zen-src never reads as the page on the canvas.
   const ctx = { file: `export:${id}.zen.tsx`, mock: tree.mock, vars: tree.vars, proto: INERT, components: componentsOf(tree.board), library: libraryOf(id) };
+  const locale = pageLocale(id, text);
   try {
     root.render(
       <ProtoContext value={INERT}>
         <PageOsContext value={pageOsOf(tree.header)}>
         {frames.map(({ node, frame }) => (
           <div key={frame.id} data-export-frame={frame.id} style={{ width: frame.width }}>
-            <ZenProvider {...canvasModes(id, frame.id)} breakpoint={frame.kind === "screen" ? screenBreakpoint(frame.device, frame.width) : "desktop"} syncDocument={false}>{renderFrame(node, ctx)}</ZenProvider>
+            <ZenProvider {...canvasModes(id, frame.id)} locale={locale} breakpoint={frame.kind === "screen" ? screenBreakpoint(frame.device, frame.width) : "desktop"} syncDocument={false}>{renderFrame(node, ctx)}</ZenProvider>
           </div>
         ))}
         </PageOsContext>
@@ -353,7 +356,7 @@ async function renderFrames(id: string, text: string): Promise<Rendered | { erro
     throw error;
   }
   for (const entry of frames) entry.root = host.querySelector<HTMLElement>(`[data-export-frame="${CSS.escape(entry.frame.id)}"] > .zen-provider`);
-  return { tree, frames, dispose };
+  return { tree, frames, dispose, locale };
 }
 
 /** The rendered frames as static HTML files (screens/, index.html, styles.css) and the assets they use. */
@@ -361,13 +364,15 @@ function htmlOf(rendered: Rendered, { id, title }: { id: string; title: string }
   const roots = rendered.frames.map((entry) => entry.root).filter((element): element is HTMLElement => Boolean(element));
   const assets: Assets = new Map();
   const component = `${componentName(title)}Page`;
+  // A screen's page is in the project's language (the index is the Studio's own words, in English).
+  const lang = rendered.locale;
   const screens: HtmlScreen[] = rendered.frames.map(({ frame, file, title: name }) => ({ frame: frame.id, title: name, file, kind: frame.kind, device: frame.device, width: frame.width }));
   const files = rendered.frames.map(({ frame, root }, index) => {
     const screen = screens[index];
     const what = screen.kind === "overlay" ? `overlay "${frame.id.replace(/^overlay:/, "")}" (drawn open)` : `screen "${frame.id.replace(/^screen:/, "")}" (${screen.device}, ${screen.width} px)`;
     const html = [
       "<!doctype html>",
-      '<html lang="en">',
+      `<html lang="${lang}">`,
       "<head>",
       '<meta charset="utf-8">',
       '<meta name="viewport" content="width=device-width, initial-scale=1">',
@@ -569,7 +574,7 @@ export type HandoffPackage = { markdown: string; files: ZipInput[]; missing: str
  */
 export async function prepareHandoff({ id, title, text }: { id: string; title: string; text: string }): Promise<HandoffPackage | { error: string }> {
   const { compileReact } = await loadCompile();
-  const compiled = compileReact(text, { file: `${id}.zen.tsx` });
+  const compiled = compileReact(text, { file: `${id}.zen.tsx`, locale: pageLocale(id, text) });
   if ("error" in compiled) return { error: compiled.error };
   const rendered = await renderFrames(id, text);
   if ("error" in rendered) return rendered;
@@ -609,12 +614,13 @@ export async function prepareHandoff({ id, title, text }: { id: string; title: s
     const components = await Promise.all(compiled.components.map(async (name) => { const slug = componentSlug(name); return { name, slug, notes: await guidelineFor(slug) }; }));
     const props = [...(/export type \w+PageProps = \{([\s\S]*?)\n\};/.exec(compiled.code)?.[1] ?? "").matchAll(/^\s+(\w+)\?:/gm)].map((match) => match[1]);
     const { theme, componentTheme, density, typography, radius, emphasis, contrast } = canvasModes(id);
+    const { locale } = rendered;
     const markdown = handoffMarkdown({
       id,
       title,
       component: compiled.component,
       version: packageJson.version,
-      provider: { theme, componentTheme, density, typography, radius, emphasis, ...(contrast !== "standard" ? { contrast } : {}) },
+      provider: { theme, componentTheme, density, typography, radius, emphasis, ...(contrast !== "standard" ? { contrast } : {}), ...(locale !== "en-US" ? { locale } : {}) },
       frames,
       components,
       names: designNames(rendered.tree.board),

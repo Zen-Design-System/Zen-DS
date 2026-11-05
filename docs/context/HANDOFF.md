@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-11-01.
+Last updated: 2026-11-05.
 
 ## Read order
 
@@ -19,6 +19,10 @@ Last updated: 2026-11-01.
 
 ## State in short
 
+- **Studio project language (2026-11-05, BACKLOG-user-and-later P3 closed):** project.json `locale` (en-US default,
+  vi-VN), Project settings › Language. Canvas and Play through `project/projectLocale.tsx` `LocaleScope` (never around a
+  root ZenProvider: Present passes `locale` to ExampleCard's), the phone share, the Figma push (`figmaPackage({ locale })`,
+  every frame), the exports (`compileReact({ locale })`, handoff, HTML `lang`). E2E S-12. Detail: session log 2026-11-05.
 - **Docs platform chrome → Figma B5 (2026-11-01, user):** branch `claude/docs-chrome-b5-020c25`. The docs site runs on
   the library `AppShell pattern="docs" canvas="flat"` (header Search ⌘K, Canvas nav pane, "On this page" pane, drawer
   under 1024); the previews' modes live in the Appearance side panel (`PlatformAppearancePanel`), no topbar chips, no

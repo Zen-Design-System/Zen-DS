@@ -23,6 +23,7 @@ import { DEVICE_WIDTH, PageOsContext, pageOsOf, ProtoContext, SimulatedDeviceCon
 import { viewportBreakpoint } from "./versions";
 import { screenViewOf } from "../screenViews";
 import { useCanvasPreview } from "../../project/activeProject";
+import { LocaleScope } from "../../project/projectLocale";
 import { libraryOf } from "../../project/projectLibrary";
 
 export { isPlaying, PLAY_PREFIX, playStartOf, startPlay, stopPlay } from "./playStart";
@@ -51,8 +52,11 @@ export function Player() {
   // The toasts (proto.toast, Play's own warnings) show in the device, over its home indicator (walk 2026-10-29 W-45: at
   // the window's foot they stood outside the frame, cut in half): their stack takes the device's toast layer.
   const [toastRoot, setToastRoot] = useState<HTMLDivElement | null>(null);
+  // The project's language (project/projectLocale.tsx) for the played page and its toasts; Play's bar keeps the chrome's.
+  const { locale } = useCanvasPreview();
   if (!localPage || !isPlaying(presenting)) return null;
   return (
+    <LocaleScope locale={locale}>
     <ZenPortalProvider container={toastRoot ?? portalRoot}>
       <ToastProvider placement="bottom-center">
         <ZenPortalProvider container={portalRoot}>
@@ -60,6 +64,7 @@ export function Player() {
         </ZenPortalProvider>
       </ToastProvider>
     </ZenPortalProvider>
+    </LocaleScope>
   );
 }
 
@@ -82,7 +87,7 @@ function PlayLayer({ id, start, portalRef, toastRef }: { id: string; start: stri
   overlayOpen.current = Boolean(overlay);
   // Preview modes change here and in Present only (the toolbar has none): Play's own, light/dark included, over the
   // canvas modes. They change the page being played, never the Studio's UI (its bar keeps the chrome modes).
-  const { preview: canvasModes, brand } = useCanvasPreview();
+  const { preview: canvasModes, brand, locale } = useCanvasPreview();
   const [own, setOwn] = useState<Partial<StudioPreviewSettings>>({});
   const modes: StudioPreviewSettings = { ...canvasModes, ...own };
   const setMode = useCallback((key: ModeKey, value: string) => setOwn((current) => ({ ...current, [key]: value })), []);
@@ -228,10 +233,10 @@ function PlayLayer({ id, start, portalRef, toastRef }: { id: string; start: stri
         leading={<>
           <IconButton appearance="flat" level="primary" size="sm" aria-label="Back" icon={<Icon name="icon-chevron-left-line-medium" />} disabled={!history.length && (!overlayNode || alone)} onClick={() => actions.back()} />
           <IconButton appearance="flat" level="primary" size="sm" aria-label="Restart" aria-keyshortcuts="R" tooltip="Restart (R)" icon={<Icon name="icon-refresh-ccw-01-line" />} onClick={restart} />
-          <OpenOnPhone page={id} title={title} text={page?.text} start={current || null} modes={modes} brand={brand} />
+          <OpenOnPhone page={id} title={title} text={page?.text} start={current || null} modes={modes} brand={brand} locale={locale} />
         </>} />
-      {/* The page under the bar (Present's): the device scrolls in it, never under the bar. */}
-      <div className="studio-present__page">
+      {/* The page under the bar (Present's): the device scrolls in it, never under the bar. In the project's language. */}
+      <div className="studio-present__page" lang={locale}>
       <ProtoContext value={actions}>
       <PageOsContext value={os}>
       <div className="studio-present__scroll">

@@ -2,7 +2,8 @@
 // CLI of tools/studio/figma-push.mjs (core rebuild Q4): a page file as the Figma JSON the Zen plugin's Import from Studio
 // places. Node only (figma-push.mjs itself stays isomorphic).
 //
-//   node tools/studio/figma-push-cli.mjs <page.zen.tsx> [--out=<page.figma.json>]   notes go to stderr
+//   node tools/studio/figma-push-cli.mjs <page.zen.tsx> [--out=<page.figma.json>] [--locale=vi-VN]   notes go to stderr
+//   (--locale: the project's language, project.json `locale`: dates and built-in words in its text; default en-US)
 import fs from "node:fs";
 import path from "node:path";
 import { figmaPackage } from "./figma-push.mjs";
@@ -11,8 +12,9 @@ import { NESTED_LAYERS } from "../../src/platform/studio/inspector/nestedLayers.
 
 const [file] = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
 const out = process.argv.find((arg) => arg.startsWith("--out="))?.slice(6);
+const locale = process.argv.find((arg) => arg.startsWith("--locale="))?.slice(9) ?? "en-US";
 if (!file) {
-  console.error("usage: figma-push-cli.mjs <page.zen.tsx> [--out=<page.figma.json>]");
+  console.error("usage: figma-push-cli.mjs <page.zen.tsx> [--out=<page.figma.json>] [--locale=vi-VN]");
   process.exit(1);
 }
 // The page id: the file's name (a page the Studio keeps is "<id>.zen.tsx"), so importing it again updates its frame.
@@ -21,7 +23,7 @@ const id = file.split("/").pop().replace(/\.zen\.tsx$|\.tsx$/, "");
 let counter = 0;
 // The library's keys: the plugin binds the frame in any file that uses the published Zen library (library-keys.mjs).
 const libraryKeys = JSON.parse(fs.readFileSync(new URL("../../docs/figma-contracts/library-keys.json", import.meta.url), "utf8"));
-const { pkg, notes } = figmaPackage(fs.readFileSync(file, "utf8"), { mapping: await repoMapping(), nestedLayers: NESTED_LAYERS, page: { id }, newId: () => `k${++counter}`, libraryKeys });
+const { pkg, notes } = figmaPackage(fs.readFileSync(file, "utf8"), { mapping: await repoMapping(), nestedLayers: NESTED_LAYERS, page: { id }, newId: () => `k${++counter}`, libraryKeys, locale });
 if (!pkg) {
   for (const note of notes) console.error(`error: ${note}`);
   process.exit(1);

@@ -1177,6 +1177,10 @@ export default function Page() {
   check("DatePickerSheet: Date-Picker/Mobile, its Variant and its title in Main-Heading-Text (the locale's by default)", frame.children.map((sheet) => [sheet.set.id, sheet.props.Variant, sheet.nested[0].texts["Header-Text"]]), [["9923:3576", "Multiple-Default", "Your stay"], ["9923:3576", "Single", "Choose date"]]);
   ok("DatePickerSheet: a closed sheet is not pushed, with a note", notes.some((note) => /DatePickerSheet.*closed/.test(note)));
   check("round trip: the open sheets come back (range, title)", shape(pageFromFigma(frame, { mapping }).text), shape(page.replace('\n          <DatePickerSheet title="Closed" />', "")));
+  // A Vietnamese project (project.json `locale`): the default title in its words, still the default when pulled.
+  const vi = figmaFromPage(page, { mapping, nestedLayers: NESTED_LAYERS, locale: "vi-VN" }).frame;
+  check("DatePickerSheet: a Vietnamese project's default title", vi.children.map((sheet) => sheet.nested[0].texts["Header-Text"]), ["Your stay", "Chọn ngày"]);
+  check("round trip: the Vietnamese default title stays the default", shape(pageFromFigma(vi, { mapping, locale: "vi-VN" }).text), shape(page.replace('\n          <DatePickerSheet title="Closed" />', "")));
 }
 
 // 22. Chat (2026-10-13): ChatThread as Chat/Section/Conversation runs, a ChatMessage's author (a one-letter Avatar: small
@@ -2300,6 +2304,11 @@ export default function Page() {
   check("stacked ProgressBar: its value text (valueLabel, else the percentage), the nearest step and the exact fill (Container's columns)", bars.map((node) => [node.props.Text, node.props.Progress, node.texts?.Value, node.edits]), [["Engineering", "Medium", "$9,120 of $24,000", [{ layer: "Container", columns: [38, 62] }]], ["Operations", "Low", "9%", [{ layer: "Container", columns: [9, 91] }]]]);
   const pages = all.find((node) => node.name === "Expense pages");
   check("Pagination Inline: the range and the page size as the code counts them", [pages.textList, pages.nested], [["1–10 of 86 results"], [{ path: "Page-Size", props: {}, text: "10 results" }]]);
+  const viAll = [];
+  const viWalk = (node) => { viAll.push(node); [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)].forEach(viWalk); };
+  viWalk(figmaFromPage(PAGE, { mapping, nestedLayers: NESTED_LAYERS, locale: "vi-VN" }).frame);
+  const viPages = viAll.find((node) => node.name === "Expense pages");
+  check("Pagination Inline: a Vietnamese project counts in its words (labels.ts vi)", [viPages.textList, viPages.nested[0].text], [["1–10 trên 86 kết quả"], "10 kết quả"]);
 }
 
 // A Sidebar row's nested rows (BACKLOG P2 2026-10-26): Figma's Menu-Item Level=Child rows right after it, their content
@@ -3134,6 +3143,10 @@ export default function Due() {
   check("dates: `editable` on ISO days and `edit: \"date\"` push Date-Cells in the locale's short form", [cellOf(1, "due")?.name, cellOf(1, "due")?.textList, cellOf(2, "due")?.textList, cellOf(1, "start")?.name, cellOf(1, "start")?.textList], ["Date-Cell", ["10/25"], ["01/07"], "Date-Cell", ["03/02/2024"]]);
   check("dates: a value that is no day stays a Text-Cell with its text; a text column stays a Text-Cell", [cellOf(2, "start")?.name, cellOf(2, "start")?.textList, cellOf(1, "title")?.name], ["Text-Cell", ["—"], "Text-Cell"]);
   check("dates: another locale writes its own order", find(figmaFromPage(datesPage, { mapping, nestedLayers: NESTED_LAYERS, locale: "vi-VN" }).frame, (node) => node.name === "Date-Cell")?.textList, ["25/10"]);
+  // The package (Export › Figma, Copy for Figma): every frame of a Vietnamese project in its order, not the first alone.
+  const twoScreens = datesPage.replace(/(<Screen id="screen-1"[\s\S]*?<\/Screen>)/, (screen) => `${screen}\n      ${screen.replace(/screen-1/g, "screen-2")}`);
+  const { pkg: viPkg } = figmaPackage(twoScreens, { mapping, nestedLayers: NESTED_LAYERS, page: { id: "due" }, locale: "vi-VN" });
+  check("dates: figmaPackage writes every frame in the project's language", (viPkg.frames ?? []).map((entry) => find(entry.frame, (node) => node.name === "Date-Cell")?.textList), [["25/10"], ["25/10"]]);
 }
 
 // Per-breakpoint layout props (responsive-props.mjs; P2 of docs/research/studio-responsive-breakpoints-2026-10-26.md):

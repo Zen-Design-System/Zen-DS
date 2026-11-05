@@ -35,7 +35,7 @@ import { gradientFillOf } from "./figma-gradient.mjs";
 import { imageFillOf } from "./figma-image.mjs";
 import { arcData, fitVectorPath, normalizeArc, parseVectorPath, parseViewBox, STAR_RATIO, vectorBounds } from "../../src/components/Shape/geometry.ts";
 import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL, shapeFillTokens, shapeStrokeTokens } from "../../src/components/Shape/paint.ts";
-import { zenLabels } from "../../src/components/_shared/labels.ts";
+import { resolveZenLabels } from "../../src/components/_shared/labels.ts";
 import { dayOf, dayText, ISO_DAY } from "../../src/components/Table/tableDates.ts";
 import { iconAliases } from "../../src/icons/generated/aliases.ts";
 import { libraryKeysFor } from "./library-keys.mjs";
@@ -543,6 +543,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   // The pushing page is one of the pages too (another page's component may hold one of its).
   const pages = pageId && typeof given[pageId] !== "string" ? { ...given, [pageId]: text } : given;
   const notes = [];
+  // The built-in words the components write in the project's language (labels.ts; a Studio project's `locale`).
+  const builtIn = resolveZenLabels(locale);
   const read = docFromText(text, newId ? { newId } : {});
   const { errors } = read;
   if (!read.doc) return { frame: null, notes: errors.map((error) => error.message) };
@@ -661,7 +663,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     if (components.has(key)) return components.get(key) !== null;
     if (typeof pages[home] !== "string") return false;
     components.set(key, null);
-    const made = figmaFromPage(pages[home], { mapping, nestedLayers, newId, pages, pageId: home, componentOf: local, components, rootPageId });
+    const made = figmaFromPage(pages[home], { mapping, nestedLayers, newId, pages, pageId: home, componentOf: local, components, rootPageId, locale });
     if (!made.component) { components.delete(key); return false; }
     const own = (node) => {
       if (!node || typeof node !== "object") return;
@@ -1652,7 +1654,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
 
   /**
    * DatePickerSheet as Figma's Date-Picker/Mobile: Variant Single, or Multiple (Selected once a range is chosen), its
-   * title in the heading (the locale's "Choose date" / "Choose dates" by default, labels.ts en). The calendar keeps
+   * title in the heading (the locale's "Choose date" / "Choose dates" by default, labels.ts). The calendar keeps
    * Figma's sample month: the page's dates are not literals.
    */
   function datePickerSheetNode(element, code, id, parent) {
@@ -1666,7 +1668,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     const range = code.selectionMode === "range";
     const chosen = range && (element.props.range ?? element.props.defaultRange) !== undefined;
     node.props = { ...node.props, ...onlyOwn(node.set, { Variant: range ? (chosen ? "Multiple-Selected" : "Multiple-Default") : "Single" }) };
-    const title = typeof code.title === "string" ? code.title : layerWords(element.props.title) || (range ? "Choose dates" : "Choose date");
+    const title = typeof code.title === "string" ? code.title : layerWords(element.props.title) || (range ? builtIn.chooseDates : builtIn.chooseDate);
     node.nested = [...(node.nested ?? []), { path: "Main-Heading-Text", props: {}, texts: { "Header-Text": title } }];
     if (node.name === node.set.name) node.name = title;
     return node;
@@ -2554,7 +2556,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   function subActionIcon(value, where) {
     if (value?.kind === "object") {
       const label = literalOf(value.fields.label);
-      if (typeof label === "string" && label !== zenLabels.en.moreActions) notes.push(`${where}: its subAction label "${label}" has no place in Figma (it reads back as "${zenLabels.en.moreActions}")`);
+      if (typeof label === "string" && label !== builtIn.moreActions) notes.push(`${where}: its subAction label "${label}" has no place in Figma (it reads back as "${builtIn.moreActions}")`);
       const icon = literalOf(value.fields.icon);
       return typeof icon === "string" && icon !== SUB_ACTION_ICON ? icon : null;
     }
@@ -2647,15 +2649,15 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
       if (element.name === "ProgressBar") node.edits = [...(node.edits ?? []), { layer: PROGRESS_TRACK, columns: progressColumns(value) }];
     }
     // Pagination Inline / Manually: the range (its own text layer, so textList) and Inline's page size chip, as
-    // Pagination.tsx counts them (labels.ts en), where Figma kept "1 - 50 of 100 results" and "50 results".
+    // Pagination.tsx counts them (labels.ts, in the locale's words), where Figma kept "1 - 50 of 100 results" and "50 results".
     if (element.name === "Pagination" && (code.theme === "inline" || code.theme === "manually")) {
       const perPage = Math.max(1, Number(code.pageSize ?? code.defaultPageSize ?? 50) || 50);
       const total = Math.max(0, Number(code.total ?? 0) || 0);
       const pages = Math.max(1, Math.ceil(total / perPage));
       const current = Math.min(Math.max(1, Number(code.page ?? code.defaultPage ?? 1) || 1), pages);
       const first = total === 0 ? 0 : (current - 1) * perPage + 1;
-      node.textList = [zenLabels.en.resultsRange(first, Math.min(total, current * perPage), total)];
-      if (code.theme === "inline") node.nested = [...(node.nested ?? []), { path: "Page-Size", props: {}, text: zenLabels.en.results(perPage) }];
+      node.textList = [builtIn.resultsRange(first, Math.min(total, current * perPage), total)];
+      if (code.theme === "inline") node.nested = [...(node.nested ?? []), { path: "Page-Size", props: {}, text: builtIn.results(perPage) }];
     }
     if (element.name === "AiChatField" && typeof code.placeholder === "string") node.texts = { ...(node.texts ?? {}), Text: code.placeholder };
     // Its model switch shows only with `model` (Figma's Model starts on).
@@ -2987,7 +2989,7 @@ export function figmaPackage(text, { mapping, nestedLayers = {}, page = {}, newI
   const images = new Set(firstImages);
   const components = [...(firstComponents ?? [])];
   for (const id of ids.filter((each) => each !== firstId)) {
-    const made = figmaFromPage(text, { mapping, nestedLayers, newId, pages, pageId: page.id, frame: id });
+    const made = figmaFromPage(text, { mapping, nestedLayers, newId, pages, pageId: page.id, frame: id, locale });
     if (!made.frame) { notes.push(...made.notes); continue; }
     frames.push({ id, frame: made.frame });
     for (const note of made.notes) if (!notes.includes(note)) notes.push(note);
