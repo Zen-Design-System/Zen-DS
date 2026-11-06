@@ -24,5 +24,6 @@ Then (user: "vẫn không cho đổi typo như trong plugin"): the plugin's Type
 - `ThemePreview.tsx`: heading rows full width; sizes read in an effect (a layout effect read the previous draft).
 - Playwright on :5180 (GO from Giám sát): fonts load (Be Vietnam Pro), 14 × 1.25 → Display/1 130/150, no errors.
   The 390 run found no New project button on the phone layout (Studio's projects home), so no phone shot.
-- Not in Figma yet → BACKLOG P2.
+- Not in Figma: Copy to Figma carries no project theme at all (colours included). The user declined that work
+  (2026-11-07: "không làm phần này"), so it is not in the backlog.
 - BP-07 (Play, breakpoints) timed out once (waitForSelector 60 s) in a 1667 s shard; it worked on the re-run (gate PASS 458/458). Not caused by these files: none is on BP-07's path.
