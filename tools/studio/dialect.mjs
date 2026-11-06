@@ -213,13 +213,14 @@ const overlayContent = (holds, name) => {
   return [`  <Dialog title=${quote(name)} description="Say what happens next." primaryAction={{ label: "Continue", onClick: proto.close() }} secondaryAction={{ label: "Cancel", onClick: proto.close() }} />`];
 };
 
-export function frameCode({ kind, id, title, device = "desktop", layout, chrome = true, empty = false, x, y, width, height, holds = "dialog" }) {
+export function frameCode({ kind, id, title, device = "desktop", layout, chrome = true, empty = false, plain = false, x, y, width, height, holds = "dialog" }) {
   const name = String(title ?? (kind === "overlay" ? OVERLAY_TITLES[holds] ?? OVERLAY_TITLES.dialog : id)).replace(/[{}<>]/g, "");
   const place = placeAttrs({ x, y });
   if (kind === "overlay") return [`<Overlay id=${quote(id)}${place}>`, ...overlayContent(OVERLAY_HOLDS.includes(holds) ? holds : "dialog", name), "</Overlay>"].join("\n");
-  const screenDevice = PAGE_DEVICES.includes(device) ? device : "desktop";
+  // `plain`: Figma's frame, not a device's screen (`frame`: always desktop, no phone bars; user 2026-11-07).
+  const screenDevice = plain ? "desktop" : PAGE_DEVICES.includes(device) ? device : "desktop";
   // A new Screen comes with the app frame as a new page does (its title in the header).
-  const open = `<Screen id=${quote(id)} title=${quote(name)} device="${screenDevice}"${layoutAttr(screenDevice, layout)}${place}${placeAttrs({ width, height })}`;
+  const open = `<Screen id=${quote(id)} title=${quote(name)} device="${screenDevice}"${plain ? " frame" : layoutAttr(screenDevice, layout)}${place}${placeAttrs({ width, height })}`;
   return screenLines({ open, title: name, heading: name, device: screenDevice, layout, chrome: chrome && !empty, empty, indent: "" }).lines.join("\n");
 }
 
@@ -594,6 +595,10 @@ export function parsePage(text, { components } = {}) {
         // Make a separate Screen (studio-responsive-breakpoints §5): the id of the Screen this one is a version of.
         const versionOf = child.props.versionOf;
         if (versionOf && !(versionOf.kind === "literal" && typeof versionOf.value === "string" && /^[a-z0-9][a-z0-9-]*$/.test(versionOf.value) && versionOf.value !== id?.value)) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: "versionOf is the id of another Screen (the one this Screen is a version of)" });
+        // A plain frame (Figma's frame, user 2026-11-07): `frame` alone, on a desktop Screen (no device of its own).
+        const plain = child.props.frame;
+        if (plain && !(plain.kind === "literal" && plain.value === true)) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: "frame is written alone (<Screen frame>): a plain frame, not a device's screen" });
+        else if (plain && device && device.value !== "desktop") errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: "A plain frame (frame) is desktop: a phone or tablet is a Screen" });
       }
     }
   }

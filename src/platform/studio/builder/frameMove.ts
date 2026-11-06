@@ -350,9 +350,10 @@ export function pressFrame(event: PointerEvent, frameId: string, onClick?: () =>
   return true;
 }
 
-/* ── the Frame tool: draw a Screen ───────────────────────────────────────────────────────────────────────────── */
+/* ── the Frame tool: draw a frame ────────────────────────────────────────────────────────────────────────────── */
 
-/** A drawn Screen's device: the narrowest whose layout its width reads as (a phone up to 600, a tablet up to 1024). */
+/** A Screen's device by its width: the narrowest whose layout the width reads as (a phone up to 600, a tablet up to
+ *  1024). A drawn frame has none (plain); the Screen checkbox and a pasted frame take it. */
 export const deviceFor = (width: number) => (width < 600 ? "phone" : width < 1024 ? "tablet" : "desktop");
 export const FRAME_MIN = 100;
 export const FRAME_MAX = 4096;
@@ -535,12 +536,14 @@ export function armFrameDraw(localPage: string, kind: "frame" | "section" | "sli
         }
         if (!dragged) {
           // A click: Figma's 100 × 100 frame there, empty (a preset's size: the right panel, FramePresets.tsx).
-          void addFrame(localPage, "screen", { place: { x: Math.round(start.x), y: Math.round(start.y) }, width: FRAME_CLICK.width, height: FRAME_CLICK.height, device: "desktop", name: "Frame", empty: true });
+          void addFrame(localPage, "screen", { place: { x: Math.round(start.x), y: Math.round(start.y) }, width: FRAME_CLICK.width, height: FRAME_CLICK.height, name: "Frame", empty: true, plain: true });
           return;
         }
+        // A drawn frame is a plain frame whatever its width (user, 2026-11-07: "không tạo frame 1 cách bình thường được mà
+        // nó tự nhảy theo thiết bị"): a device's screen only from a size preset or the Screen checkbox (FramePanel).
         const width = Math.min(FRAME_MAX, Math.max(FRAME_MIN, box.width));
         const height = Math.min(FRAME_MAX, Math.max(FRAME_MIN, box.height));
-        void addFrame(localPage, "screen", { place: { x: box.x, y: box.y }, width, height, device: deviceFor(width) });
+        void addFrame(localPage, "screen", { place: { x: box.x, y: box.y }, width, height, name: "Frame", empty: true, plain: true });
       },
       key: (key) => {
         if (key.key === "Escape" && key.type === "keydown") {

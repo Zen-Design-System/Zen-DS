@@ -550,7 +550,8 @@ function FrameToolbar({ frame, selected, menuOpen, tools, draft, view, setRef, s
   };
   const example = frame.kind === "example";
   // A builder Screen's view switch (Desktop · Tablet · Mobile, More views) and, while a view is on, its status.
-  const shape = isScreenFrame(frame.id) ? frame.example?.shape : undefined;
+  // A plain frame (the Frame tool's) has no breakpoint views: those are a device's screen's.
+  const shape = isScreenFrame(frame.id) && !frame.example?.shape?.plain ? frame.example?.shape : undefined;
   const editable = useStudio((state) => canEdit(state));
   return (
     // A frame with unsaved changes or a view on keeps that group (data-drafted) when it is neither hovered nor selected.

@@ -909,6 +909,49 @@ export const rows = [
     },
   },
   {
+    id: "B-63", feature: "Toolbar › Frame, a drag on the canvas draws a plain frame whatever its width (user 2026-11-07: \"tự nhảy theo thiết bị\"): a 375-wide drag writes <Screen frame> on desktop, no phone bars; Frame › This is a screen makes it a phone Screen, one ⌘Z back", wp: "plain frames 2026-11-07",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await page.locator(".studio-canvas-tools").getByRole("button", { name: "Frame", exact: true }).click();
+      // On the empty canvas right of the page's frame: about 375 × 600 at this zoom.
+      const first = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+      const view = await page.locator(".studio-viewport").boundingBox();
+      // The canvas zoom: screen-1's drawn width over its own (its width prop, else a desktop Screen's 1440).
+      const firstTag = ((await pageText(page, id)) ?? "").match(/<Screen id="screen-1"[^>]*>/)?.[0] ?? "";
+      const scale = first.width / Number(firstTag.match(/\swidth=\{(\d+)\}/)?.[1] ?? 1440);
+      const at = { x: Math.min(first.x + first.width + 80, view.x + view.width - 260), y: Math.max(first.y, view.y + 80) };
+      const end = { x: at.x + 375 * scale, y: Math.min(at.y + 600 * scale, view.y + view.height - 20) };
+      await page.mouse.move(at.x, at.y);
+      await page.mouse.down();
+      await page.mouse.move((at.x + end.x) / 2, (at.y + end.y) / 2, { steps: 4 });
+      await page.mouse.move(end.x, end.y, { steps: 4 });
+      await page.mouse.up();
+      const tag = async () => ((await pageText(page, id)) ?? "").match(/<Screen id="screen-2"[^>]*>/)?.[0] ?? "";
+      let frame = "";
+      await until(async () => /\swidth=\{\d+\}/.test(frame = await tag()), { message: "a drawn frame" }).catch(() => { throw new Error(`no drawn frame: ${frame}`); });
+      const width = Number(frame.match(/\swidth=\{(\d+)\}/)?.[1] ?? 0);
+      if (width >= 600) throw new Error(`the drag was not phone-wide (${width}): ${frame}`);
+      if (!/device="desktop"/.test(frame) || !/\sframe[\s/>]/.test(frame)) throw new Error(`a ${width}-wide drag is not a plain desktop frame: ${frame}`);
+      if (!/title="Frame 2"/.test(frame)) throw new Error(`the frame is not named Frame 2: ${frame}`);
+      // No device of its own on the canvas: no OS bars.
+      const root = page.locator('[data-studio-frame="screen:screen-2"] [data-screen="screen-2"]').first();
+      await until(async () => (await root.getAttribute("data-device")) === "desktop", { message: "the frame draws on desktop" });
+      if (await root.getAttribute("data-os")) throw new Error("the plain frame draws phone bars");
+      // Its panel: Frame, This is a screen off, no Device row.
+      const right = page.locator("#studio-right");
+      const box = right.getByRole("checkbox", { name: "This is a screen" });
+      await until(async () => (await box.count()) > 0 && !(await box.isChecked()), { timeout: 12_000, message: "This is a screen, off" });
+      if (await right.locator('[data-prop="device"]').count()) throw new Error("a plain frame shows the Device row");
+      // The Zen Checkbox's label is the target (its native input is visually hidden).
+      await right.locator('[data-prop="screen"]').getByText("This is a screen").click();
+      await until(async () => { const next = await tag(); return /device="phone"/.test(next) && !/\sframe[\s/>]/.test(next); }, { message: "This is a screen → a phone Screen" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => { const back = await tag(); return /device="desktop"/.test(back) && /\sframe[\s/>]/.test(back); }, { message: "one ⌘Z: the plain frame again" });
+      return `Frame tool drag ${width} wide → <Screen frame> on desktop, no bars; This is a screen → phone; ⌘Z → plain`;
+    },
+  },
+  {
     id: "B-46", feature: "Screen › Size (Figma's frame presets): iPhone → iPad, portrait writes the tablet's device and 744 × 1133 in one edit (one ⌘Z back to the phone) (user 2026-10-18)", wp: "frame picker 2026-10-18",
     async run(ctx) {
       const { page, id } = await newPage(ctx);

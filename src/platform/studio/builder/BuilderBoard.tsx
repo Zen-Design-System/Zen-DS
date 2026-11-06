@@ -153,7 +153,7 @@ export function BuilderBoard({ id }: { id: string }) {
       const frame = frameOf(node, device);
       const height = literalOf(node, "height");
       const versionOf = literalOf(node, "versionOf");
-      const shape = frame.kind === "screen" ? { device: frame.device, width: frame.width, height: typeof height === "number" ? height : undefined, os, id: String(literalOf(node, "id") ?? ""), versionOf: typeof versionOf === "string" ? versionOf : undefined } : undefined;
+      const shape = frame.kind === "screen" ? { device: frame.device, width: frame.width, height: typeof height === "number" ? height : undefined, os, id: String(literalOf(node, "id") ?? ""), versionOf: typeof versionOf === "string" ? versionOf : undefined, plain: literalOf(node, "frame") === true || undefined } : undefined;
       const example: StudioExample = { title: frame.label, description: "", code: text ?? "", screen: true, shape, render: () => <PageOsContext value={os}>{renderFrame(node, ctx)}</PageOsContext> };
       return { ...frame, example };
     });

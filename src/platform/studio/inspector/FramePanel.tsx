@@ -2,6 +2,7 @@ import { Badge } from "../../../components/Badge";
 import { ExportSection } from "./ExportSection";
 import { BreakpointSection } from "./BreakpointSection";
 import { Button } from "../../../components/Button";
+import { Checkbox } from "../../../components/Checkbox";
 import { Icon } from "../../../components/Icon";
 import { Segmented } from "../../../components/Segmented";
 import { Toggle } from "../../../components/Toggle";
@@ -22,6 +23,7 @@ import { pageFile, usePage } from "../builder/store/pageStore";
 import { usePageTree } from "../builder/usePageTree";
 import type { StudioFrameWidth } from "../types";
 import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
+import { deviceFor } from "../builder/frameMove";
 import { copyText, exampleOf, frameKind, frameLabel, isBuilderFrame } from "./frames";
 import { FrameGeometry } from "../builder/FrameGeometry";
 import { LayoutGuidePanel } from "../canvas/LayoutGuidePanel";
@@ -82,6 +84,9 @@ function ScreenSection({ frameId }: { frameId: string }) {
   if (!localPage || !node) return null;
   const device = (literal(node, "device") as PageDevice | undefined) ?? "desktop";
   const canvas = (literal(node, "canvas") as ScreenCanvas | undefined) ?? "default";
+  // A plain frame (`frame`, the Frame tool's; user 2026-11-07): Figma's frame, no device, app frame or breakpoints of its
+  // own until "This is a screen" is ticked or a screen size picked.
+  const plain = literal(node, "frame") === true;
   // Size (Figma's frame presets, user 2026-10-18): a device's size, device and layout in one edit; a drawn or typed size
   // that no device has reads Custom.
   const width = literal(node, "width") as number | undefined;
@@ -106,12 +111,23 @@ function ScreenSection({ frameId }: { frameId: string }) {
     const entry = screenDevice(id);
     if (!entry || entry === sized) return;
     const ops = [
+      // A screen size makes a plain frame that device's screen.
+      ...(plain ? [{ op: "removeProp" as const, name: "frame" }] : []),
       { op: "setProp" as const, name: "device", value: { kind: "string" as const, value: entry.device } },
       entry.device === "tablet" && entry.layout === "desktop" ? { op: "setProp" as const, name: "layout", value: { kind: "string" as const, value: "desktop" } } : { op: "removeProp" as const, name: "layout" },
       { op: "setProp" as const, name: "width", value: { kind: "number" as const, value: entry.width } },
       { op: "setProp" as const, name: "height", value: { kind: "number" as const, value: entry.height } },
     ];
     void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops }, `Screen size → ${entry.label}`);
+  };
+  // This is a screen: on, the frame takes the device its width reads as (a phone below 600, a tablet below 1024); off, it
+  // is a plain desktop frame again (its layout prop goes; its layers stay).
+  const writeScreen = (on: boolean) => {
+    if (on === !plain) return;
+    const ops = on
+      ? [{ op: "removeProp" as const, name: "frame" }, { op: "setProp" as const, name: "device", value: { kind: "string" as const, value: deviceFor(width ?? DEVICE_WIDTH.desktop) } }]
+      : [{ op: "setProp" as const, name: "frame", value: { kind: "boolean" as const, value: true } }, { op: "setProp" as const, name: "device", value: { kind: "string" as const, value: "desktop" } }, { op: "removeProp" as const, name: "layout" }];
+    void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops }, on ? "Frame → screen" : "Screen → frame");
   };
   const writeLayout = (next: ScreenChromeLayout) => {
     if (next === layout) return;
@@ -189,7 +205,12 @@ function ScreenSection({ frameId }: { frameId: string }) {
   };
   return (
     <>
-    <InspectorSection title="Screen" fieldGrid actions={<VariableModesPicker modes={screenModes} disabled={!admin} onChange={writeModes} />}>
+    <InspectorSection title={plain ? "Frame" : "Screen"} fieldGrid actions={<VariableModesPicker modes={screenModes} disabled={!admin} onChange={writeModes} />}>
+      <InspectorFields
+        name="screen"
+        code="Screen frame"
+        fields={[<Checkbox key="screen" label="This is a screen" checked={!plain} disabled={!admin} onCheckedChange={(next) => writeScreen(next === true)} />]}
+      />
       <InspectorRow label="Size" name="screen-size">
         <RowSelectField
           aria-label="Screen size"
@@ -204,7 +225,7 @@ function ScreenSection({ frameId }: { frameId: string }) {
           ]}
         />
       </InspectorRow>
-      <InspectorFields
+      {plain ? null : <InspectorFields
         name="device"
         labels={["Device"]}
         code="Screen device"
@@ -220,8 +241,8 @@ function ScreenSection({ frameId }: { frameId: string }) {
             options={DEVICES.map((item) => ({ id: item.id, label: "", leading: item.icon, "aria-label": `${item.label}, ${DEVICE_WIDTH[item.id]} px` }))}
           />
         )]}
-      />
-      {device === "tablet" ? (
+      />}
+      {!plain && device === "tablet" ? (
         <InspectorFields
           name="layout"
           labels={["Layout"]}
@@ -245,7 +266,7 @@ function ScreenSection({ frameId }: { frameId: string }) {
       ) : null}
       {/* One Toggle per part (user, 2026-10-09: "nó là toggle"): the label takes the field's whole width, the switch
           ends the row (a label column wrapped "Bottom navigation" onto two lines). */}
-      {layout === "desktop" ? FRAME_PARTS.map((part) => (
+      {plain ? null : layout === "desktop" ? FRAME_PARTS.map((part) => (
         <InspectorFields
           key={part.prop}
           name={part.prop}
@@ -284,7 +305,7 @@ function ScreenSection({ frameId }: { frameId: string }) {
         )]}
       />
     </InspectorSection>
-    <BreakpointSection frameId={frameId} node={node} tree={tree} />
+    {plain ? null : <BreakpointSection frameId={frameId} node={node} tree={tree} />}
     </>
   );
 }

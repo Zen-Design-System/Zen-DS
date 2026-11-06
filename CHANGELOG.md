@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: the Frame tool draws a plain frame (Figma's frame) whatever its size: a narrow drag no longer turns into a
+  phone or tablet Screen with its bars. A frame becomes a device's Screen when you pick a screen size or tick
+  Frame › This is a screen (`<Screen frame>` in the page marks a plain frame).
 - Zen Studio: Smart animate in the Prototype tab's Animation (W-51b, approved 2026-10-31). In Play, layers that carry
   the same name on both Screens (and the same parent names, as Figma matches them) move from where they were to where
   they are, at their size, while the rest fades; Back plays it too. With reduced motion it is a fade. Push to Figma
