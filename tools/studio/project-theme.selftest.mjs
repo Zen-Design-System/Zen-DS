@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { generateExpectedPalette } from "./zen-ramp.generated.mjs";
-import { DEFAULT_LOCALE, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, SUPPORT_FAMILIES, defaultLibraries, defaultProjectTheme, normalizeLibraries, projectBaseValues, normalizeProject, projectIdFor, projectModes, projectPalettes, projectThemeCss, tintedNeutralAnchor } from "./project-theme.mjs";
+import { DEFAULT_LOCALE, FONT_FAMILIES, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, SUPPORT_FAMILIES, defaultLibraries, defaultProjectTheme, normalizeLibraries, projectBaseValues, normalizeProject, projectIdFor, projectModes, projectPalettes, projectFontsUrl, projectThemeCss, projectTypeScale, tintedNeutralAnchor } from "./project-theme.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const collection = (file) => Object.values(JSON.parse(fs.readFileSync(path.join(root, "tokens/source/figma", file), "utf8")))[0];
@@ -95,6 +95,26 @@ ok(() => assert.deepEqual(projectModes(defaultProjectTheme()), { componentTheme:
   const custom = projectBaseValues({ ...defaultProjectTheme(), primary: { hex: "#4F46E5" } });
   ok(() => assert.equal(custom["Light/Brand/9"], "#4F46E5"), "custom Brand 9 is the colour");
   ok(() => assert.match(custom["Dark/Brand-Alpha/3"], /^#[0-9A-F]{8}$/), "custom alpha is #RRGGBBAA");
+}
+
+// 6d. Typography (the Zen Figma plugin's Typeface + Type Scale): Inter and no scale write nothing; fonts and a scale
+//     write only Typography Configuration variables tokens.css knows, on every [data-typography] of the project.
+ok(() => assert.ok(!css.includes("typography") && !css.includes("@import")), "the default theme leaves typography to the mode");
+ok(() => assert.equal(normalizeProject({ id: "acme", name: "Acme" }).project.theme.type.scale, null), "an old project has no scale");
+{
+  const typed = { ...defaultProjectTheme(), type: { fonts: { sans: "Be Vietnam Pro", heading: "Fraunces", display: "Fraunces", button: "Inter" }, scale: { base: 16, ratio: 1.2 } } };
+  const typedCss = projectThemeCss("acme", typed);
+  const names = [...typedCss.matchAll(/^\s+(--zen-typography-[a-z0-9-]+):/gm)].map((match) => match[1]);
+  ok(() => assert.equal(names.length, 3 + 17 * 3), "3 fonts + 17 sizes × size, line height, letter spacing");
+  for (const name of names) ok(() => assert.ok(tokensCss.includes(`${name}:`), `${name} is not a Zen token`), name);
+  ok(() => assert.ok(typedCss.startsWith('@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Fraunces:wght@400;500;600;700&display=swap");\n')), "fonts load first in the sheet");
+  ok(() => assert.match(typedCss, /^\[data-brand="p-acme"\]\[data-typography\],\n\[data-brand="p-acme"\] \[data-typography\]:not\(\[data-brand\]\) \{/m), "type block selector");
+  ok(() => assert.equal(projectFontsUrl(defaultProjectTheme()), null), "Inter is bundled: no font request");
+  ok(() => assert.ok(FONT_FAMILIES.includes("Inter") && FONT_FAMILIES.includes("Be Vietnam Pro")), "fonts");
+  // The plugin's curated values at 14 / 1.14, and its formula elsewhere.
+  ok(() => assert.deepEqual(projectTypeScale({ base: 14, ratio: 1.14 })["heading-1"], { size: 32, lineHeight: 40, letterSpacing: -0.76 }), "plugin preset");
+  ok(() => assert.deepEqual(projectTypeScale({ base: 16, ratio: 1.2 })["body-base"], { size: 16, lineHeight: 24, letterSpacing: 0 }), "the base is Body/Base");
+  ok(() => { const { project, errors } = normalizeProject({ id: "acme", name: "Acme", theme: { type: { fonts: { sans: "Comic Sans" }, scale: { base: 40, ratio: 3 } } } }); assert.equal(project.theme.type.fonts.sans, "Inter"); assert.equal(project.theme.type.scale, null); assert.equal(errors.length, 2); }, "unknown font / scale out of range fall back with reasons");
 }
 
 // 7. Ids from names, Vietnamese included.

@@ -1,4 +1,4 @@
-import { createContext, useContext, useLayoutEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AlertBanner } from "../../../components/AlertBanner";
 import { Avatar, AvatarStack } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
@@ -28,7 +28,8 @@ import photoCoast from "../../../assets/media/feed-coast-road.webp";
 import photoRooftops from "../../../assets/media/site-rooftops.webp";
 import photoSantorini from "../../../assets/media/site-santorini.webp";
 import photoSnow from "../../../assets/media/feed-snow-peaks.webp";
-import type { ProjectModes } from "../../../../tools/studio/project-theme.mjs";
+import type { TypographyStyleName } from "../../../tokens/typography.generated";
+import type { ProjectModes, ProjectType } from "../../../../tools/studio/project-theme.mjs";
 
 /*
  * The theme page's preview (user, 2026-10-17: "Trang này sẽ có các component tương ứng để user thấy được các thay đổi
@@ -47,6 +48,7 @@ const GALLERY = [
   { id: "dashboard", label: "Dashboard" },
   { id: "website", label: "Website" },
   { id: "components", label: "Components" },
+  { id: "typography", label: "Typography" },
 ] as const;
 type GalleryId = (typeof GALLERY)[number]["id"];
 
@@ -400,17 +402,89 @@ function ComponentsGallery({ theme }: { theme: Theme }) {
   );
 }
 
-function Gallery({ id, theme }: { id: GalleryId; theme: Theme }) {
+/* ── Typography ───────────────────────────────────────────────────────────────────────────────────────────────── */
+
+/* The text styles the Typography mode sizes (user, 2026-11-06: the theme page had no typography part): each style's
+   name, a sample in it, and its size / line height read off the sample, so a mode change shows in numbers too. */
+const HEADING_STYLES = [
+  { style: "Display/1", sample: "Plan every trip" },
+  { style: "Display/3", sample: "Plan every trip" },
+  { style: "Heading/1", sample: "Quarterly revenue" },
+  { style: "Heading/2", sample: "Quarterly revenue" },
+  { style: "Heading/3", sample: "Open invoices" },
+  { style: "Heading/4", sample: "Open invoices" },
+  { style: "Heading/Subheading", sample: "Payment terms" },
+] as const satisfies ReadonlyArray<{ style: TypographyStyleName; sample: string }>;
+const BODY_STYLES = [
+  { style: "Body/Extra/Regular", sample: "Budgets and bookings on one page." },
+  { style: "Body/Base/Regular", sample: "Budgets and bookings on one page." },
+  { style: "Body/Base/Bold", sample: "Lumen Coffee · $18,400" },
+  { style: "Body/Small/Regular", sample: "Two invoices are due this week." },
+  { style: "Caption/Regular", sample: "Updated 5 minutes ago" },
+  { style: "Label/Small/Medium", sample: "Due soon" },
+  { style: "Body/Code/Regular", sample: "INV-2026-0142" },
+] as const satisfies ReadonlyArray<{ style: TypographyStyleName; sample: string }>;
+
+/** `revision` changes with the Typography mode and the project's type settings: the sizes are read again, in an effect
+ *  (after the theme page's layout effect has written the draft's styles; a layout effect here would read the old ones). */
+function TypeRow({ style, sample, revision }: { style: TypographyStyleName; sample: string; revision: string }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [metrics, setMetrics] = useState("");
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    const computed = getComputedStyle(node);
+    setMetrics(`${Math.round(parseFloat(computed.fontSize))} / ${Math.round(parseFloat(computed.lineHeight))}`);
+  }, [revision]);
+  return (
+    <Stack gap="3xs">
+      <Stack direction="row" gap="xs" justify="between">
+        <Text as="span" textStyle="Caption/Medium" tone="light">{style}</Text>
+        <Text as="span" textStyle="Caption/Regular" tone="light" tabularNumbers>{metrics}</Text>
+      </Stack>
+      <Text ref={ref} textStyle={style}>{sample}</Text>
+    </Stack>
+  );
+}
+
+function TypographyGallery({ revision }: { revision: string }) {
+  const press = usePress();
+  return (
+    <Stack gap="md">
+      {/* Display and headings across the column: a large scale's Display/1 needs the width. */}
+      <Card theme="default" spacing="sm">
+        <Stack gap="md">{HEADING_STYLES.map((row) => <TypeRow key={row.style} {...row} revision={revision} />)}</Stack>
+      </Card>
+      <Grid columns={useColumns(2, 1)} gap="md">
+        <Card theme="default" spacing="sm">
+          <Stack gap="md">{BODY_STYLES.map((row) => <TypeRow key={row.style} {...row} revision={revision} />)}</Stack>
+        </Card>
+        <Card theme="default" spacing="sm">
+          <Stack gap="xs" align="start">
+            <Text textStyle="Caption/Medium" tone="light">Journal · 6 min read</Text>
+            <Heading level={3} textStyle="Heading/2">A week on the coast road</Heading>
+            <Text textStyle="Body/Base/Regular" tone="base">Seven towns, one rented car and a budget we kept to the last café. Here is what we booked ahead, what we found on the way, and what we would skip next time.</Text>
+            <Button level="tertiary" endIcon="icon-arrow-right-line" onClick={press("Read the story")}>Read the story</Button>
+          </Stack>
+        </Card>
+      </Grid>
+    </Stack>
+  );
+}
+
+function Gallery({ id, theme, revision }: { id: GalleryId; theme: Theme; revision: string }) {
   if (id === "cards") return <CardsGallery />;
   if (id === "charts") return <ChartsGallery />;
   if (id === "dashboard") return <DashboardGallery />;
   if (id === "website") return <WebsiteGallery />;
+  if (id === "typography") return <TypographyGallery revision={revision} />;
   return <ComponentsGallery theme={theme} />;
 }
 
 /** The gallery in the draft's modes; `themes`: one column per colour mode. The theme page holds the tab (a chart
  *  colour change opens Charts). */
-export function ThemePreview({ brand, modes, themes, gallery, onGalleryChange }: { brand: string; modes: ProjectModes; themes: ReadonlyArray<Theme>; gallery: GalleryId; onGalleryChange: (gallery: GalleryId) => void }) {
+export function ThemePreview({ brand, modes, type, themes, gallery, onGalleryChange }: { brand: string; modes: ProjectModes; type?: ProjectType; themes: ReadonlyArray<Theme>; gallery: GalleryId; onGalleryChange: (gallery: GalleryId) => void }) {
+  const revision = `${modes.typography} ${JSON.stringify(type?.scale ?? null)}`;
   const columnsRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<Size>("lg");
   useLayoutEffect(() => {
@@ -431,7 +505,7 @@ export function ThemePreview({ brand, modes, themes, gallery, onGalleryChange }:
         {themes.map((theme) => (
           <ZenProvider key={theme} className="studio-theme-preview__column" brand={brand as ZenBrand} theme={theme} componentTheme={modes.componentTheme} density={modes.density} radius={modes.radius} typography={modes.typography} emphasis={modes.emphasis} contrast="standard" breakpoint="desktop" syncDocument={false}>
             {themes.length > 1 ? <Text as="p" textStyle="Caption/Medium" tone="light">{theme === "light" ? "Light" : "Dark"}</Text> : null}
-            <SizeContext value={size}><Gallery id={gallery} theme={theme} /></SizeContext>
+            <SizeContext value={size}><Gallery id={gallery} theme={theme} revision={revision} /></SizeContext>
           </ZenProvider>
         ))}
       </div>
