@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: New project / Project settings has a Typography section, as the Zen Figma plugin's Typeface and Type
+  Scale tabs: a font per role (Body, Heading, Display, Button; Inter or 24 Google Fonts) and a type scale — Dashboard,
+  Popular, Mobile, or Custom (base size × ratio, the plugin's formula). The preview has a Typography tab with every
+  style's size / line height. Projects keep it in `theme.type` (theme.css loads the fonts). Not yet in Copy to Figma.
 - Zen Studio: Smart animate in the Prototype tab's Animation (W-51b, approved 2026-10-31). In Play, layers that carry
   the same name on both Screens (and the same parent names, as Figma matches them) move from where they were to where
   they are, at their size, while the rest fades; Back plays it too. With reduced motion it is a fade. Push to Figma

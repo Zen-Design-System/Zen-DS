@@ -12,12 +12,18 @@ export type ProjectModes = {
   typography: "dashboard" | "popular" | "mobile";
   emphasis: "medium" | "strong" | "light";
 };
+export type TypeRole = "sans" | "heading" | "display" | "button";
+/** A type scale: the Body/Base size and the ratio between steps (the Zen Figma plugin's Type Scale). */
+export type TypeScale = { base: number; ratio: number };
+/** A font per role and an optional type scale; `scale` null keeps the Typography mode's sizes. */
+export type ProjectType = { fonts: Record<TypeRole, string>; scale: TypeScale | null };
 export type ProjectTheme = {
   primary: ColourSource;
   neutral: NeutralSource;
   status: Record<StatusRole, RampName>;
   chart: Array<{ family: SupportFamily; tone: SectorTone }>;
   modes: ProjectModes;
+  type: ProjectType;
 };
 /** The libraries a project's pages use (its Libraries dialog): Zen, the project's own components, its theme. */
 export type ProjectLibraries = { zen: boolean; components: boolean; theme: boolean };
@@ -37,6 +43,11 @@ export const SECTOR_TONES: SectorTone[];
 export const SECTOR_NAMES: string[];
 export const STATUS_ROLES: Record<StatusRole, RampName>;
 export const MODE_VALUES: { [K in keyof ProjectModes]: Array<ProjectModes[K]> };
+export const FONT_FAMILIES: string[];
+export const TYPE_ROLES: TypeRole[];
+export const TYPE_SCALE_LIMITS: { base: { min: number; max: number }; ratio: { min: number; max: number } };
+export function projectTypeScale(scale: TypeScale): Record<string, { size: number; lineHeight: number; letterSpacing: number }>;
+export function projectFontsUrl(theme: ProjectTheme): string | null;
 export function defaultProjectTheme(): ProjectTheme;
 export function projectBrand(id: string): string;
 export function projectIdFor(name: string, taken?: Set<string>): string;

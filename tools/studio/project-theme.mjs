@@ -16,6 +16,9 @@
 // contrast still applies) or are a custom colour: then the Zen Figma plugin's own generator (zen-ramp.generated.mjs)
 // makes the ramp, so Figma would get the same 48 values. Corner radius, component theme and size, typography and
 // emphasis are the shipped modes (user, 2026-10-17: the four radius modes, no custom scale): no new token values.
+// Typography is the exception (user, 2026-11-06: "vẫn không cho đổi typo như trong plugin"): `theme.type` picks a font
+// per role and, optionally, a type scale (base size × ratio) — the Zen Figma plugin's Typeface and Type Scale tabs,
+// with the plugin's own formula, so Figma would get the same sizes.
 import { calculateOnBrandColor, calculateOnBrandStateColor, apcaContrast, generateExpectedPalette, hexToOklch, oklchToHex } from "./zen-ramp.generated.mjs";
 
 export const PROJECT_ID = /^[a-z0-9][a-z0-9-]{0,47}$/;
@@ -53,6 +56,54 @@ export const MODE_VALUES = {
 
 const HEX = /^#[0-9a-f]{6}$/i;
 
+/* ── typography ─────────────────────────────────────────────────────────────────────────────────────────────── */
+
+/** The fonts a role can take: Inter (bundled, Zen's own) and Google Fonts families that have 400, 500, 600 and 700 —
+ *  the weights the Emphasis modes read (450 and 550 fall to the nearest). */
+export const FONT_FAMILIES = [
+  "Inter", "Be Vietnam Pro", "Roboto", "Open Sans", "Noto Sans", "Montserrat", "Plus Jakarta Sans", "Manrope", "DM Sans",
+  "IBM Plex Sans", "Source Sans 3", "Nunito Sans", "Work Sans", "Poppins", "Lexend", "Outfit", "Figtree", "Sora",
+  "Space Grotesk", "Raleway", "Lora", "Playfair Display", "Fraunces", "Noto Serif", "Source Serif 4",
+];
+/** The roles Typography Configuration names a family for (the plugin's Sans, Heading, Display, Button). */
+export const TYPE_ROLES = ["sans", "heading", "display", "button"];
+export const TYPE_SCALE_LIMITS = { base: { min: 10, max: 24 }, ratio: { min: 1, max: 1.62 } };
+/* The plugin's Type Scale rows (zen-ds-figma-plugin src/ui/main.js TYPESCALE_PREVIEW_ROWS): token, steps from the base,
+   line-height ratio, and the curated sizes / line heights it keeps at base 14 and 16 with ratio 1.14. */
+const TYPE_SCALE_ROWS = [
+  ["display-extra-1", 13, 1.128, 78, 88, 88, 100], ["display-extra-2", 12, 1.059, 68, 72, 78, 88], ["display-extra-3", 11, 1.133, 60, 68, 68, 72],
+  ["display-1", 10, 1.154, 52, 60, 60, 68], ["display-2", 9, 1.13, 46, 52, 52, 60], ["display-3", 8, 1.2, 40, 48, 46, 52], ["display-4", 7, 1.222, 36, 44, 40, 48],
+  ["heading-1", 6, 1.25, 32, 40, 36, 44], ["heading-2", 5, 1.286, 28, 36, 32, 40], ["heading-3", 4, 1.333, 24, 32, 28, 36], ["heading-4", 3, 1.4, 20, 28, 24, 32],
+  ["subheading", 2, 1.444, 18, 26, 20, 28], ["body-extra", 1, 1.5, 16, 24, 18, 26], ["body-base", 0, 1.429, 14, 20, 16, 24],
+  ["body-small", -1, 1.333, 12, 16, 14, 20], ["caption", -2, 1.6, 10, 16, 12, 16], ["label-small", -4, 1.5, 8, 12, 10, 16],
+];
+
+/** A type scale's sizes, as the plugin computes them: `{ "heading-1": { size, lineHeight, letterSpacing } … }` (px). */
+export function projectTypeScale({ base, ratio }) {
+  const preset = (base === 14 || base === 16) && Math.abs(ratio - 1.14) < 0.000001;
+  return Object.fromEntries(TYPE_SCALE_ROWS.map(([token, offset, lhRatio, fs14, lh14, fs16, lh16]) => {
+    let size;
+    let lineHeight;
+    if (preset) [size, lineHeight] = base === 14 ? [fs14, lh14] : [fs16, lh16];
+    else {
+      size = Math.round(base * ratio ** offset);
+      lineHeight = Math.round(size * lhRatio);
+      if (lineHeight % 4 === 1) lineHeight -= 1; else if (lineHeight % 4 === 3) lineHeight += 1;
+      if (lineHeight % 2 !== 0) lineHeight += 1;
+    }
+    const scale = size / base;
+    const letterSpacing = scale >= 2 ? Math.round(-0.02 * Math.log2(scale) * size * 100) / 100 : scale < 1 ? Math.round(0.01 * (1 / scale) * size * 100) / 100 : 0;
+    return [token, { size, lineHeight, letterSpacing }];
+  }));
+}
+
+/** The Google Fonts stylesheet for the theme's fonts other than Inter, or null. */
+export function projectFontsUrl(theme) {
+  const families = [...new Set(TYPE_ROLES.map((role) => theme.type?.fonts?.[role]).filter((family) => family && family !== "Inter"))];
+  if (!families.length) return null;
+  return `https://fonts.googleapis.com/css2?${families.map((family) => `family=${family.replace(/ /g, "+")}:wght@400;500;600;700`).join("&")}&display=swap`;
+}
+
 export function defaultProjectTheme() {
   return {
     primary: { ramp: "Zen" },
@@ -61,6 +112,8 @@ export function defaultProjectTheme() {
     // Slots 3–7: the Zen chart palette (Cyan, Violet, Yellow, Orange Solid, Green Soft).
     chart: [{ family: "cyan", tone: "solid" }, { family: "violet", tone: "solid" }, { family: "yellow", tone: "solid" }, { family: "orange", tone: "solid" }, { family: "green", tone: "soft" }],
     modes: { componentTheme: "brand-s1", density: "compact", radius: "rounded", typography: "dashboard", emphasis: "medium" },
+    // Inter for every role; `scale` null: the Typography mode's own sizes.
+    type: { fonts: { sans: "Inter", heading: "Inter", display: "Inter", button: "Inter" }, scale: null },
   };
 }
 
@@ -103,12 +156,23 @@ export function normalizeTheme(input, errors = []) {
   });
   const modes = {};
   for (const [key, values] of Object.entries(MODE_VALUES)) modes[key] = pick(theme.modes?.[key], values, base.modes[key], `theme.modes.${key}`, errors);
+  const fonts = {};
+  for (const role of TYPE_ROLES) fonts[role] = pick(theme.type?.fonts?.[role], FONT_FAMILIES, base.type.fonts[role], `theme.type.fonts.${role}`, errors);
+  let scale = null;
+  const rawScale = theme.type?.scale;
+  if (rawScale && typeof rawScale === "object") {
+    const { base: size, ratio } = rawScale;
+    const within = (value, { min, max }) => typeof value === "number" && Number.isFinite(value) && value >= min && value <= max;
+    if (within(size, TYPE_SCALE_LIMITS.base) && within(ratio, TYPE_SCALE_LIMITS.ratio)) scale = { base: Math.round(size), ratio: Math.round(ratio * 1000) / 1000 };
+    else errors.push(`theme.type.scale: ${JSON.stringify(rawScale)} needs a base of 10–24 and a ratio of 1–1.62`);
+  } else if (rawScale !== undefined && rawScale !== null) errors.push(`theme.type.scale: ${JSON.stringify(rawScale)} is not a scale`);
   return {
     primary: colourSource(theme.primary, PRIMARY_RAMPS, base.primary, "theme.primary", errors),
     neutral: colourSource(theme.neutral, ["Gray"], base.neutral, "theme.neutral", errors, { tint: true }),
     status,
     chart,
     modes,
+    type: { fonts, scale },
   };
 }
 
@@ -223,7 +287,21 @@ export function projectThemeCss(id, theme, { name, brand = projectBrand(id) } = 
     ];
   });
   const scope = `[data-brand="${brand}"]`;
+  // Typography Configuration's values on every [data-typography] (ZenProvider writes it on each frame), so the project's
+  // fonts and scale win over the shipped mode's whatever mode a frame takes. Code (dev) keeps JetBrains Mono.
+  const fonts = theme.type?.fonts ?? {};
+  const type = [
+    ...TYPE_ROLES.filter((role) => fonts[role] && fonts[role] !== "Inter").map((role) => `  --zen-typography-font-family-${role}: "${fonts[role]}", "Inter", sans-serif;`),
+    ...Object.entries(theme.type?.scale ? projectTypeScale(theme.type.scale) : {}).flatMap(([token, value]) => [
+      `  --zen-typography-font-size-${token}: ${value.size}px;`,
+      `  --zen-typography-line-height-${token}: ${value.lineHeight}px;`,
+      `  --zen-typography-letter-spacing-${token}: ${value.letterSpacing}px;`,
+    ]),
+  ];
+  const fontsUrl = projectFontsUrl(theme);
   return [
+    // First in the sheet, as @import must be (projectStore lifts it above the other projects' modes).
+    ...(fontsUrl ? [`@import url("${fontsUrl}");`] : []),
     `/* Zen Studio project ${JSON.stringify(name ?? id)}: Base Colors (Project) mode ${brand}. Generated from`,
     `   .zen-studio/projects/${id}/project.json by tools/studio/project-theme.mjs — edit the project's theme in Studio. */`,
     `${scope},`,
@@ -236,6 +314,7 @@ export function projectThemeCss(id, theme, { name, brand = projectBrand(id) } = 
     ...chart,
     "}",
     "",
+    ...(type.length ? [`${scope}[data-typography],`, `${scope} [data-typography]:not([data-brand]) {`, ...type, "}", ""] : []),
   ].join("\n");
 }
 

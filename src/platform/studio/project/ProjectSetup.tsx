@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { ColorSelector } from "../../../components/ColorSelector";
-import { ColorField, InputField, SelectField } from "../../../components/Input";
+import { ColorField, InputField, NumberField, SelectField } from "../../../components/Input";
 import { ZenProvider, type ZenBrand } from "../../../components/Provider";
 import { Segmented } from "../../../components/Segmented";
 import { Heading, Text } from "../../../components/Text";
@@ -11,8 +11,9 @@ import { ChromeScope } from "../shell/ChromeScope";
 import { previewValueLabel } from "../shell/modes";
 import { useStudio } from "../store";
 import {
-  DEFAULT_LOCALE, MODE_VALUES, PRIMARY_RAMPS, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, STATUS_ROLES, SUPPORT_FAMILIES, SUPPORT_LABELS, defaultProjectTheme, projectPalettes,
-  type ProjectLocale, type ProjectModes, type ProjectTheme, type RampName, type StatusRole, type SupportFamily,
+  DEFAULT_LOCALE, FONT_FAMILIES, MODE_VALUES, PRIMARY_RAMPS, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, STATUS_ROLES, SUPPORT_FAMILIES, SUPPORT_LABELS, TYPE_ROLES, TYPE_SCALE_LIMITS,
+  defaultProjectTheme, projectPalettes, projectTypeScale,
+  type ProjectLocale, type ProjectModes, type ProjectTheme, type RampName, type StatusRole, type SupportFamily, type TypeRole, type TypeScale,
 } from "../../../../tools/studio/project-theme.mjs";
 import { openProjectHome } from "./activeProject";
 import { DRAFT_BRAND, createProject, setDraftStyles, updateProject, useProject, useProjects } from "./projectStore";
@@ -22,7 +23,7 @@ import "./project.css";
 /*
  * New project / Project settings (user, 2026-10-17): the project's name, language and theme on one page — the settings
  * on the left (the language of its pages, 2026-11-05; Primary, Neutral, status colours, chart sectors, corner radius,
- * component theme, size, typography, emphasis),
+ * component theme, typography, size, emphasis),
  * Zen components on the right in the draft's own mode, Light, Dark or both. The draft is a mode of its own
  * ([data-brand="studio-draft"]) until Create / Save; Cancel leaves the project as it was. ⌘Z / ⇧⌘Z step through the
  * page's changes. A full-window layer like Present: the Studio under it is inert.
@@ -151,10 +152,14 @@ function SetupLayer({ setup: current }: { setup: Exclude<Setup, null> }) {
                 options={(Object.keys(PROJECT_LOCALES) as ProjectLocale[]).map((code) => ({ value: code, label: PROJECT_LOCALES[code] }))} />,
             ]} />
           </InspectorSection>
-          <ThemeSettings theme={theme} swatches={swatches} onChange={(next) => { if (next.chart !== theme.chart) setGallery("charts"); change(next); }} />
+          <ThemeSettings theme={theme} swatches={swatches} onChange={(next) => {
+            if (next.chart !== theme.chart) setGallery("charts");
+            else if (next.type !== theme.type || next.modes.typography !== theme.modes.typography) setGallery("typography");
+            change(next);
+          }} />
         </ChromeScope>
         <main className="studio-project-setup__preview" aria-label="Preview">
-          <ThemePreview brand={DRAFT_BRAND} modes={theme.modes} themes={themes} gallery={gallery} onGalleryChange={setGallery} />
+          <ThemePreview brand={DRAFT_BRAND} modes={theme.modes} type={theme.type} themes={themes} gallery={gallery} onGalleryChange={setGallery} />
           <DraftProbes theme={theme} onRead={setSwatches} />
         </main>
       </div>
@@ -252,14 +257,13 @@ function ThemeSettings({ theme, swatches, onChange }: { theme: ProjectTheme; swa
           }))} />
       </InspectorSection>
 
-      <InspectorSection title="Size and type" fieldGrid>
+      <TypographySettings theme={theme} onChange={onChange} />
+
+
+      <InspectorSection title="Size and emphasis" fieldGrid>
         <InspectorFields labels={["Component size"]} fields={[
           <Segmented key="density" aria-label="Component size" size="sm" fullWidth value={theme.modes.density} onValueChange={(value) => setMode("density", value as ProjectModes["density"])}
             options={MODE_VALUES.density.map((id) => ({ id, label: previewValueLabel("density", id) }))} />,
-        ]} />
-        <InspectorFields labels={["Typography"]} fields={[
-          <Segmented key="typography" aria-label="Typography" size="sm" fullWidth value={theme.modes.typography} onValueChange={(value) => setMode("typography", value as ProjectModes["typography"])}
-            options={MODE_VALUES.typography.map((id) => ({ id, label: previewValueLabel("typography", id) }))} />,
         ]} />
         <InspectorFields labels={["Emphasis"]} fields={[
           <Segmented key="emphasis" aria-label="Emphasis" size="sm" fullWidth value={theme.modes.emphasis} onValueChange={(value) => setMode("emphasis", value as ProjectModes["emphasis"])}
@@ -271,6 +275,53 @@ function ThemeSettings({ theme, swatches, onChange }: { theme: ProjectTheme; swa
         <Button level="tertiary" size="sm" startIcon="icon-refresh-ccw-01-line" onClick={() => onChange(defaultProjectTheme())}>Reset to Zen</Button>
       </div>
     </>
+  );
+}
+
+/* Typography (user, 2026-11-06: "thiếu phần typography", then "vẫn không cho đổi typo như trong plugin"): the Zen
+   Figma plugin's two tabs on one section — Typeface (a font per role) and Type Scale (a shipped mode, or Custom: the
+   Body/Base size and the ratio between steps, sized by the plugin's formula). Each tile's "Aa" is that scale's
+   Heading/3 in the Heading font. */
+const TYPE_ROLE_LABEL: Record<TypeRole, string> = { sans: "Body", heading: "Heading", display: "Display", button: "Button" };
+/** The Body/Base size of each shipped mode (tokens.css), where a Custom scale starts. */
+const MODE_BASE: Record<ProjectModes["typography"], number> = { dashboard: 14, popular: 16, mobile: 16 };
+const FONT_OPTIONS = FONT_FAMILIES.map((family) => ({ value: family, label: family, ...(family === "Inter" ? { meta: "Zen" } : {}) }));
+
+function TypographySettings({ theme, onChange }: { theme: ProjectTheme; onChange: (next: ProjectTheme) => void }) {
+  const { fonts, scale } = theme.type;
+  const setType = (type: ProjectTheme["type"]) => onChange({ ...theme, type });
+  const heading = { "--zen-typography-font-family-heading": `"${fonts.heading}", "Inter", sans-serif` } as CSSProperties;
+  const customSize = projectTypeScale(scale ?? { base: MODE_BASE[theme.modes.typography], ratio: 1.14 })["heading-3"].size;
+  const tile = scale ? "custom" : theme.modes.typography;
+  const pickScale = (id: typeof tile) => {
+    if (id === "custom") { if (!scale) setType({ fonts, scale: { base: MODE_BASE[theme.modes.typography], ratio: 1.14 } }); return; }
+    onChange({ ...theme, modes: { ...theme.modes, typography: id }, type: { fonts, scale: null } });
+  };
+  const setScale = (key: keyof TypeScale, value: number | null) => {
+    if (!scale || value === null) return;
+    const { min, max } = TYPE_SCALE_LIMITS[key];
+    setType({ fonts, scale: { ...scale, [key]: Math.min(max, Math.max(min, value)) } });
+  };
+  return (
+    <InspectorSection title="Typography" fieldGrid note="Fonts and text sizes on every page">
+      {TYPE_ROLES.map((role) => (
+        <InspectorFields key={role} labels={[TYPE_ROLE_LABEL[role]]} fields={[
+          <SelectField key={role} size="sm" aria-label={`${TYPE_ROLE_LABEL[role]} font`} value={fonts[role]} popoverSearch options={FONT_OPTIONS}
+            onValueChange={(value) => setType({ fonts: { ...fonts, [role]: value }, scale })} />,
+        ]} />
+      ))}
+      <TileGroup label="Type scale" value={tile} onChange={pickScale}
+        options={[
+          ...MODE_VALUES.typography.map((mode) => ({ id: mode, label: previewValueLabel("typography", mode), art: <span className="studio-project-setup__type-art" data-typography={mode} style={heading} aria-hidden="true">Aa</span> })),
+          { id: "custom" as const, label: "Custom", art: <span className="studio-project-setup__type-art" style={{ ...heading, "--zen-typography-font-size-heading-3": `${customSize}px` } as CSSProperties} aria-hidden="true">Aa</span> },
+        ]} />
+      {scale ? (
+        <InspectorFields labels={["Base size, px", "Ratio"]} fields={[
+          <NumberField key="base" size="sm" aria-label="Base size in px" min={TYPE_SCALE_LIMITS.base.min} max={TYPE_SCALE_LIMITS.base.max} value={scale.base} onValueChange={(value) => setScale("base", value)} />,
+          <NumberField key="ratio" size="sm" aria-label="Scale ratio" min={TYPE_SCALE_LIMITS.ratio.min} max={TYPE_SCALE_LIMITS.ratio.max} step={0.01} value={scale.ratio} onValueChange={(value) => setScale("ratio", value)} />,
+        ]} />
+      ) : null}
+    </InspectorSection>
   );
 }
 

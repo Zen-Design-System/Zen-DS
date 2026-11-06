@@ -43,13 +43,17 @@ function syncStyles() {
     style.id = "zen-studio-projects";
     document.head.append(style);
   }
-  const css = projects.map((project) => {
+  const sheets = projects.map((project) => {
     const cached = cssCache.get(project.id);
     if (cached && cached.at === project.updatedAt) return cached.css;
     const next = projectThemeCss(project.id, project.theme, { name: project.name });
     cssCache.set(project.id, { at: project.updatedAt, css: next });
     return next;
-  }).join("\n");
+  });
+  // A project's fonts are an @import, which counts only at the top of the sheet: every project's go first.
+  const isImport = (line: string) => line.startsWith("@import ");
+  const lines = sheets.flatMap((sheet) => sheet.split("\n"));
+  const css = [...new Set(lines.filter(isImport)), ...lines.filter((line) => !isImport(line))].join("\n");
   if (style.textContent !== css) style.textContent = css;
 }
 

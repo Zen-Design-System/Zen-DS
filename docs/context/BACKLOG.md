@@ -14,5 +14,9 @@ questions for the designer in [`QUESTIONS.md`](QUESTIONS.md). Code keeps its cur
 Nothing open. (The Studio UI/UX review 2026-10-27 sessions are merged: P0 #337, P1 #334, P2 #338, panels #335.)
 
 ## Backlog (plan before opening sessions)
+- **P2 · A project's typography in Figma (2026-11-06):** Studio projects now carry `theme.type` (font per role + custom
+  scale, `tools/studio/project-theme.mjs`), but Copy to Figma and the Variables window (`projectVariables.ts`) send only
+  Base Colors: Figma would need a Typography Configuration mode per project (the plugin's Typeface / Type Scale write
+  the same values). Waits for the user's go-ahead.
 The 2026-10-24 triage's entries are done and archived (`BACKLOG-archive.md`, "Archived 2026-10-24" and "2026-10-25")
 or moved to `BACKLOG-user-and-later.md`.
