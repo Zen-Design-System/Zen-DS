@@ -32,6 +32,10 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   (2026-10-25: about 2 minutes, optional; close the line if the user skips it.)
 
 ## Later phase (Giai đoạn sau)
+- **Studio collaboration with other accounts — saved for later (user, 2026-11-07: "lưu plan lại làm sau"):** plan
+  `docs/research/studio-collaboration-plan-2026-11-07.md` (GĐ 1 host + Share with PocketBase roles, GĐ 2 cloud
+  `PageMirror`, GĐ 3 realtime + soft lock, GĐ 4 team comments, GĐ 5 CRDT multiplayer). To answer when it starts
+  (§3): editing model, hosting + domain, who may sign in. Nothing built.
 - **Code view in other languages — on hold (user, 2026-10-08: "tạm lưu backlog, sẽ làm giai đoạn sau"):** order chosen:
   HTML/CSS → Vue → Swift → Flutter → Svelte. Plan `docs/research/code-languages-plan-2026-10-03.md`, phases P1–P9, each
   approved on its own. Still to answer when it starts: web strategy (§8.1; proposed A, native Vue/Svelte on the shared
