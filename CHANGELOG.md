@@ -14,6 +14,8 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: on the project setup page, changing the type scale, a font or the chart colours no longer switches the
+  preview to its Typography or Charts tab; the preview stays on the tab you picked.
 - Zen Studio: New project / Project settings has a Typography section, as the Zen Figma plugin's Typeface and Type
   Scale tabs: a font per role (Body, Heading, Display, Button; Inter or 24 Google Fonts) and a type scale — Dashboard,
   Popular, Mobile, or Custom (base size × ratio, the plugin's formula). The preview has a Typography tab with every

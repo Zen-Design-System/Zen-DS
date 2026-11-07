@@ -152,11 +152,8 @@ function SetupLayer({ setup: current }: { setup: Exclude<Setup, null> }) {
                 options={(Object.keys(PROJECT_LOCALES) as ProjectLocale[]).map((code) => ({ value: code, label: PROJECT_LOCALES[code] }))} />,
             ]} />
           </InspectorSection>
-          <ThemeSettings theme={theme} swatches={swatches} onChange={(next) => {
-            if (next.chart !== theme.chart) setGallery("charts");
-            else if (next.type !== theme.type || next.modes.typography !== theme.modes.typography) setGallery("typography");
-            change(next);
-          }} />
+          {/* A change never switches the preview's tab (user, 2026-11-07: "Đổi chọn không nên nhảy trang preview"). */}
+          <ThemeSettings theme={theme} swatches={swatches} onChange={change} />
         </ChromeScope>
         <main className="studio-project-setup__preview" aria-label="Preview">
           <ThemePreview brand={DRAFT_BRAND} modes={theme.modes} type={theme.type} themes={themes} gallery={gallery} onGalleryChange={setGallery} />
