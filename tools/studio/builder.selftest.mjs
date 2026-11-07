@@ -114,6 +114,15 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   check("Dialog joins the package import", /import \{ Dialog, Stack, Text \} from "@zen-ds\/react";/.test(proto), true);
   check("frames after", frames().map((frame) => `${frame.kind}:${frame.id}`), ["screen:screen-1", "screen:screen-2", "overlay:confirm"]);
   check("still a valid page", validateDialect(proto, { components }), []);
+  // The Frame tool's plain frame (user 2026-11-07): `frame`, always desktop, whatever device it was asked for; a phone
+  // or tablet with `frame`, or a frame="…" value, is refused.
+  const plainCode = frameCode({ kind: "screen", id: "screen-9", title: "Frame 9", device: "phone", plain: true, empty: true, chrome: false, x: 10, y: 20, width: 375, height: 600 });
+  check("a plain frame is a desktop Screen marked frame", plainCode, '<Screen id="screen-9" title="Frame 9" device="desktop" frame x={10} y={20} width={375} height={600} />');
+  const plainPage = applyOps(proto, board(), "Board", [{ op: "insertChild", code: plainCode }], options(proto));
+  check("a plain frame is a valid page", plainPage.code ? validateDialect(plainPage.code, { components }) : plainPage.error, []);
+  check("a plain frame reads frame: true", plainPage.code ? parsePage(plainPage.code).board.children.at(-1).props.frame : null, { kind: "literal", value: true });
+  const phoneFrame = applyOps(proto, board(), "Board", [{ op: "insertChild", code: '<Screen id="screen-8" title="P" device="phone" frame x={0} y={0} width={375} height={600} />' }], options(proto));
+  check("a phone plain frame is refused", phoneFrame.code ? validateDialect(phoneFrame.code, { components }).map((error) => error.message) : [phoneFrame.error], ["A plain frame (frame) is desktop: a phone or tablet is a Screen"]);
   const stack = parsePage(proto).board.children[0].children[0].loc;
   const withButton = applyOps(proto, stack, "Stack", [{ op: "insertChild", code: '<Button level="primary">Next</Button>' }], options(proto));
   proto = withButton.code ?? proto;

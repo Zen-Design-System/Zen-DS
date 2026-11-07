@@ -175,6 +175,9 @@ type ScreenProps = HTMLAttributes<HTMLDivElement> & {
   /** "Make a separate Screen" (§5): the id of the Screen this one is the phone or tablet version of. Play, Present and
    *  Open on phone show it in place of that Screen at its breakpoint (builder/screenViews.ts); nothing on the screen. */
   versionOf?: string;
+  /** A plain frame (Figma's frame, user 2026-11-07): the Frame tool's, on desktop, no device of its own; the Studio's
+   *  panels leave out what only a device's screen has. Nothing on the screen. */
+  frame?: boolean;
 };
 
 /** The widths desktop Screens render at, from one observer for all of them (a page holds many Screens). */
@@ -285,7 +288,7 @@ function withScrollLink(topNavigation: ReactNode, scrollRef: RefObject<HTMLEleme
   return cloneElement(topNavigation as ReactElement<{ scrollRef?: RefObject<HTMLElement | null> }>, { scrollRef });
 }
 
-export function Screen({ id, title, device: drawnDevice = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, x: _x, y: _y, width, height, modes, versionOf: _versionOf, ...rest }: ScreenProps) {
+export function Screen({ id, title, device: drawnDevice = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, x: _x, y: _y, width, height, modes, versionOf: _versionOf, frame: _frame, ...rest }: ScreenProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const presentScroll = usePresentScroller(rootRef);
   useAbsoluteOverflow(rootRef, Boolean(presentScroll));
