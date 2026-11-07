@@ -13,7 +13,7 @@ import { selectFrameWhenShown } from "../../board/frames";
  * A new Screen or Overlay at the end of a builder page's Board (one edit, one undo step): the Prototype panel's
  * "Add screen" / "Add overlay" (holding a Dialog, Bottom Sheet, Side Panel or Card) and the toolbar's Frame tool. A Screen takes the device of the page's first Screen, so a
  * phone flow stays on phones. The Frame tool gives it a place on the board and a size (a click: 100 × 100; a drag: the
- * drawn size, its device read from the width; a preset of the right panel: the preset's size and device), always empty;
+ * drawn size, both a plain frame; a preset of the right panel: the preset's size and device, a Screen), always empty;
  * the new frame is then selected. Resolves to the new frame's id (`screen:<id>`, `overlay:<id>`), or false.
  */
 
@@ -22,8 +22,9 @@ const literal = (node: PageNode, prop: string) => { const value = node.props[pro
 /** `holds`: what a new Overlay holds (dialect OVERLAY_HOLDS: dialog, sheet, panel, card). `name`: the frame's name before
  *  its number (the device picked, "iPhone 2"; else "Screen"); `empty`: no app frame (default: a drawn or sized Screen).
  *  `content`: layers an empty Screen holds (Paste here on the empty canvas, builder/boardPaste.ts), in the same edit;
- *  `label`: the edit's name in History. */
-type Placement = { place?: FramePlace; width?: number; height?: number; device?: string; layout?: "mobile" | "desktop"; name?: string; empty?: boolean; holds?: "dialog" | "sheet" | "panel" | "card"; content?: string; label?: string; /** The prototype variables `content` reads (insertChild `vars`). */ vars?: PageVarStarts };
+ *  `label`: the edit's name in History. `plain`: Figma's frame, not a device's screen (`<Screen frame>`, desktop; the
+ *  Frame tool's drag and click, user 2026-11-07). */
+type Placement = { place?: FramePlace; width?: number; height?: number; device?: string; layout?: "mobile" | "desktop"; name?: string; empty?: boolean; plain?: boolean; holds?: "dialog" | "sheet" | "panel" | "card"; content?: string; label?: string; /** The prototype variables `content` reads (insertChild `vars`). */ vars?: PageVarStarts };
 
 async function readBoard(localPage: string) {
   const [engine, page] = await Promise.all([loadEngine(), getPage(localPage)]);
@@ -129,7 +130,7 @@ export async function wrapInSection(localPage: string, frameIds: readonly string
   return around ? addSection(localPage, around, "Wrap in new section") : null;
 }
 
-export async function addFrame(localPage: string, kind: "screen" | "overlay", { place, width, height, device: drawn, layout, name, empty: bare, holds, content, label, vars }: Placement = {}): Promise<string | false> {
+export async function addFrame(localPage: string, kind: "screen" | "overlay", { place, width, height, device: drawn, layout, name, empty: bare, plain, holds, content, label, vars }: Placement = {}): Promise<string | false> {
   let board = await readBoard(localPage);
   if (!board) return false;
   // A frame with a place of its own: the frames still in the row are pinned first, so none of them moves (the same undo
@@ -149,7 +150,7 @@ export async function addFrame(localPage: string, kind: "screen" | "overlay", { 
   // A drawn or picked Screen is empty, as Figma's frame (no app frame, nothing in it: the AppShell is the person's choice,
   // user 2026-10-18); the Prototype panel's Add screen still comes with the app frame.
   const empty = bare ?? width !== undefined;
-  const frame = engine.frameCode({ kind, id, title, device, layout, chrome: !empty, empty, holds, ...(place ? { x: place.x, y: place.y } : {}), ...(width !== undefined ? { width, height } : {}) });
+  const frame = engine.frameCode({ kind, id, title, device, layout, chrome: !empty, empty, plain, holds, ...(place ? { x: place.x, y: place.y } : {}), ...(width !== undefined ? { width, height } : {}) });
   // An empty Screen is one self-closing tag: the content goes inside it, one level in.
   const code = content && kind === "screen" && empty ? `${frame.replace(/\s*\/>$/, ">")}\n${content.split("\n").map((line) => (line ? `  ${line}` : line)).join("\n")}\n</Screen>` : frame;
   const named = label ?? (kind === "screen" ? (width !== undefined ? (name ? `Add ${name}` : "Draw frame") : "Add Screen") : "Add overlay");

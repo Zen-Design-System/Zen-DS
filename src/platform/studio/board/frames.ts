@@ -9,7 +9,7 @@ import type { StudioFrameKind } from "../types";
 
 /** `shape`: a builder Screen as saved (its device type, width, height, the page's OS) and the Screen it is a version of
  *  (`versionOf`), for the view switch on its label and Present (builder/screenViews.ts). */
-export type StudioExample = { title: string; description: string; code: string; wide?: boolean; screen?: boolean; shape?: { device: "phone" | "tablet" | "desktop"; width: number; height?: number; os: "ios" | "android"; id: string; versionOf?: string }; render: () => ReactNode };
+export type StudioExample = { title: string; description: string; code: string; wide?: boolean; screen?: boolean; shape?: { device: "phone" | "tablet" | "desktop"; width: number; height?: number; os: "ios" | "android"; id: string; versionOf?: string; plain?: boolean }; render: () => ReactNode };
 
 export type StudioFrameEntry = {
   id: string;
