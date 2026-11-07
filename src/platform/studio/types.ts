@@ -416,7 +416,7 @@ export type EditOp =
    * child, a prop's value, a .map row); its key stays; Zen components are imported, the ones left unused go. `hash`
    * required. Answer: `inserted.loc` (tools/studio/arrange.mjs replacePlan).
    */
-  | { op: "replaceElement"; code: string; state?: StateDecl[] }
+  | { op: "replaceElement"; code: string; state?: StateDecl[]; /** As insertChild `vars` (Update from Figma: the variables Figma's changes read). */ vars?: PageVarStarts }
   /**
    * A multi-selection in one file, one edit: every element at `locs` removed, duplicated (each copy after it) or given
    * the same setProp / removeProp `ops` (setText too: Replace all's words, F10). `hash` required. Answer: `removed`,

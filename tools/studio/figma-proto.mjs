@@ -17,7 +17,8 @@
 //                                                                                            condition: else)
 //     Data   = { type: "STRING" | "FLOAT" | "BOOLEAN", value } | { type: "VARIABLE", name, resolvedType }
 //            | { type: "EXPRESSION", fn: Figma's ExpressionFunction, args: Data[], resolvedType }
-//   The package names a variable; the plugin finds or makes it in the page's collection (figma-push `variables`).
+//   The package names a variable; the plugin finds or makes it in the page's collection (figma-push `variables`). The
+//   pull (W-52 B4) reads the same shape back: protoOfReaction turns `actions` into proto.set / proto.if / proto.run.
 //
 // The Studio's own words (src/platform/studio/builder/proto/protoModel.ts): an action is `proto.<action>(target?,
 // options?)`, its trigger the prop it sits in (onClick, whileHovering; a Screen's onDelay), its options { animation,
@@ -156,10 +157,111 @@ export function reactionOfValue(trigger, proto, vars = {}) {
   return { trigger: figmaTrigger, ...timing, actions, ...(skipped.length ? { skipped } : {}) };
 }
 
-/** A reaction read back (figma-pull) as the Studio's trigger prop and action code, or `{ note }`. */
-export function protoOfReaction(reaction) {
+/** Figma's expression functions by name, the other way (NEGATE and VAR_MODE_LOOKUP have no operator in a page). */
+const OPERATORS = Object.fromEntries(Object.entries(EXPRESSION_FUNCTIONS).map(([op, fn]) => [fn, op]));
+
+/** A FLOAT as Figma keeps it (32 bits: 0.3 reads 0.30000001192092896) back to the number the page wrote. */
+export const figmaNumber = (value) => (typeof value === "number" && Number.isFinite(value) ? Number(value.toPrecision(7)) : value);
+
+/**
+ * Figma's variable data read back (figma-pull; `variableDataOf`, the other way) as an operand of a page's expressions
+ * (proto-vars.mjs): `{ operand }`, or `{ note }` when the page cannot hold it. `names`: the page's variable by each Figma
+ * variable's name (`{ name, value }`; a Figma name that is no identifier was renamed).
+ */
+export function operandOfData(data, names = new Map()) {
+  if (!data || typeof data !== "object") return { note: "a value Figma leaves empty" };
+  if (data.type === "STRING" || data.type === "BOOLEAN" || data.type === "FLOAT") {
+    const value = data.type === "FLOAT" ? figmaNumber(data.value) : data.value;
+    return LITERAL_TYPE(value) === data.type ? { operand: value } : { note: `a ${data.type.toLowerCase()} value Figma does not hold` };
+  }
+  if (data.type === "VARIABLE") {
+    const variable = names.get(data.name);
+    return variable ? { operand: { kind: "ref", root: "vars", path: [variable.name] } } : { note: `${data.name ?? "its variable"} is not one of the page's variables (text, number or boolean)` };
+  }
+  if (data.type !== "EXPRESSION") return { note: `a ${String(data.type).toLowerCase()} value` };
+  const op = OPERATORS[data.fn];
+  if (!op) return { note: `Figma's ${data.fn} has no operator in the Studio` };
+  const args = [];
+  for (const arg of data.args ?? []) {
+    const read = operandOfData(arg, names);
+    if (read.note) return read;
+    args.push(read.operand);
+  }
+  if (op === "!") return args.length === 1 ? { operand: { kind: "expr", op, args } } : { note: "Not takes one value" };
+  if (args.length < 2) return { note: `${data.fn} takes two values` };
+  // Figma may list more than two values: read left to right, as `a + b + c`.
+  return { operand: args.slice(1).reduce((left, right) => ({ kind: "expr", op, args: [left, right] }), args[0]) };
+}
+
+/** `operand` negated: `!x` gives `x` back. */
+const negated = (operand) => (operand?.kind === "expr" && operand.op === "!" ? operand.args[0] : { kind: "expr", op: "!", args: [operand] });
+
+/**
+ * A reaction of several actions read back (`reactionOfValue`, the other way; W-52 B4): Set variable, Conditional and
+ * Figma's own actions as one proto value, several as proto.run(…), Figma's else-if as a proto.if in the otherwise. What
+ * the Studio has no word for is left out and named in `skipped`; null when nothing is left.
+ */
+function protoOfActions(actions, names, skipped) {
+  const one = (action) => {
+    if (action?.action === "SET_VARIABLE") {
+      const variable = names.get(action.variable);
+      if (!variable) { skipped.push(`Set variable ${action.variable ?? "(no variable)"}: not one of the page's variables (text, number or boolean)`); return null; }
+      const read = operandOfData(action.value, names);
+      if (read.note) { skipped.push(`Set variable ${variable.name}: ${read.note}`); return null; }
+      if (!isPageOperand(read.operand) && LITERAL_TYPE(read.operand) !== LITERAL_TYPE(variable.value)) { skipped.push(`Set variable ${variable.name}: Figma gives it a value of another kind`); return null; }
+      return { kind: "proto", action: "set", args: [variable.name, read.operand] };
+    }
+    if (action?.action === "CONDITIONAL") return blocks(action.blocks ?? []);
+    const made = protoOfReaction({ trigger: "ON_CLICK", ...action });
+    if (made.note) { skipped.push(made.note); return null; }
+    return { kind: "proto", action: made.action, args: made.args };
+  };
+  // The first block with its condition; the rest (else-if, else) its otherwise. A block with no action reads as the
+  // opposite condition: Figma's "if x: nothing, else: y" is proto.if(!x, y).
+  const blocks = ([first, ...rest]) => {
+    if (!first) return null;
+    if (!first.condition) return list(first.actions);
+    const read = operandOfData(first.condition, names);
+    if (read.note) { skipped.push(`Conditional: ${read.note}`); return null; }
+    const then = list(first.actions);
+    const otherwise = blocks(rest);
+    if (then) return { kind: "proto", action: "if", args: [read.operand, then, ...(otherwise ? [otherwise] : [])] };
+    return otherwise ? { kind: "proto", action: "if", args: [negated(read.operand), otherwise] } : null;
+  };
+  const list = (entries) => {
+    const steps = (entries ?? []).map(one).filter(Boolean);
+    return steps.length > 1 ? { kind: "proto", action: "run", args: steps } : steps[0] ?? null;
+  };
+  return list(actions);
+}
+const isPageOperand = (value) => value !== null && typeof value === "object" && (value.kind === "ref" || value.kind === "expr");
+
+/**
+ * A reaction read back (figma-pull) as the Studio's trigger prop and action code, or `{ note }`. One of several actions
+ * (`actions`: Set variable, Conditional) reads the page's variables by their Figma names (`names`, operandOfData), names
+ * what it leaves out in `skipped` and what it reads otherwise in `notes`.
+ */
+export function protoOfReaction(reaction, names = new Map()) {
   const prop = Object.entries(TRIGGERS).find(([, figma]) => figma === reaction?.trigger)?.[0];
   if (!prop) return { note: `a ${String(reaction?.trigger ?? "trigger").toLowerCase().replace(/_/g, " ")} reaction: the Studio has no such trigger` };
+  if (Array.isArray(reaction.actions)) {
+    const skipped = [];
+    const value = protoOfActions(reaction.actions, names, skipped);
+    if (!value) return { note: skipped.join("; ") || "no action the Studio has" };
+    const ms = Math.round((reaction.timeout ?? DEFAULT_DELAY_MS / 1000) * 1000);
+    const said = [];
+    if (["set", "if", "run"].includes(value.action)) {
+      if (prop === "whileHovering") return { note: "While hovering: the Studio's While hovering opens an overlay only" };
+      if (prop === "onDelay" && ms !== DEFAULT_DELAY_MS) said.push(`its After delay of ${ms} ms is ${DEFAULT_DELAY_MS} ms (the Studio's delay is an option of one action)`);
+    } else if (prop === "onDelay") {
+      // One action Figma's After delay runs: its delay is its option, as one action read alone.
+      const at = value.action === "close" || value.action === "back" ? 0 : 1;
+      const args = [...value.args];
+      args[at] = { ...(args[at] && typeof args[at] === "object" ? args[at] : {}), delay: ms };
+      value.args = args;
+    }
+    return { prop, action: value.action, args: value.args, ...(skipped.length ? { skipped } : {}), ...(said.length ? { notes: said } : {}) };
+  }
   const options = {};
   const transition = reaction.transition;
   if (reaction.action === "NAVIGATE" || reaction.action === "OVERLAY") {

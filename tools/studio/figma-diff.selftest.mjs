@@ -156,6 +156,23 @@ check("ticking the conflict too gives Figma's theme", element(mergeFigma(current
   check("a pull of the same runs again: no change", figmaChanges({ base: boldDoc, current: JSON.parse(JSON.stringify(boldDoc)), incoming: pageDoc(text([{ start: 10, end: 15, textStyle: "Body/Base/Bold" }])) }).changes.length, 0);
 }
 
+// W-52 B4. Words and Visible Figma bound to a prototype variable the page has not: the changes show them, the merge
+//      writes `{vars.x}` and `hidden={!vars.x}` and declares the variables at Figma's start values; a pull of the same
+//      bindings again changes nothing.
+{
+  const frame = (bound) => ({ type: "FRAME", id: "1:1", name: "Plan", width: 390, layout: { mode: "VERTICAL", gap: 16, padding: [0, 0, 0, 0] }, ...(bound ? { variables: { collection: "Prototype · Plan", vars: [{ name: "greeting", type: "STRING", value: "Hi" }, { name: "on", type: "BOOLEAN", value: false }] } } : {}),
+    children: [{ type: "TEXT", id: "1:2", characters: "Hi", ...(bound ? { varBind: { text: "greeting", visible: "on" } } : {}) }] });
+  const plain = pageDoc(frame(false));
+  const bound = pageDoc(frame(true));
+  const found = figmaChanges({ base: plain, current: JSON.parse(JSON.stringify(plain)), incoming: bound }).changes;
+  check("vars: the words and Visible bound in Figma are a text and a prop change", found.map((change) => change.label), ["Text “{vars.greeting}” · hidden: default → !vars.on", "Text: “Hi” → “{vars.greeting}”"]);
+  const merged = mergeFigma(JSON.parse(JSON.stringify(plain)), bound, found);
+  check("vars: the merge declares what it reads", merged.declare, { on: false, greeting: "Hi" });
+  ok("vars: the merged page reads them", /export const vars = \{ on: false, greeting: "Hi" \};[\s\S]*<Text hidden=\{!vars\.on\}>\s*\{vars\.greeting\}\s*<\/Text>/.test(printPage(merged.doc)));
+  check("vars: a page that has them declares nothing", mergeFigma(JSON.parse(JSON.stringify(bound)), bound, []).declare, null);
+  check("vars: the same bindings pulled again change nothing", figmaChanges({ base: bound, current: JSON.parse(JSON.stringify(bound)), incoming: pageDoc(frame(true)) }).changes.length, 0);
+}
+
 // F7. Per-breakpoint layout props (responsive-props.mjs; P2 of docs/research/studio-responsive-breakpoints-2026-10-26.md).
 //     Figma has no breakpoints: a phone Screen pushes its mobile values and leaves out what hides on mobile; pulled back,
 //     nothing changed; a designer's edit there changes only the mobile key, the others stay (a reset writes the prop's

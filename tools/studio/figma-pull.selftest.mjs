@@ -8,6 +8,10 @@ import fs from "node:fs";
 import { compileReact } from "./compile.mjs";
 import { validateDialect } from "./dialect.mjs";
 import { figmaReadCode, layerKey, pageFromFigma, repoMapping } from "./figma-pull.mjs";
+import { figmaPackage } from "./figma-push.mjs";
+import { protoOfReaction } from "./figma-proto.mjs";
+import { docFromText } from "./doc.mjs";
+import { NESTED_LAYERS } from "../../src/platform/studio/inspector/nestedLayers.generated.ts";
 import { nestedPaths } from "../figma-contract/nested-paths.mjs";
 import { checkSource } from "../usage-guard/api.mjs";
 
@@ -616,6 +620,115 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("property values (live): progress on BadgeStatus and the Status cell, no label as children", pulled.text.includes('<BadgeStatus status="in-review" progress={80} />') && pulled.text.includes('<PropertyStatus defaultValue="in-progress" progress={60} />'));
   ok("property values (live): three people and three labels from the Value-Slot", pulled.text.includes('<PropertyPeople defaultValue={["alex-duong", "sun-hung", "lan-pham"]}') && pulled.text.includes('{ value: "ui-design", label: "UI Design", theme: "orange" }'));
   check("property values (live): no overrides on the rows, no notes", [/overrides=/.test(pulled.text), pulled.notes], [false, []]);
+}
+
+// Prototype variables (W-52 B4, docs/research/studio-prototype-variables-2026-10-31.md §4.1): what the push writes (B3)
+// comes back as the page had it — `vars`, Set variable / Conditional / several actions, words, Visible and a prop bound.
+{
+  const page = `// @zen-page {"format":1,"title":"Vars"}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { Button, Stack, Text, Toggle } from "@zen-ds/react";
+
+export const mock = {};
+export const vars = { dateRange: "Any time", count: 0, on: false };
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="home" title="Home" device="phone">
+        <Stack padding="lg">
+          <Text>{vars.dateRange}</Text>
+          <Text hidden={!vars.on}>Welcome</Text>
+          <Toggle label="Signed in" checked={vars.on} />
+          <Button onClick={proto.run(proto.set("count", vars.count + 1), proto.if(vars.on && vars.count > 2, proto.navigate("details"), proto.set("dateRange", "Last 3 months")))}>Add</Button>
+          <Button onClick={proto.set("on", !vars.on)}>Flip</Button>
+        </Stack>
+      </Screen>
+      <Screen id="details" title="Details" device="phone">
+        <Stack padding="lg"><Button onClick={proto.back()}>Back</Button></Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const pushed = (text) => figmaPackage(text, { mapping, nestedLayers: NESTED_LAYERS, page: { id: "vars", title: "Vars" } }).pkg;
+  // The frame as the pull reads it: its layers, and the variables it names (figmaReadCode `variables`).
+  const pullOf = (pkg, id) => pageFromFigma({ ...(pkg.frames?.find((entry) => entry.id === id)?.frame ?? pkg.frame), variables: pkg.variables }, { mapping });
+  const pkg = pushed(page);
+  const back = pullOf(pkg, "screen:home");
+  const content = (text) => {
+    const { doc } = docFromText(text);
+    const tree = (node) => ({ name: node.name, props: Object.fromEntries(Object.entries(node.props).filter(([name]) => name !== "data-name").sort(([a], [b]) => a.localeCompare(b))), children: node.children.map((child) => (child.kind === "element" ? tree(child) : child)) });
+    return { vars: doc.vars, content: tree(doc.board.children[0].children[0]) };
+  };
+  const strip = (value) => JSON.parse(JSON.stringify(value, (key, entry) => (key === "id" || key === "loc" ? undefined : entry)));
+  check("vars round trip: push then pull gives the page's variables and the Screen's layers back", strip(content(back.text)), strip(content(page)));
+  check("vars round trip: nothing is lost, the page is valid", [back.notes, validateDialect(back.text)], [[], []]);
+  check("vars round trip: a second push and pull gives the same code", pullOf(pushed(back.text), "screen:home").text, back.text);
+  ok("vars round trip: the Back screen's own action comes back as it was", pullOf(pkg, "screen:details").text.includes("<Button onClick={proto.back()}>Back</Button>"));
+
+  // A frame made in Figma: its variables' names in words, a colour, an alias and two modes; else-if, a Conditional with
+  // nothing in its first block, Figma's NEGATE and Set variable mode; a Button's Text property bound by its Figma name.
+  const v = (name, resolvedType) => ({ type: "VARIABLE", name, resolvedType });
+  const made = pageFromFigma({
+    type: "FRAME", name: "Shop", width: 390, height: 844, id: "10:1",
+    layout: { mode: "VERTICAL", gap: 16, padding: [16, 16, 16, 16] },
+    variables: { collection: "Shop flow", vars: [
+      { name: "cart count", type: "FLOAT", value: 0.30000001192092896 },
+      { name: "Signed in", type: "BOOLEAN", value: false },
+      { name: "Brand colour", type: "COLOR" },
+      { name: "greeting", type: "STRING", value: "Hi", modes: 2 },
+      { name: "alias", type: "STRING", alias: true },
+    ] },
+    reactions: [{ trigger: "AFTER_TIMEOUT", timeout: 2, actions: [{ action: "SET_VARIABLE", variable: "Signed in", value: { type: "BOOLEAN", value: true } }, { action: "BACK" }] }],
+    children: [
+      { type: "TEXT", id: "10:2", name: "Hello", characters: "Hi", varBind: { text: "greeting" } },
+      { type: "TEXT", id: "10:3", name: "Count", characters: "0.3", varBind: { text: "cart count", visible: "Signed in" } },
+      { type: "INSTANCE", id: "10:4", name: "Go", set: { id: "1026:8312", name: "Button/Main" }, props: { "Leading-Icon": false, "Trailing-Icon": false, Text: "Hi", Size: "Medium (Base)", Level: "Primary", State: "Default" }, text: "Hi", nested: [], varBind: { props: { Text: "greeting", Size: "greeting" } },
+        reactions: [{ trigger: "ON_CLICK", actions: [{ action: "CONDITIONAL", blocks: [
+          { condition: v("Signed in", "BOOLEAN"), actions: [{ action: "NAVIGATE", to: "screen:home", transition: { type: "DISSOLVE", duration: 0.2, easing: [0.16, 1, 0.3, 1] } }] },
+          { condition: { type: "EXPRESSION", fn: "GREATER_THAN", args: [v("cart count", "FLOAT"), { type: "FLOAT", value: 2 }], resolvedType: "BOOLEAN" }, actions: [{ action: "SET_VARIABLE", variable: "cart count", value: { type: "EXPRESSION", fn: "ADDITION", args: [v("cart count", "FLOAT"), { type: "FLOAT", value: 1 }, { type: "FLOAT", value: 2 }], resolvedType: "FLOAT" } }] },
+          { actions: [{ action: "CLOSE" }, { action: "SET_VARIABLE_MODE" }] },
+        ] }] }] },
+      { type: "INSTANCE", id: "10:5", name: "Neg", set: { id: "1026:8312", name: "Button/Main" }, props: { Text: "Neg", Level: "Secondary" }, text: "Neg", nested: [],
+        reactions: [{ trigger: "ON_CLICK", actions: [
+          { action: "CONDITIONAL", blocks: [{ condition: { type: "EXPRESSION", fn: "NOT", args: [v("Signed in", "BOOLEAN")], resolvedType: "BOOLEAN" }, actions: [] }, { actions: [{ action: "BACK" }] }] },
+          { action: "SET_VARIABLE", variable: "cart count", value: { type: "EXPRESSION", fn: "NEGATE", args: [v("cart count", "FLOAT")] } },
+          { action: "SET_VARIABLE", variable: "greeting", value: { type: "FLOAT", value: 3 } },
+          { action: "SET_VARIABLE", variable: "Brand colour", value: { type: "COLOR", value: {} } },
+        ] }] },
+    ],
+  }, { mapping });
+  check("vars from Figma: the page is valid dialect", validateDialect(made.text), []);
+  ok("vars from Figma: names in words become one word, a FLOAT its own number, an alias its kind's start, no colour", made.text.includes('export const vars = { cartCount: 0.3, signedIn: false, greeting: "Hi", alias: "" };'));
+  ok("vars from Figma: words and Visible bound", /<Text data-name="Hello">\s*\{vars\.greeting\}\s*<\/Text>/.test(made.text) && /<Text hidden=\{!vars\.signedIn\} data-name="Count">\s*\{vars\.cartCount\}\s*<\/Text>/.test(made.text));
+  ok("vars from Figma: else-if is a proto.if in the otherwise; three values add left to right; the Text property is the Button's words", made.text.includes('onClick={proto.if(vars.signedIn, proto.navigate("home"), proto.if(vars.cartCount > 2, proto.set("cartCount", vars.cartCount + 1 + 2), proto.close()))}>') && /proto\.close\(\)\)\)\}>\s*\{vars\.greeting\}\s*<\/Button>/.test(made.text));
+  ok("vars from Figma: a first block with no action reads as the opposite condition (not not x is x)", made.text.includes('<Button level="secondary" onClick={proto.if(vars.signedIn, proto.back())}>Neg</Button>'));
+  ok("vars from Figma: the frame's After delay runs its actions", made.text.includes('onDelay={proto.run(proto.set("signedIn", true), proto.back())}'));
+  check("vars from Figma: what the Studio cannot hold is named", made.notes, [
+    'variable "cart count" is vars.cartCount (a name in code is one word)',
+    'variable "Signed in" is vars.signedIn (a name in code is one word)',
+    "variable Brand colour: a color variable; the Studio's hold text, numbers and booleans (left out)",
+    "variable greeting: the value of its collection's first mode (the Studio's variables have no modes)",
+    'variable alias: Figma gives it another variable\'s value; it starts at ""',
+    "Screen onDelay: its After delay of 2000 ms is 800 ms (the Studio's delay is an option of one action)",
+    "Button: its Size is bound to vars.greeting, but its options in Figma are not the code's (kept as it shows)",
+    "Button: set_variable_mode: the Studio has no such action (left out of its actions)",
+    "Button: Set variable cartCount: Figma's NEGATE has no operator in the Studio (left out of its actions)",
+    "Button: Set variable greeting: Figma gives it a value of another kind (left out of its actions)",
+    "Button: Set variable Brand colour: not one of the page's variables (text, number or boolean) (left out of its actions)",
+  ]);
+  // One Navigate under After delay keeps its delay as its option, as a reaction of one action does.
+  check("vars from Figma: one action left under After delay keeps its delay", protoOfReaction({ trigger: "AFTER_TIMEOUT", timeout: 1.2, actions: [{ action: "NAVIGATE", to: "screen:b" }, { action: "URL" }] }), { prop: "onDelay", action: "navigate", args: ["b", { animation: "instant", delay: 1200 }], skipped: ["url: the Studio has no such action"] });
+  // Live (fixtures/figma-proto-vars.json, 2026-11-07): the B3 page's actions and bindings made in the Zen file with the
+  // plugin's own calls, read by figmaReadCode (Figma keeps floats in 32 bits, the hidden layer bound to Visible is read).
+  const live = pageFromFigma(JSON.parse(fs.readFileSync(new URL("./fixtures/figma-proto-vars.json", import.meta.url), "utf8")).frame, { mapping });
+  check("vars (live): valid, no notes", [validateDialect(live.text), live.notes], [[], []]);
+  ok("vars (live): the variables, words, Visible, Set variable, Conditional and a Text property bound come back",
+    live.text.includes('export const vars = { dateRange: "Any time", count: 0, on: false };') && /<Text data-name="Range">\s*\{vars\.dateRange\}\s*<\/Text>/.test(live.text) && live.text.includes("<Text hidden={!vars.on}>Welcome</Text>")
+    && live.text.includes('onClick={proto.run(proto.set("count", vars.count + 1), proto.if(vars.on && vars.count > 2, proto.navigate("details"), proto.set("dateRange", "Last 3 months")))}>Add</Button>')
+    && live.text.includes('onClick={proto.set("on", !vars.on)}>Flip</Button>') && /<Button size="xlarge">\s*\{vars\.dateRange\}\s*<\/Button>/.test(live.text));
+  ok("vars: figmaReadCode reads Set variable, Conditional, bindings, hidden bound layers and the variables", ["SET_VARIABLE", "conditionalBlocks", "componentProperties", "visibleBound(node)", "protoVariablesOf", "result.reactions = ownReactions"].every((part) => figmaReadCode("1:2").includes(part)));
 }
 
 if (failures.length) {

@@ -78,13 +78,14 @@ export async function applyPulled(pageId: string, incoming: PageDoc, chosen: Fig
   await ensurePageDoc(pageId);
   const record = await getPage(pageId);
   if (!record?.doc) throw new Error("The page cannot be read as a document (fix its dialect errors first)");
-  const { doc, skipped } = mergeFigma(record.doc, incoming, chosen);
+  // `declare`: the prototype variables Figma's changes read that the page has not (W-52 B4), declared in the same edit.
+  const { doc, skipped, declare } = mergeFigma(record.doc, incoming, chosen);
   if (chosen.length > skipped.length) {
     const board = record.doc.board as { id: string };
     const loc = engine.locsOf(record.doc, record.text, { components: new Set(zenComponents) }).locOf.get(board.id);
     if (!loc) throw new Error("The page's Board was not found");
     const code = engine.elementText(doc.board, { ids: true });
-    const response = await applyEdit({ file: pageFile(pageId), loc, name: "Board", ops: [{ op: "replaceElement", code }], hash: engine.sha1(record.text) }, "Update from Figma");
+    const response = await applyEdit({ file: pageFile(pageId), loc, name: "Board", ops: [{ op: "replaceElement", code, ...(declare ? { vars: declare } : {}) }], hash: engine.sha1(record.text) }, "Update from Figma");
     if (!response.ok) throw new Error(response.error);
   }
   // The next pull of this frame compares with this one, and with the page as the update left it.
