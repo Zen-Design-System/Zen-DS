@@ -14,6 +14,8 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: on the project setup page, changing the type scale, a font or the chart colours no longer switches the
+  preview to its Typography or Charts tab; the preview stays on the tab you picked.
 - Zen Studio: the Frame tool draws a plain frame (Figma's frame) whatever its size: a narrow drag no longer turns into a
   phone or tablet Screen with its bars. A frame becomes a device's Screen when you pick a screen size or tick
   Frame › This is a screen (`<Screen frame>` in the page marks a plain frame).
