@@ -14,15 +14,16 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
-- Zen Studio: New project / Project settings is laid out like Figma's Variables window (UX review 2026-11-10, option A).
-  Five groups sit on the left (General, Color, Typography, Shape, Components), and the open group's settings sit
-  beside them; its fields carry their labels inside. Opening a group shows its preview tab; a change never switches it.
-- Zen Studio: a project can use its own fonts (Project settings › Typography › Fonts ›＋, or Upload font… at the end
-  of a role's list; user 2026-11-10). WOFF2, WOFF, TTF or OTF files up to 5 MB each; files of one family
-  (AcmeSans-Regular, AcmeSans-Bold) become one font, and a variable font is recognised. Each font row opens its files
-  and their weights, and warns when the font lacks Regular to Bold or the Vietnamese letters. The role lists show every
-  font in its own face. The font draws on the canvas, in Play, on a phone (Open on phone) and in the HTML export. The
-  dev server keeps the files in the project's `fonts/` folder, so another browser gets them too.
+- Zen Studio: New project / Project settings has a new layout (UX review 2026-11-10). One settings panel has four tabs
+  on top (General, Color, Type, Style), and the preview takes most of the window. Fields carry their labels inside,
+  colour fields show their colour, and every control ends on one right edge. Opening a tab shows its preview tab; a
+  change never switches it. Reset to Zen moves to the top bar.
+- Zen Studio: a project can use its own fonts (Project settings › Type › Fonts ›＋, or Upload font… at the end of a
+  role's list; user 2026-11-10). WOFF2, WOFF, TTF or OTF files up to 5 MB each; files of one family (AcmeSans-Regular,
+  AcmeSans-Bold) become one font, and a variable font is recognised. Each font row opens its files and their weights,
+  and warns when the font lacks Regular to Bold or the Vietnamese letters. The role lists show every font's "Ag" in its
+  own face and what kind it is. The font draws on the canvas, in Play, on a phone (Open on phone) and in the HTML
+  export. The dev server keeps the files in the project's `fonts/` folder, so another browser gets them too.
 - Zen Studio: the HTML export of a page in a project keeps the project's colours, chart sectors and fonts. They were
   left out before, so the export showed the Zen theme.
 - Zen Studio: a page pulled from Figma keeps its prototype variables (W-52 B4). The frame's variables become the page's

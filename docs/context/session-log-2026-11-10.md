@@ -107,3 +107,49 @@ User: "A, làm lại cả trang".
   - Fonts rows and the details group are checked, and Display › Upload font… gives Display "Brand Display".
 - S-12 and S-13 work. Screenshots of each group, the font list and the narrow layout were looked at. Values cut in
   two-per-row status and sector fields, and a cut "Dashb…" in a 4-way Segmented, were fixed before the gate.
+
+## Same day, later: the page polished, then v3 after the references (tier M; same branch)
+
+**First polish.** The user said "UI xấu quá". The causes:
+- Fields stopped at the Inspector's icon column while the swatches and segments ran on, so the right edge was jagged.
+- The groups column was 200px and mostly empty, and the settings column 320px was cramped.
+- The vertical rhythm was uneven.
+
+I offered label-left rows; the user said "dùng inline input". So the page got its own `Section` and `Fields` (one grid
+of equal columns, no icon column): colour dots in the colour fields, font cards, and Reset to Zen in the bar.
+
+**v3.** The user asked for references ("tham khảo thêm các nguồn"). I looked at:
+- shadcn /create;
+- Radix's Theme panel;
+- tweakcn;
+- Material Theme Builder;
+- Realtime Colors;
+- Framer's and Canva's custom fonts.
+
+What they share:
+- The preview takes the window.
+- There is no separate navigation column (tabs sit on top of the panel).
+- Values are shown as pictures (dots, "Ag").
+- Controls share one grid.
+- A font list gives each font's kind.
+- Uploads are kept apart from role assignment.
+
+v3 is approved ("ok, làm theo v3"), then "v3 ok":
+- Zen `Tabs` (subtle, sm, fullWidth, `idPrefix`) + `TabPanel` on a 340px panel: General · Color · Type · Style. Style
+  holds corner radius, the component theme (a select whose leading is that theme's primary and selected fills),
+  size and emphasis.
+- The role lists add a kind ("Uploaded · Variable", "Zen · Variable", "Serif", "Sans"); the font rows are slimmer.
+- Dropped from the mock-up, with the reasons:
+  - "Ag" in the role fields: Zen's inline field puts a leading right after its label, far from the value.
+  - Size and Emphasis side by side: "Medium" was cut.
+- Fixed before delivering: tab labels "Typography" and "Components" ran into each other at 308px, so they became Type
+  and Style.
+- S-13 now opens the Type tab. S-12 and S-13 work.
+- Fonts list: the user circled it ("UI chỗ này không đẹp"):
+  - three bordered cards, "Ag" larger than the name, a grey Name field, cut mono file names next to "Regular 400", and
+    two pill buttons.
+  - Redone as Figma lists a family's styles: one box with hairlines, 36px font rows (disclosure, "Ag", name, kind, ⋯
+    Menu: Rename, Add files, Remove font as danger), and opened style rows indented to the name ("Bold" in bold, 400 or
+    700 on the right, file name in the tooltip).
+  - S-13 now removes through the ⋯ menu. Row locators skip "<font> actions".
+- QA: `npm run qa -- --isolated` PASS (Studio E2E 460 works, 0 broken; TypeScript, style, usage ✓); `npm run build` ✓.

@@ -164,20 +164,23 @@
    the probes: ProjectSetup DraftProbes). */
 .studio-project-setup__theme-art { display: flex; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .studio-project-setup__theme-fill { display: block; width: 20px; height: 16px; border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-neutral-pale-default); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
-/* Typography › Fonts (ProjectSetup FontRow): a slim card per font — "Ag" in its face, its name, what it is (in the
-   warning tone when it lacks a Zen weight or the Vietnamese letters) — an uploaded font's card opening its files under
-   its row; each file's name in its own face, one line tall as the weight field beside it. "Ag" also leads each font in
-   the role fields and lists. */
-.studio-project-setup__fonts { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; }
-.studio-project-setup__font { display: grid; min-width: 0; overflow: hidden; border-radius: var(--zen-corner-radius-base, 12px); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
+/* Type › Fonts (ProjectSetup FontRow), as Figma lists a family's styles: one box, a hairline between fonts; a font's row
+   (36px: disclosure, "Ag" in its face, its name, what it is, ⋯) and, opened, a slim row per style indented to its name
+   (the style in its own face, its weight on the right) and what the font lacks. "Ag" also leads each font in the role
+   lists. */
+.studio-project-setup__fonts { --studio-font-sample: 24px; display: grid; min-width: 0; overflow: hidden; margin: 0; padding: 0; border-radius: var(--zen-corner-radius-base, 12px); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); list-style: none; }
+.studio-project-setup__font { display: grid; min-width: 0; }
+.studio-project-setup__font + .studio-project-setup__font { box-shadow: inset 0 1px 0 var(--zen-color-border-neutral-pale-default); }
+.studio-project-setup__font-head { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding-inline-end: var(--zen-spacing-padding-2-xsmall, 4px); }
 .studio-project-setup__font-row {
   display: flex;
-  width: 100%;
   min-width: 0;
+  height: 36px;
   box-sizing: border-box;
+  flex: 1 1 auto;
   align-items: center;
   gap: var(--zen-spacing-gap-xsmall, 8px);
-  padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px);
+  padding: 0 var(--zen-spacing-padding-2-xsmall, 4px) 0 var(--zen-spacing-padding-xsmall, 8px);
   border: 0;
   background: transparent;
   color: var(--zen-color-content-neutral-strongest);
@@ -187,15 +190,23 @@ button.studio-project-setup__font-row { cursor: pointer; }
 button.studio-project-setup__font-row:hover { background: var(--zen-color-background-neutral-flat-hover); }
 button.studio-project-setup__font-row:active { background: var(--zen-color-background-neutral-flat-pressed); }
 button.studio-project-setup__font-row:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }
-.studio-project-setup__font-row > .zen-icon { flex: none; color: var(--zen-color-content-neutral-base); }
-.studio-project-setup__font-sample { display: inline-block; width: 24px; flex: none; font-size: var(--zen-typography-font-size-body-extra, 16px); font-weight: var(--zen-emphasis-font-weight-medium, 500); line-height: 1; text-align: center; }
-.studio-project-setup__font-row > .studio-project-setup__font-sample { display: flex; height: 28px; align-items: center; justify-content: center; }
+.studio-project-setup__font-toggle { display: inline-flex; width: var(--zen-icon-size-sm, 16px); flex: none; justify-content: center; color: var(--zen-color-content-neutral-base); }
+.studio-project-setup__font-sample { display: inline-block; width: var(--studio-font-sample, 24px); flex: none; font-size: var(--zen-typography-font-size-body-base, 14px); font-weight: var(--zen-emphasis-font-weight-medium, 500); line-height: 1; text-align: center; }
 .studio-project-setup__font-name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-project-setup__font-meta { display: inline-flex; flex: none; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); white-space: nowrap; }
-.studio-project-setup__font-details { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px); }
-.studio-project-setup__font-file { display: block; min-height: var(--zen-input-size-small, 28px); overflow: hidden; line-height: var(--zen-input-size-small, 28px); text-overflow: ellipsis; white-space: nowrap; }
-.studio-project-setup__font-gap { margin: 0; }
-.studio-project-setup__font-actions { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* ⋯, or the room it takes on Inter's row, so every row's meta ends on one edge. */
+.studio-project-setup__font-menu { display: inline-flex; width: var(--zen-button-size-xsmall, 24px); flex: none; justify-content: center; }
+.studio-project-setup__font-rename { min-width: 0; flex: 1 1 auto; padding: var(--zen-spacing-padding-2-xsmall, 4px) 0 var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); }
+/* The styles line up with the font's name: the row's padding, the disclosure, "Ag" and their gaps. */
+.studio-project-setup__font-faces {
+  display: grid;
+  gap: var(--zen-spacing-gap-3-xsmall, 2px);
+  padding: 0 var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-xsmall, 8px) calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-icon-size-sm, 16px) + var(--studio-font-sample) + 2 * var(--zen-spacing-gap-xsmall, 8px));
+}
+.studio-project-setup__font-face { display: grid; min-width: 0; min-height: var(--zen-input-size-small, 28px); grid-template-columns: minmax(0, 1fr) 96px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-project-setup__font-style { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-project-setup__font-range { text-align: end; }
+.studio-project-setup__font-gap { display: flex; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: var(--zen-spacing-gap-2-xsmall, 4px) 0 0; }
 /* Off screen and out of the way: never seen, hit or read. */
 .studio-project-setup__probes { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; visibility: hidden; }
 

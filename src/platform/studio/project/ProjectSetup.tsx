@@ -3,6 +3,7 @@ import { Button, IconButton } from "../../../components/Button";
 import { ColorSelector } from "../../../components/ColorSelector";
 import { Icon } from "../../../components/Icon";
 import { ColorField, InputField, NumberField, SelectField } from "../../../components/Input";
+import { Menu } from "../../../components/Menu";
 import { ZenProvider, type ZenBrand } from "../../../components/Provider";
 import { Segmented } from "../../../components/Segmented";
 import { TabPanel, Tabs } from "../../../components/Tabs";
@@ -396,10 +397,14 @@ function TypographySettings({ theme, onChange }: { theme: ProjectTheme; onChange
         actions={<IconButton icon="icon-plus-line" aria-label="Upload font" tooltip="Upload font" appearance="flat" level="secondary" size="xs" disabled={reading} onClick={() => pick()} />}>
         <ul className="studio-project-setup__fonts" aria-label="Fonts">
           <li className="studio-project-setup__font">
-            <div className="studio-project-setup__font-row">
-              {sample('"Inter", sans-serif')}
-              <Text as="span" textStyle="Body/Small/Medium" className="studio-project-setup__font-name">Inter</Text>
-              <Text as="span" textStyle="Body/Small/Regular" tone="light">Zen</Text>
+            <div className="studio-project-setup__font-head">
+              <div className="studio-project-setup__font-row">
+                <span className="studio-project-setup__font-toggle" aria-hidden="true" />
+                {sample('"Inter", sans-serif')}
+                <Text as="span" textStyle="Body/Small/Medium" className="studio-project-setup__font-name">Inter</Text>
+                <Text as="span" textStyle="Body/Small/Regular" tone="light" className="studio-project-setup__font-meta">Zen · Variable</Text>
+              </div>
+              <span className="studio-project-setup__font-menu" aria-hidden="true" />
             </div>
           </li>
           {uploads.map((font) => <FontRow key={font.family} font={font} theme={theme} onChange={onChange} onAddFiles={() => pick({ into: font.family })} />)}
@@ -435,14 +440,25 @@ function TypographySettings({ theme, onChange }: { theme: ProjectTheme; onChange
   );
 }
 
+/** A face's style in words: its weight's name, Italic after it ("Bold Italic"; a regular italic is "Italic"). */
+const styleName = (face: UploadedFont["faces"][number]) => {
+  if (Array.isArray(face.weight)) return face.style === "italic" ? "Variable Italic" : "Variable";
+  const weight = face.weight === 400 && face.style === "italic" ? "" : WEIGHT_NAMES[face.weight];
+  return [weight, face.style === "italic" ? "Italic" : ""].filter(Boolean).join(" ");
+};
+/** A static face's weight field: the number shows, the name follows it in the list. */
+const weightNumbers = weightOptions.map((option) => ({ value: option.value, label: option.value, meta: WEIGHT_NAMES[Number(option.value)] }));
+
 /**
- * An uploaded font in the Fonts list: "Ag" in its face, its name, what it is (Variable, or its weights), a warning when it
- * lacks a Zen weight or the Vietnamese letters. The row opens its files below it (a disclosure): its name (renamed on
- * Enter or leaving the field; the roles follow), each file in its own face with its weight, what it lacks, Add files and
- * Remove font (the roles that took it go back to Inter).
+ * An uploaded font in the Fonts list, as Figma lists a family's styles: a row with a disclosure (its styles under it),
+ * "Ag" in its face, its name, what it is (in the warning tone when it lacks a Zen weight or the Vietnamese letters), and
+ * ⋯ for Rename, Add files and Remove font (the roles that took it go back to Inter). Under it, a slim row per file: its
+ * style in its own face ("Bold" in bold) and its weight, the file's name in the tooltip; then what the font lacks.
+ * Rename turns the name into a field (Enter or leaving it renames; the roles follow; Escape keeps the name).
  */
 function FontRow({ font, theme, onChange, onAddFiles }: { font: UploadedFont; theme: ProjectTheme; onChange: (next: ProjectTheme) => void; onAddFiles: () => void }) {
   const [open, setOpen] = useState(false);
+  const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(font.family);
   const [error, setError] = useState<string | null>(null);
   const detailsId = useId();
@@ -451,6 +467,7 @@ function FontRow({ font, theme, onChange, onAddFiles }: { font: UploadedFont; th
     const next = renameFont(theme, font.family, name);
     if (!next) { setError("Taken, or has a quote"); return; }
     setError(null);
+    setRenaming(false);
     if (next !== theme) onChange(next);
   };
   const family = projectFontStack("draft", theme, font.family);
@@ -461,40 +478,58 @@ function FontRow({ font, theme, onChange, onAddFiles }: { font: UploadedFont; th
   ].filter(Boolean).join(". ");
   const variable = font.faces.some((face) => Array.isArray(face.weight));
   const weights = new Set(font.faces.map((face) => JSON.stringify(face.weight))).size;
+  const fileOf = (file: string) => uploadOf(file)?.name ?? file;
   return (
     <li className="studio-project-setup__font">
-      <button type="button" className="studio-project-setup__font-row" aria-expanded={open} aria-controls={detailsId} onClick={() => setOpen(!open)}>
-        <span className="studio-project-setup__font-sample" style={{ fontFamily: family }} aria-hidden="true">Ag</span>
-        <Text as="span" textStyle="Body/Small/Medium" className="studio-project-setup__font-name">{font.family}</Text>
-        <Text as="span" textStyle="Body/Small/Regular" tone={lacks ? "warning-base" : "light"} className="studio-project-setup__font-meta" title={lacks || undefined}>
-          {lacks ? <Icon name="icon-alert-triangle-line" size="xs" decorative /> : null}
-          {variable ? "Variable" : `${weights} weight${weights === 1 ? "" : "s"}`}
-          {lacks ? <VisuallyHidden>{`, ${lacks}`}</VisuallyHidden> : null}
-        </Text>
-        <Icon name={open ? "icon-chevron-down-line" : "icon-chevron-right-line"} size="sm" decorative />
-      </button>
-      {open ? (
-        <div id={detailsId} className="studio-project-setup__font-details" role="group" aria-label={`${font.family} files`}>
-          <Fields fields={[
-            <InputField key="name" size="sm" layout="inline" label="Name" aria-label="Font name" value={name} error={error ?? undefined} onChange={(event) => setName(event.target.value)} onBlur={rename}
-              onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) { event.preventDefault(); rename(); } }} />,
-          ]} />
-          {font.faces.map((face) => (
-            <Fields key={face.file} fields={[
-              <Text key="file" as="span" textStyle="Body/Small/Regular" className="studio-project-setup__font-file" title={face.file}
-                style={{ fontFamily: family, fontWeight: Array.isArray(face.weight) ? 400 : face.weight, fontStyle: face.style }}>{uploadOf(face.file)?.name ?? face.file}</Text>,
-              Array.isArray(face.weight)
-                ? <Text key="weight" as="span" textStyle="Body/Small/Regular" tone="light" className="studio-project-setup__font-file">{`Variable ${face.weight[0]}–${face.weight[1]}`}</Text>
-                : <SelectField key="weight" size="sm" aria-label={`Weight of ${uploadOf(face.file)?.name ?? face.file}`} value={String(face.weight)} options={weightOptions}
-                  onValueChange={(value) => onChange(setFaceWeight(theme, font.family, face.file, Number(value)))} />,
-            ]} />
-          ))}
-          {lacks ? <Text as="p" textStyle="Caption/Regular" tone="light" className="studio-project-setup__font-gap">{lacks}</Text> : null}
-          <div className="studio-project-setup__font-actions">
-            <Button level="tertiary" size="sm" startIcon="icon-upload-01-line" onClick={onAddFiles}>Add files</Button>
-            {/* zen-allow-destructive: a draft change, as every one on this page: ⌘Z or Cancel brings the font back */}
-            <Button level="tertiary" size="sm" startIcon="icon-trash-line" onClick={() => onChange(removeFont(theme, font.family))}>Remove font</Button>
+      <div className="studio-project-setup__font-head">
+        {renaming ? (
+          <div className="studio-project-setup__font-rename">
+            <InputField size="sm" layout="inline" label="Name" aria-label="Font name" autoFocus value={name} error={error ?? undefined} onChange={(event) => setName(event.target.value)} onBlur={rename}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.nativeEvent.isComposing) { event.preventDefault(); rename(); }
+                // Escape keeps the name (and leaves the page open).
+                if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setName(font.family); setError(null); setRenaming(false); }
+              }} />
           </div>
+        ) : (
+          <button type="button" className="studio-project-setup__font-row" aria-expanded={open} aria-controls={detailsId} onClick={() => setOpen(!open)}>
+            <span className="studio-project-setup__font-toggle"><Icon name={open ? "icon-chevron-down-line" : "icon-chevron-right-line"} size="xs" decorative /></span>
+            <span className="studio-project-setup__font-sample" style={{ fontFamily: family }} aria-hidden="true">Ag</span>
+            <Text as="span" textStyle="Body/Small/Medium" className="studio-project-setup__font-name">{font.family}</Text>
+            <Text as="span" textStyle="Body/Small/Regular" tone={lacks ? "warning-base" : "light"} className="studio-project-setup__font-meta" title={lacks || undefined}>
+              {lacks ? <Icon name="icon-alert-triangle-line" size="xs" decorative /> : null}
+              {variable ? "Variable" : `${weights} weight${weights === 1 ? "" : "s"}`}
+              {lacks ? <VisuallyHidden>{`, ${lacks}`}</VisuallyHidden> : null}
+            </Text>
+          </button>
+        )}
+        <span className="studio-project-setup__font-menu">
+          <Menu align="end" trigger={<IconButton icon="icon-dots-horizontal-line" aria-label={`${font.family} actions`} appearance="flat" level="secondary" size="xs" />}
+            items={[
+              { id: "rename", label: "Rename", icon: "icon-edit-02-line", onSelect: () => setRenaming(true) },
+              { id: "add", label: "Add files", icon: "icon-upload-01-line", onSelect: onAddFiles },
+              { type: "separator" },
+              { id: "remove", label: "Remove font", icon: "icon-trash-line", danger: true, onSelect: () => onChange(removeFont(theme, font.family)) },
+            ]} />
+        </span>
+      </div>
+      {open ? (
+        <div id={detailsId} className="studio-project-setup__font-faces" role="group" aria-label={`${font.family} files`}>
+          {font.faces.map((face) => (
+            <div key={face.file} className="studio-project-setup__font-face" title={fileOf(face.file)}>
+              <Text as="span" textStyle="Body/Small/Regular" className="studio-project-setup__font-style"
+                style={{ fontFamily: family, fontWeight: Array.isArray(face.weight) ? 400 : face.weight, fontStyle: face.style }}>{styleName(face)}</Text>
+              {Array.isArray(face.weight)
+                ? <Text as="span" textStyle="Body/Small/Regular" tone="light" className="studio-project-setup__font-range">{`${face.weight[0]}–${face.weight[1]}`}</Text>
+                : <SelectField size="sm" aria-label={`Weight of ${fileOf(face.file)}`} value={String(face.weight)} options={weightNumbers}
+                  onValueChange={(value) => onChange(setFaceWeight(theme, font.family, face.file, Number(value)))} />}
+            </div>
+          ))}
+          {lacks ? (
+            <Text as="p" textStyle="Caption/Regular" tone="warning-base" className="studio-project-setup__font-gap">
+              <Icon name="icon-alert-triangle-line" size="xs" decorative />{lacks}
+            </Text>
+          ) : null}
         </div>
       ) : null}
     </li>
