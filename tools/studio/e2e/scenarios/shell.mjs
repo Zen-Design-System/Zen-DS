@@ -403,7 +403,7 @@ export const rows = [
   },
   {
     // User 2026-11-10: "làm upload font riêng từng project".
-    id: "S-13", feature: "Project fonts: Project settings › Typography › Upload font takes a WOFF2 (InterVariable as AcmeSans-Variable: Acme Sans, Variable 100–900) and refuses a PNG with its reason; two JetBrains Mono files become one font at 400 and 700 with the Zen weights it lacks said; picked for Heading and saved, the canvas heading draws in its face (loaded from this browser), the project's fonts/ folder and theme.css hold it, a fresh browser gets the file from the dev server; Remove puts Heading back on Inter", wp: "user 2026-11-10", timeout: 120_000,
+    id: "S-13", feature: "Project fonts: Project settings › Type (its tab shows the Typography preview; Color shows Cards) › Upload takes a WOFF2 (InterVariable as AcmeSans-Variable: Acme Sans, Variable) and refuses a PNG with its reason; two JetBrains Mono files become one font at 400 and 700 whose row warns and whose files say the Zen weights it lacks; Display's Upload font… gives Display the font uploaded; Acme Sans picked for Heading and saved, the canvas heading draws in its face (loaded from this browser), the project's fonts/ folder and theme.css hold it, a fresh browser gets the file from the dev server; Remove puts Heading back on Inter", wp: "user 2026-11-10", timeout: 120_000,
     async run(ctx) {
       const project = "e2e-fonts";
       const family = "Acme Sans (e2e-fonts)";
@@ -423,28 +423,47 @@ export const rows = [
           return settings;
         };
         const settings = await openSettings();
+        const previewTab = () => settings.getByRole("tablist", { name: "Preview" }).getByRole("tab", { selected: true }).innerText();
+        const openGroup = async (name, tab) => {
+          await settings.getByRole("tablist", { name: "Settings" }).getByRole("tab", { name }).click();
+          await until(async () => (await previewTab()).trim() === tab, { message: `${name} shows the ${tab} preview` });
+        };
+        await openGroup("Type", "Typography");
         const upload = settings.locator('input[data-e2e="upload-fonts"]');
         await upload.setInputFiles({ name: "logo.png", mimeType: "image/png", buffer: Buffer.from("89504e470d0a1a0a0000000d49484452", "hex") });
         await until(async () => /Not uploaded: logo\.png \(not a WOFF2, WOFF, TTF or OTF font\)/.test(await statusText(page)), { message: "the PNG refused with its reason" });
         await upload.setInputFiles({ name: "AcmeSans-Variable.woff2", mimeType: "font/woff2", buffer: font });
-        const group = settings.getByRole("group", { name: "Uploaded font Acme Sans" });
-        await group.waitFor({ state: "visible", timeout: 8000 });
-        const range = (await group.innerText()).replace(/\s+/g, " ");
-        if (!/Variable 100–900/.test(range)) throw new Error(`the font's file reads "${range}"`);
-        // Two static files of one family: one font, each weight from its name, the Zen weights it lacks said under it.
+        const fontsList = settings.getByRole("list", { name: "Fonts" });
+        const acme = fontsList.getByRole("button", { name: /^Acme Sans/ });
+        await acme.waitFor({ state: "visible", timeout: 8000 });
+        const acmeRow = (await acme.innerText()).replace(/\s+/g, " ");
+        if (!/Variable/.test(acmeRow)) throw new Error(`Acme Sans's row reads "${acmeRow}"`);
+        // Two static files of one family: one font, its row warns; opened, each weight from its name and the Zen weights it lacks.
         const mono = path.join(ctx.root, "src/assets/fonts/JetBrainsMono");
         await upload.setInputFiles(["JetBrainsMono-Regular.woff2", "JetBrainsMono-Bold.woff2"].map((name) => ({ name, mimeType: "font/woff2", buffer: fs.readFileSync(path.join(mono, name)) })));
-        const pair = settings.getByRole("group", { name: "Uploaded font Jet Brains Mono" });
-        await pair.waitFor({ state: "visible", timeout: 8000 });
+        const monoRow = fontsList.getByRole("button", { name: /^Jet Brains Mono/ });
+        await monoRow.waitFor({ state: "visible", timeout: 8000 });
+        const monoName = (await monoRow.getAttribute("aria-label")) ?? (await monoRow.evaluate((el) => el.textContent ?? ""));
+        if (!/2 weights/.test(monoName) || !/No Medium, Semi Bold/.test(monoName)) throw new Error(`Jet Brains Mono's row says "${monoName}"`);
+        await monoRow.click();
+        const pair = settings.getByRole("group", { name: "Jet Brains Mono files" });
+        await pair.waitFor({ state: "visible", timeout: 5000 });
         const weights = await pair.locator("button").evaluateAll((buttons) => buttons.map((button) => button.textContent?.trim()).filter((text) => /\d00$/.test(text ?? "")));
         if (weights.join() !== "Regular 400,Bold 700") throw new Error(`Jet Brains Mono's weights: ${weights.join(", ")}`);
         const gap = (await pair.innerText()).replace(/\s+/g, " ");
         if (!/No Medium, Semi Bold: text takes the nearest weight/.test(gap)) throw new Error(`Jet Brains Mono's note: ${gap}`);
-        const typography = settings.getByRole("region", { name: "Typography" });
-        await typography.scrollIntoViewIfNeeded();
-        await typography.screenshot({ path: ".qa/studio-e2e/shell-S-13-fonts.png" }).catch(() => undefined);
+        // A role list's last option uploads a font for that role.
+        await settings.locator('[data-prop="font-display"] button').first().click();
+        const chooser = page.waitForEvent("filechooser", { timeout: 5000 });
+        await page.getByRole("option", { name: /^Upload font/ }).click();
+        await (await chooser).setFiles({ name: "BrandDisplay-Bold.woff2", mimeType: "font/woff2", buffer: fs.readFileSync(path.join(mono, "JetBrainsMono-Bold.woff2")) });
+        await until(async () => /Brand Display/.test(await settings.locator('[data-prop="font-display"]').innerText()), { message: "Display on the font uploaded from its list" });
+        await settings.locator(".studio-project-setup__settings").screenshot({ path: ".qa/studio-e2e/shell-S-13-fonts.png" }).catch(() => undefined);
         await settings.locator('[data-prop="font-heading"] button').first().click();
         await page.getByRole("option", { name: /^Acme Sans/ }).first().click();
+        // A change kept the Typography preview; opening Color shows Cards.
+        if ((await previewTab()).trim() !== "Typography") throw new Error(`picking a font switched the preview to ${await previewTab()}`);
+        await openGroup("Color", "Cards");
         await settings.getByRole("button", { name: "Save", exact: true }).click();
         await settings.waitFor({ state: "hidden", timeout: 8000 });
         // The canvas: the heading names the project's font first, and its face is loaded from this browser's file.
@@ -481,12 +500,14 @@ export const rows = [
         }
         // Remove: Heading back on Inter, the project without the font.
         const again = await openSettings();
-        await again.getByRole("button", { name: "Remove Acme Sans" }).click();
-        await again.getByRole("group", { name: "Uploaded font Acme Sans" }).waitFor({ state: "detached", timeout: 5000 });
+        await again.getByRole("tablist", { name: "Settings" }).getByRole("tab", { name: "Type" }).click();
+        await again.getByRole("list", { name: "Fonts" }).getByRole("button", { name: /^Acme Sans/ }).click();
+        await again.getByRole("button", { name: "Remove font" }).click();
+        await again.getByRole("list", { name: "Fonts" }).getByRole("button", { name: /^Acme Sans/ }).waitFor({ state: "detached", timeout: 5000 });
         await again.getByRole("button", { name: "Save", exact: true }).click();
         await again.waitFor({ state: "hidden", timeout: 8000 });
-        await until(() => { const json = JSON.parse(fs.readFileSync(path.join(folder, "project.json"), "utf8")); return json.theme.type.fonts.heading === "Inter" && json.theme.type.uploads.map((font) => font.family).join() === "Jet Brains Mono"; }, { message: "project.json back on Inter without Acme Sans" });
-        return `PNG refused · AcmeSans-Variable.woff2 → Acme Sans, Variable 100–900 · JetBrainsMono Regular + Bold → one font, 400 + 700, "No Medium, Semi Bold" · Heading: canvas "${family}" face ${faces[0]} · fonts/ + theme.css @font-face · fresh browser pulled it · Remove → Inter`;
+        await until(() => { const json = JSON.parse(fs.readFileSync(path.join(folder, "project.json"), "utf8")); return json.theme.type.fonts.heading === "Inter" && json.theme.type.fonts.display === "Brand Display" && json.theme.type.uploads.map((font) => font.family).join() === "Jet Brains Mono,Brand Display"; }, { message: "project.json back on Inter without Acme Sans" });
+        return `Type tab → Typography preview · PNG refused · AcmeSans-Variable.woff2 → Acme Sans, Variable · JetBrainsMono Regular + Bold → one font, 400 + 700, "No Medium, Semi Bold" · Display › Upload font… → Brand Display · Color → Cards · Heading: canvas "${family}" face ${faces[0]} · fonts/ + theme.css @font-face · fresh browser pulled it · Remove → Inter`;
       } finally {
         await ctx.studio({ fresh: true });
       }

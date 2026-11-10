@@ -65,3 +65,45 @@ the project's colours, chart sectors and fonts.
   - `fonts/` and theme.css's @font-face are on disk, and a fresh browser pulls the file;
   - Remove sets Heading back to Inter.
 - S-12 works.
+
+## Studio: the project theme page redone as Figma's Variables window (tier M; same branch)
+
+The user found the page "weird" ("UI UX chỗ này weird quá"). The review, with screenshots and an A/B mock-up, found:
+- 11 sections in one column, about 2.6 screens tall.
+- Six different controls for "pick one".
+- Labels above every field, unlike the Inspector.
+- Font files mixed into the role form.
+- An unlabelled Type scale.
+- A font list without samples.
+- A preview that never followed what was edited.
+
+User: "A, làm lại cả trang".
+
+**Spec card** (`ProjectSetup.tsx`, `project.css`):
+- **Body:** `200px | 320px | preview`.
+- **Groups** (General, Color, Typography, Shape, Components): an APG vertical tab list (↑ ↓ Home End, one Tab stop). The
+  rows match the Pages panel's (32px, 16px icon, Body/Small/Medium; Neutral/Flat hover, Active/Neutral/Subtle
+  selected). Reset to Zen sits at the foot.
+- **Opening a group** shows its preview tab: Color → Cards, Typography → Typography, Shape and Components →
+  Components. A change never switches it (2026-11-07).
+- **Fields** carry their label inside (`layout="inline"`, Figma's Inline-Field), one per row. A chart sector's field
+  shows only its number, because "Sector 3" left no room for "Crimson". Type scale is a "Scale" select (14 / 16 px meta).
+- **Typography › Fonts:**
+  - A 28px row per font: "Ag" in its face, the name, "Variable" or "N weights", and a warning icon whose text is read
+    out.
+  - An uploaded font's row opens its files below it (a disclosure, not a Popover: the guideline keeps Popover for option
+    lists). There: the name, each file's weight, what it lacks, Add files, and Remove font.
+  - Remove font carries `zen-allow-destructive`: ⌘Z or Cancel brings it back.
+  - ＋ in the section head uploads.
+- **Roles:** every list shows the fonts in their own face. The listed fonts' "Ag" comes from one Google request with
+  `text=Ag`, renamed "<family> Ag" so it never stands in for a whole font. The list ends in Upload font…, and the font
+  uploaded takes that role.
+- **Narrow (≤ 900px):** the groups become one row of tabs above the settings.
+
+**QA:**
+- S-13 was rewritten for the groups:
+  - the Typography group shows the Typography preview, and Color shows Cards;
+  - a picked font keeps the preview;
+  - Fonts rows and the details group are checked, and Display › Upload font… gives Display "Brand Display".
+- S-12 and S-13 work. Screenshots of each group, the font list and the narrow layout were looked at. Values cut in
+  two-per-row status and sector fields, and a cut "Dashb…" in a 4-way Segmented, were fixed before the gate.

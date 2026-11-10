@@ -84,13 +84,15 @@ function freeName(family: string, fonts: UploadedFont[]): string {
 }
 
 /**
- * Uploads font files into `theme`: each a face of the font its name says (one already there takes it; one at the same
- * weight and style is replaced). Returns the theme with them and the files refused, each with why.
+ * Uploads font files into `theme`: each a face of the font its name says, or of `into` (a font's Add files); a font
+ * already there takes it, and a face at the same weight and style is replaced. Returns the theme with them, the fonts
+ * they went into (in order) and the files refused, each with why.
  */
-export async function uploadFonts(files: File[], theme: ProjectTheme): Promise<{ theme: ProjectTheme; added: number; refused: string[] }> {
+export async function uploadFonts(files: File[], theme: ProjectTheme, { into }: { into?: string } = {}): Promise<{ theme: ProjectTheme; added: number; families: string[]; refused: string[] }> {
   await loadUploads();
   let fonts = theme.type.uploads.map((font) => ({ ...font, faces: [...font.faces] }));
   const refused: string[] = [];
+  const families: string[] = [];
   let added = 0;
   for (const file of files) {
     if (file.size > MAX_FONT_BYTES) { refused.push(`${file.name} (over 5 MB)`); continue; }
@@ -100,7 +102,7 @@ export async function uploadFonts(files: File[], theme: ProjectTheme): Promise<{
     const read = await readFont(bytes.slice().buffer);
     if (!read) { refused.push(`${file.name} (the browser cannot read this font)`); continue; }
     const named = faceOfName(file.name);
-    const known = fonts.find((font) => font.family.toLowerCase() === named.family.toLowerCase());
+    const known = fonts.find((font) => font.family.toLowerCase() === (into ?? named.family).toLowerCase());
     if (!known && fonts.length >= MAX_FONT_FAMILIES) { refused.push(`${file.name} (a project has up to ${MAX_FONT_FAMILIES} fonts)`); continue; }
     const id = assetIdWith(file.name, kind, bytes, "font");
     if (!uploadOf(id)) await putAsset(id, new Blob([bytes], { type: FONT_TYPES[kind] }), file.name);
@@ -110,9 +112,10 @@ export async function uploadFonts(files: File[], theme: ProjectTheme): Promise<{
     const faces = [...target.faces.filter((other) => !same(other)), face];
     if (faces.length > MAX_FONT_FACES) { refused.push(`${file.name} (a font has up to ${MAX_FONT_FACES} files)`); continue; }
     fonts = known ? fonts.map((font) => (font === known ? { ...font, faces } : font)) : [...fonts, { ...target, faces }];
+    if (!families.includes(target.family)) families.push(target.family);
     added += 1;
   }
-  return { theme: { ...theme, type: { ...theme.type, uploads: fonts } }, added, refused };
+  return { theme: { ...theme, type: { ...theme.type, uploads: fonts } }, added, families, refused };
 }
 
 /** The theme without `family`: the roles that took it go back to Inter. */
@@ -143,6 +146,27 @@ export function fontGaps(font: UploadedFont): { weights: number[]; vietnamese: b
 }
 
 export const weightOptions = FONT_WEIGHTS.map((weight) => ({ value: String(weight), label: `${WEIGHT_NAMES[weight]} ${weight}` }));
+
+/* ── the font list's samples ──────────────────────────────────────────────────────────────────────────────────── */
+
+let previews: Promise<void> | null = null;
+/**
+ * "Ag" in each Google font of the list, for the role fields' option samples: one request for those two letters of every
+ * family (Google Fonts' text=), renamed "<family> Ag" so they never stand in for the whole font a theme loads.
+ */
+export function loadFontSamples(families: readonly string[]): void {
+  if (previews || typeof document === "undefined") return;
+  const url = `https://fonts.googleapis.com/css2?${families.map((family) => `family=${family.replace(/ /g, "+")}`).join("&")}&text=Ag&display=swap`;
+  previews = fetch(url).then((reply) => (reply.ok ? reply.text() : "")).then((css) => {
+    if (!css) return;
+    const style = document.createElement("style");
+    style.id = "zen-studio-font-samples";
+    style.textContent = css.replace(/font-family: '([^']+)'/g, "font-family: '$1 Ag'");
+    document.head.append(style);
+  }).catch(() => undefined);
+}
+/** The font-family a sample of a listed font draws in: Inter itself, any other its "Ag" (loadFontSamples). */
+export const listedSample = (family: string) => (family === "Inter" ? '"Inter", sans-serif' : `"${family} Ag", "Inter", sans-serif`);
 
 /* ── the dev server's copy ────────────────────────────────────────────────────────────────────────────────────── */
 
