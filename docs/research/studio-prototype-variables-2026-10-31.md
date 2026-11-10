@@ -232,6 +232,30 @@ Phải thử trên **Figma thật** trước khi coi là xong ([[test-in-real-fi
 và `actions[]`, nhưng chưa ai trong repo dùng tới. Pull (Figma → Studio) đọc ngược các phần trên. Pull để phase sau,
 không bắt buộc.
 
+### 4.1 Pull về Studio (B4, spec card 2026-11-07)
+
+`figma-pull.mjs`: code đọc trong use_figma (`figmaReadCode`) và `pageFromFigma`. Plugin không đổi (pull không đi qua
+plugin). Hình dạng JSON đọc về giống hình dạng push ghi (`figma-proto.mjs`), nên push rồi pull cho lại đúng code.
+
+| Figma (đọc) | Studio (pull) | Ghi chú |
+| --- | --- | --- |
+| Biến STRING/FLOAT/BOOLEAN mà frame dùng (reaction, binding), cả collection "Prototype · …" của chúng | `export const vars = { … }`, giá trị ở mode mặc định | tên không phải identifier → camelCase, có ghi chú; nhiều mode → mode mặc định, có ghi chú; biến COLOR → bỏ, có ghi chú |
+| Reaction có một action Navigate/Overlay/Close/Back | như trước (`proto.navigate`…) | không đổi |
+| Reaction nhiều action | `proto.run(…)` | — |
+| `SET_VARIABLE` | `proto.set("x", giá trị hoặc expression)` | giá trị khác kiểu biến, biến chưa chọn → bỏ action, có ghi chú |
+| `CONDITIONAL` (if / else if / else) | `proto.if(điều kiện, rồi, ngược lại)`; else-if thành `proto.if` lồng trong nhánh ngược lại | block không có action → bỏ, có ghi chú |
+| Expression `+ - * / == != < <= > >= and or not` | `vars.x + 1`, `===`, `&&`, `!`… | `NEGATE`, `VAR_MODE_LOOKUP` → bỏ action, có ghi chú |
+| `characters` của text gắn biến | `<Text>{vars.x}</Text>` | — |
+| Thuộc tính TEXT/BOOLEAN của instance gắn biến (cả text lồng hiện nhãn) | `prop={vars.x}` / children `{vars.x}` | VARIANT chỉ khi giá trị Figma trùng giá trị code |
+| Visible gắn biến (kể cả layer đang ẩn) | `hidden={!vars.x}` | — |
+
+Không đọc được (ghi chú): Set variable mode; After delay với nhiều action (Studio chờ 800 ms); While hovering với Set
+variable/Conditional. Những gì push đã làm mất (prop gắn phép so sánh, control hai chiều) về lại dưới dạng giá trị đầu,
+và Update from Figma (3 chiều) giữ bản của trang. Update from Figma khai báo luôn biến mà các thay đổi được chọn đọc tới
+nhưng trang chưa có (op `replaceElement` nhận `vars`, như `pasteCode`); giá trị đầu đổi trong Figma không được đề xuất.
+Kiểm tra: `figma-pull.selftest` (round trip từ ca B3 của `figma-push.selftest`, cả ca do Figma tạo), `figma-diff.selftest`,
+chạy code đọc trên Figma thật (frame QA, rồi xoá).
+
 ## 5. Các phát hiện liên quan (bạn chưa quyết)
 
 **W-58 · chuỗi hành động và ô bắt buộc.**

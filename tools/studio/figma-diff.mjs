@@ -10,11 +10,14 @@
 // Elements the Studio added (ids not from Figma) are never touched, nor the prototype actions the Studio wrote (Figma
 // holds none of them). Figma has no breakpoints: a per-breakpoint layout prop (responsive-props.mjs) compares and takes
 // Figma's value at the layer's breakpoint only, keeping its other keys, and `hideOn` is the Studio's own. Isomorphic; its
-// one import has none.
+// imports have none.
 //
 //   figmaSource(header) → { file, node } | null
 //   figmaChanges({ base, current, incoming, synced }) → { changes, threeWay }
-//   mergeFigma(current, incoming, changes) → { doc, skipped }    the chosen changes applied to a copy of `current`
+//   mergeFigma(current, incoming, changes) → { doc, skipped, declare }    the chosen changes applied to a copy of
+//                                                     `current`; `declare`: the prototype variables they read that the
+//                                                     page has not, at Figma's start values (W-52 B4), or null
+import { operandCode } from "./proto-vars.mjs";
 import { HIDE_ON_PROP, RESPONSIVE_DEFAULTS, hiddenAt, isResponsiveProp, modesBreakpoint, perBreakpoint, screenBreakpoint, valueAt, withBreakpointValue } from "./responsive-props.mjs";
 
 /** The Figma frame a page was pulled from (its header's `figma`), or null. */
@@ -44,12 +47,15 @@ function canon(value) {
 }
 
 const isRun = (child) => child.kind === "element" && child.name === "TextRun";
+/** Words bound to a prototype variable (`{vars.x}`, W-52 B4): the text Figma's characters are bound to. */
+const isVarWords = (child) => child.kind === "ref" && child.root === "vars";
+const isWords = (child) => child.kind === "text" || isRun(child) || isVarWords(child);
 /** A Text's words with styles of their own (TextRun) are part of the Text: one text, not layers of their own. */
-const wordsOf = (node) => node.children.map((child) => (child.kind === "text" ? child.value : isRun(child) ? wordsOf(child) : "")).join("");
+const wordsOf = (node) => node.children.map((child) => (child.kind === "text" ? child.value : isRun(child) ? wordsOf(child) : isVarWords(child) ? `{${operandCode(child)}}` : "")).join("");
 
-/** An element's text (its text children joined, its TextRuns' words included), or null when it has none. */
+/** An element's text (its text children joined, its TextRuns' words and variables included), or null when it has none. */
 function textOf(node) {
-  const texts = node.children.filter((child) => child.kind === "text" || isRun(child));
+  const texts = node.children.filter(isWords);
   return texts.length ? wordsOf({ children: texts }) : null;
 }
 
@@ -130,6 +136,7 @@ export function showValue(value) {
   if (value.kind === "element") return `<${value.node.name}>`;
   if (value.kind === "array") return `${value.items.length} item${value.items.length === 1 ? "" : "s"}`;
   if (value.kind === "object") return "{…}";
+  if (value.kind === "ref" || value.kind === "expr") return operandCode(value);
   return value.kind;
 }
 
@@ -197,8 +204,8 @@ export function figmaChanges({ base, current, incoming, synced = null }) {
     const toText = textOf(after.node);
     const fromKey = textKey(before.node), toKey = textKey(after.node);
     if (fromKey !== toKey && textKey(here.node) !== toKey) {
-      // Words with runs (TextRun) go as the Text's new words and runs, in their order.
-      const children = after.node.children.some(isRun) || here.node.children.some(isRun) ? after.node.children.filter((child) => child.kind === "text" || isRun(child)) : null;
+      // Words with runs (TextRun) or a variable go as the Text's new words, runs and variables, in their order.
+      const children = [after.node, here.node].some((node) => node.children.some((child) => isRun(child) || isVarWords(child))) ? after.node.children.filter(isWords) : null;
       const label = fromText === toText ? `${after.node.name}: “${toText ?? ""}” text styles` : `${after.node.name}: “${fromText ?? ""}” → “${toText ?? ""}”`;
       add({ kind: "text", id, before: fromText, after: toText, ...(children ? { children } : {}), current: textOf(here.node), conflict: threeWay && textKey(here.node) !== (then.has(id) ? textKey(then.get(id).node) : fromKey), label });
     }
@@ -270,7 +277,7 @@ export function mergeFigma(current, incoming, changes) {
     } else if (change.kind === "text") {
       if (!entry) done = false;
       else {
-        const others = entry.node.children.filter((child) => child.kind !== "text" && !isRun(child));
+        const others = entry.node.children.filter((child) => !isWords(child));
         const words = change.children ? clone(change.children) : change.after === null ? [] : [{ kind: "text", value: change.after }];
         entry.node.children = [...words, ...others];
       }
@@ -293,5 +300,22 @@ export function mergeFigma(current, incoming, changes) {
     }
     if (!done) skipped.push(change.key);
   }
-  return { doc, skipped };
+  // The prototype variables Figma's changes read or set that the page has not declared: declared at Figma's start values.
+  const declare = Object.fromEntries([...varsUsed(doc.board)].filter((name) => !Object.hasOwn(doc.vars ?? {}, name) && Object.hasOwn(incoming.vars ?? {}, name)).map((name) => [name, incoming.vars[name]]));
+  if (Object.keys(declare).length) doc.vars = { ...(doc.vars ?? {}), ...declare };
+  return { doc, skipped, declare: Object.keys(declare).length ? declare : null };
+}
+
+/** The prototype variables a tree reads (`vars.x`) or sets (proto.set("x", …)). */
+function varsUsed(tree) {
+  const names = new Set();
+  const visit = (value) => {
+    if (!value || typeof value !== "object") return;
+    if (Array.isArray(value)) { value.forEach(visit); return; }
+    if (value.kind === "ref" && value.root === "vars" && typeof value.path?.[0] === "string") names.add(value.path[0]);
+    if (value.kind === "proto" && value.action === "set" && typeof value.args?.[0] === "string") names.add(value.args[0]);
+    Object.values(value).forEach(visit);
+  };
+  visit(tree);
+  return names;
 }
