@@ -69,7 +69,8 @@ export function sharePayload(body) {
   let size = 0;
   const photos = [];
   for (const upload of uploads) {
-    if (!upload || typeof upload.id !== "string" || typeof upload.data !== "string" || !/^image\/[\w.+-]+$/.test(String(upload.type))) return new Error("Each upload is { id, name, type, data }");
+    // A photo the page names, or a font the project's theme names (its uploaded fonts, 2026-11-10).
+    if (!upload || typeof upload.id !== "string" || typeof upload.data !== "string" || !/^(?:image|font)\/[\w.+-]+$/.test(String(upload.type))) return new Error("Each upload is { id, name, type, data }");
     size += upload.data.length;
     if (size > MAX_UPLOAD_DATA) return new Error("The page's photos are too large to share (over 6 MB)");
     photos.push({ id: upload.id, name: string(upload.name, upload.id), type: upload.type, data: upload.data });

@@ -18,7 +18,8 @@
 // emphasis are the shipped modes (user, 2026-10-17: the four radius modes, no custom scale): no new token values.
 // Typography is the exception (user, 2026-11-06: "vẫn không cho đổi typo như trong plugin"): `theme.type` picks a font
 // per role and, optionally, a type scale (base size × ratio) — the Zen Figma plugin's Typeface and Type Scale tabs,
-// with the plugin's own formula, so Figma would get the same sizes.
+// with the plugin's own formula, so Figma would get the same sizes. A project may also bring its own font files
+// (user, 2026-11-10: "làm upload font riêng từng project"): `theme.type.uploads`, written as @font-face rules.
 import { calculateOnBrandColor, calculateOnBrandStateColor, apcaContrast, generateExpectedPalette, hexToOklch, oklchToHex } from "./zen-ramp.generated.mjs";
 
 export const PROJECT_ID = /^[a-z0-9][a-z0-9-]{0,47}$/;
@@ -65,6 +66,42 @@ export const FONT_FAMILIES = [
   "IBM Plex Sans", "Source Sans 3", "Nunito Sans", "Work Sans", "Poppins", "Lexend", "Outfit", "Figtree", "Sora",
   "Space Grotesk", "Raleway", "Lora", "Playfair Display", "Fraunces", "Noto Serif", "Source Serif 4",
 ];
+/**
+ * Fonts a project uploads (user, 2026-11-10: "làm upload font riêng từng project"): `theme.type.uploads`, each a family
+ * name and its files (`faces`), one per weight and style, or one variable font for a range of weights. A file is named
+ * by its own name and a hash of its bytes, as the uploaded photos are (builder/assets/uploads.ts); its bytes stay in the
+ * browser (IndexedDB) and, on the dev server, in the project's fonts/ folder. Its CSS family is the name with the
+ * project's id (uploadedFontName): @font-face is global, so one project's "Acme Sans" never draws another's or the
+ * Studio's own text. A name the list above has is not free: the list's font would load instead.
+ */
+export const FONT_FORMATS = { woff2: "woff2", woff: "woff", ttf: "truetype", otf: "opentype" };
+export const FONT_TYPES = { woff2: "font/woff2", woff: "font/woff", ttf: "font/ttf", otf: "font/otf" };
+export const MAX_FONT_BYTES = 5 * 1024 * 1024;
+export const MAX_FONT_FAMILIES = 8;
+export const MAX_FONT_FACES = 18;
+export const FONT_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
+export const FONT_FILE = /^[a-z0-9][a-z0-9-]{0,60}-[0-9a-f]{8}\.(?:woff2|woff|ttf|otf)$/;
+const FAMILY_NAME = /^[\p{L}\p{N}][\p{L}\p{N} ._&'-]{0,59}$/u;
+/** What font a file is by its first bytes ("woff2", "woff", "ttf", "otf"), or null: the extension it is kept under. */
+export function fontKindOf(bytes) {
+  const tag = String.fromCharCode(...Array.from(bytes.subarray(0, 4)));
+  if (tag === "wOF2") return "woff2";
+  if (tag === "wOFF") return "woff";
+  if (tag === "OTTO") return "otf";
+  if (tag === "true" || tag === "\x00\x01\x00\x00") return "ttf";
+  return null;
+}
+/** An uploaded family's CSS name in project `id` (the theme editor's draft is "draft"). */
+export const uploadedFontName = (id, family) => `${family} (${id})`;
+/** Whether `family` can name an uploaded font: a name of up to 60 letters, digits, spaces and . _ & ' -, not one the
+ *  list has, not one of `taken` (lower case). */
+export const freeFontFamily = (family, taken = []) => FAMILY_NAME.test(family) && ![...FONT_FAMILIES, ...taken].some((other) => other.toLowerCase() === family.toLowerCase());
+/** The font-family value a role takes: an uploaded family by its CSS name, then Inter. */
+export function projectFontStack(id, theme, family) {
+  const uploaded = (theme.type?.uploads ?? []).some((font) => font.family === family);
+  return `"${uploaded ? uploadedFontName(id, family) : family}", "Inter", sans-serif`;
+}
+
 /** The roles Typography Configuration names a family for (the plugin's Sans, Heading, Display, Button). */
 export const TYPE_ROLES = ["sans", "heading", "display", "button"];
 export const TYPE_SCALE_LIMITS = { base: { min: 10, max: 24 }, ratio: { min: 1, max: 1.62 } };
@@ -99,7 +136,8 @@ export function projectTypeScale({ base, ratio }) {
 
 /** The Google Fonts stylesheet for the theme's fonts other than Inter, or null. */
 export function projectFontsUrl(theme) {
-  const families = [...new Set(TYPE_ROLES.map((role) => theme.type?.fonts?.[role]).filter((family) => family && family !== "Inter"))];
+  const uploaded = new Set((theme.type?.uploads ?? []).map((font) => font.family));
+  const families = [...new Set(TYPE_ROLES.map((role) => theme.type?.fonts?.[role]).filter((family) => family && family !== "Inter" && !uploaded.has(family)))];
   if (!families.length) return null;
   return `https://fonts.googleapis.com/css2?${families.map((family) => `family=${family.replace(/ /g, "+")}:wght@400;500;600;700`).join("&")}&display=swap`;
 }
@@ -112,8 +150,8 @@ export function defaultProjectTheme() {
     // Slots 3–7: the Zen chart palette (Cyan, Violet, Yellow, Orange Solid, Green Soft).
     chart: [{ family: "cyan", tone: "solid" }, { family: "violet", tone: "solid" }, { family: "yellow", tone: "solid" }, { family: "orange", tone: "solid" }, { family: "green", tone: "soft" }],
     modes: { componentTheme: "brand-s1", density: "compact", radius: "rounded", typography: "dashboard", emphasis: "medium" },
-    // Inter for every role; `scale` null: the Typography mode's own sizes.
-    type: { fonts: { sans: "Inter", heading: "Inter", display: "Inter", button: "Inter" }, scale: null },
+    // Inter for every role; `scale` null: the Typography mode's own sizes; no fonts of its own.
+    type: { fonts: { sans: "Inter", heading: "Inter", display: "Inter", button: "Inter" }, scale: null, uploads: [] },
   };
 }
 
@@ -143,6 +181,36 @@ function colourSource(value, ramps, fallback, path, errors, { tint = false } = {
   return { ...fallback };
 }
 
+/** A face's weight: one of FONT_WEIGHTS, or a variable font's [min, max] within 1–1000; null when neither. */
+function faceWeight(value) {
+  if (FONT_WEIGHTS.includes(value)) return value;
+  if (Array.isArray(value) && value.length === 2 && value.every((n) => Number.isInteger(n) && n >= 1 && n <= 1000) && value[0] < value[1]) return [value[0], value[1]];
+  return null;
+}
+
+/** The uploaded fonts made safe: a free family name each, files the pattern names, at most 8 families of 18 files. */
+function normalizeUploads(input, errors) {
+  if (input === undefined || input === null) return [];
+  if (!Array.isArray(input)) { errors.push("theme.type.uploads: not a list"); return []; }
+  const out = [];
+  for (const [index, entry] of input.entries()) {
+    const at = `theme.type.uploads[${index}]`;
+    if (out.length >= MAX_FONT_FAMILIES) { errors.push(`${at}: a project uploads at most ${MAX_FONT_FAMILIES} fonts`); break; }
+    const family = typeof entry?.family === "string" ? entry.family.trim().replace(/\s+/g, " ") : "";
+    if (!freeFontFamily(family, out.map((font) => font.family))) { errors.push(`${at}.family: ${JSON.stringify(entry?.family)} is not a free font name`); continue; }
+    const faces = [];
+    for (const face of Array.isArray(entry.faces) ? entry.faces : []) {
+      const weight = faceWeight(face?.weight);
+      if (typeof face?.file !== "string" || !FONT_FILE.test(face.file) || weight === null || faces.some((other) => other.file === face.file)) { errors.push(`${at}: ${JSON.stringify(face?.file)} is not a font file with a weight`); continue; }
+      if (faces.length >= MAX_FONT_FACES) { errors.push(`${at}: a font has at most ${MAX_FONT_FACES} files`); break; }
+      faces.push({ file: face.file, weight, style: face.style === "italic" ? "italic" : "normal", vietnamese: face.vietnamese !== false });
+    }
+    if (!faces.length) { errors.push(`${at}: ${family} has no font file`); continue; }
+    out.push({ family, faces });
+  }
+  return out;
+}
+
 /** A theme made safe: every field present, every value one Studio knows. */
 export function normalizeTheme(input, errors = []) {
   const base = defaultProjectTheme();
@@ -156,8 +224,10 @@ export function normalizeTheme(input, errors = []) {
   });
   const modes = {};
   for (const [key, values] of Object.entries(MODE_VALUES)) modes[key] = pick(theme.modes?.[key], values, base.modes[key], `theme.modes.${key}`, errors);
+  const uploads = normalizeUploads(theme.type?.uploads, errors);
+  const families = [...uploads.map((font) => font.family), ...FONT_FAMILIES];
   const fonts = {};
-  for (const role of TYPE_ROLES) fonts[role] = pick(theme.type?.fonts?.[role], FONT_FAMILIES, base.type.fonts[role], `theme.type.fonts.${role}`, errors);
+  for (const role of TYPE_ROLES) fonts[role] = pick(theme.type?.fonts?.[role], families, base.type.fonts[role], `theme.type.fonts.${role}`, errors);
   let scale = null;
   const rawScale = theme.type?.scale;
   if (rawScale && typeof rawScale === "object") {
@@ -172,7 +242,7 @@ export function normalizeTheme(input, errors = []) {
     status,
     chart,
     modes,
-    type: { fonts, scale },
+    type: { fonts, scale, uploads },
   };
 }
 
@@ -269,9 +339,10 @@ const cssHex = (hex) => hex.toUpperCase();
  * - Chart sectors 3–7 on the project and on every `[data-theme]` inside it: they read semantic Support tokens, which
  *   each theme scope declares anew, so a dark frame on a light canvas gets the dark colours.
  * An element with its own data-brand inside the project (Studio's chrome) keeps its brand. `brand` names another
- * data-brand value (the theme editor's draft, "studio-draft").
+ * data-brand value (the theme editor's draft, "studio-draft"). `fontUrl(file)`: where an uploaded font's file is (theme.css
+ * beside its fonts/ folder by default; the Studio's object URL); null leaves that file out.
  */
-export function projectThemeCss(id, theme, { name, brand = projectBrand(id) } = {}) {
+export function projectThemeCss(id, theme, { name, brand = projectBrand(id), fontUrl = (file) => `fonts/${file}` } = {}) {
   const palettes = projectPalettes(theme);
   const base = [
     ...rampLines("brand", palettes.primary),
@@ -291,7 +362,7 @@ export function projectThemeCss(id, theme, { name, brand = projectBrand(id) } = 
   // fonts and scale win over the shipped mode's whatever mode a frame takes. Code (dev) keeps JetBrains Mono.
   const fonts = theme.type?.fonts ?? {};
   const type = [
-    ...TYPE_ROLES.filter((role) => fonts[role] && fonts[role] !== "Inter").map((role) => `  --zen-typography-font-family-${role}: "${fonts[role]}", "Inter", sans-serif;`),
+    ...TYPE_ROLES.filter((role) => fonts[role] && fonts[role] !== "Inter").map((role) => `  --zen-typography-font-family-${role}: ${projectFontStack(id, theme, fonts[role])};`),
     ...Object.entries(theme.type?.scale ? projectTypeScale(theme.type.scale) : {}).flatMap(([token, value]) => [
       `  --zen-typography-font-size-${token}: ${value.size}px;`,
       `  --zen-typography-line-height-${token}: ${value.lineHeight}px;`,
@@ -299,11 +370,18 @@ export function projectThemeCss(id, theme, { name, brand = projectBrand(id) } = 
     ]),
   ];
   const fontsUrl = projectFontsUrl(theme);
+  const faces = (theme.type?.uploads ?? []).flatMap((font) => font.faces.flatMap((face) => {
+    const url = fontUrl(face.file);
+    if (!url) return [];
+    const weight = Array.isArray(face.weight) ? face.weight.join(" ") : face.weight;
+    return [`@font-face { font-family: "${uploadedFontName(id, font.family)}"; src: url("${url}") format("${FONT_FORMATS[face.file.split(".").pop()]}"); font-weight: ${weight}; font-style: ${face.style}; font-display: swap; }`];
+  }));
   return [
     // First in the sheet, as @import must be (projectStore lifts it above the other projects' modes).
     ...(fontsUrl ? [`@import url("${fontsUrl}");`] : []),
     `/* Zen Studio project ${JSON.stringify(name ?? id)}: Base Colors (Project) mode ${brand}. Generated from`,
     `   .zen-studio/projects/${id}/project.json by tools/studio/project-theme.mjs — edit the project's theme in Studio. */`,
+    ...(faces.length ? [...faces, ""] : []),
     `${scope},`,
     `${scope} [data-contrast]:not([data-brand]) {`,
     ...base,

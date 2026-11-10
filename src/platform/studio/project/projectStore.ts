@@ -1,7 +1,9 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { authorized } from "../api";
+import { assetUrl, loadUploads, onUploadsChange } from "../builder/assets/uploads";
 import { run, SETTINGS } from "../builder/store/pageStore";
 import { normalizeProject, projectIdFor, projectThemeCss, type Project, type ProjectLibraries, type ProjectLocale, type ProjectTheme } from "../../../../tools/studio/project-theme.mjs";
+import { pullFonts, pushFonts } from "./projectFonts";
 
 /*
  * Studio projects (user, 2026-10-17: "tạo dự án như Figma … set theme cho Dự án … sau vẫn vào setting của Project điều
@@ -9,7 +11,9 @@ import { normalizeProject, projectIdFor, projectThemeCss, type Project, type Pro
  * (`project`), pages without one are Drafts in the shipped Zen theme. The browser keeps a working copy in IndexedDB
  * (settings key "projects"); on the dev server `.zen-studio/projects/<id>/` is the source of truth (GET /projects,
  * POST /projects/write | /projects/trash). Each project's theme is one extra Base Colors (Project) mode,
- * `[data-brand="p-<id>"]`, injected here as a <style>: tokens.css never changes.
+ * `[data-brand="p-<id>"]`, injected here as a <style>: tokens.css never changes. Its uploaded fonts (projectFonts.ts) are
+ * @font-face rules on their object URLs, written again once the files load; the dev server's fonts/ folder and this
+ * browser give each other the files they lack.
  */
 
 const KEY = "projects";
@@ -34,6 +38,8 @@ const notify = () => { version += 1; syncStyles(); listeners.forEach((listener) 
 /* ── the modes as CSS ─────────────────────────────────────────────────────────────────────────────────────────── */
 
 const cssCache = new Map<string, { at: number; css: string }>();
+/** An uploaded font's object URL in this browser; null until its file has loaded (the face is left out until then). */
+const fontUrl = (file: string) => assetUrl(file);
 /** One <style> with every project's mode, kept in step with the store (the theme editor's draft has its own). */
 function syncStyles() {
   if (typeof document === "undefined") return;
@@ -46,7 +52,7 @@ function syncStyles() {
   const sheets = projects.map((project) => {
     const cached = cssCache.get(project.id);
     if (cached && cached.at === project.updatedAt) return cached.css;
-    const next = projectThemeCss(project.id, project.theme, { name: project.name });
+    const next = projectThemeCss(project.id, project.theme, { name: project.name, fontUrl });
     cssCache.set(project.id, { at: project.updatedAt, css: next });
     return next;
   });
@@ -60,8 +66,10 @@ function syncStyles() {
 /** The theme editor's draft brand: not a project id (those start "p-"), so it never collides with a saved mode. */
 export const DRAFT_BRAND = "studio-draft";
 
+let draft: ProjectTheme | null = null;
 /** The theme editor's live preview: its draft as a mode of its own (`[data-brand="studio-draft"]`); null removes it. */
 export function setDraftStyles(theme: ProjectTheme | null) {
+  draft = theme;
   if (typeof document === "undefined") return;
   let style = document.getElementById("zen-studio-project-draft") as HTMLStyleElement | null;
   if (!theme) { style?.remove(); return; }
@@ -70,8 +78,16 @@ export function setDraftStyles(theme: ProjectTheme | null) {
     style.id = "zen-studio-project-draft";
     document.head.append(style);
   }
-  style.textContent = projectThemeCss("draft", theme, { name: "Theme draft", brand: DRAFT_BRAND });
+  style.textContent = projectThemeCss("draft", theme, { name: "Theme draft", brand: DRAFT_BRAND, fontUrl });
 }
+
+// A font file that loads or arrives gives its faces their URL: every sheet is written again.
+onUploadsChange(() => {
+  if (![...projects, ...(draft ? [{ theme: draft }] : [])].some((project) => project.theme.type.uploads.length)) return;
+  cssCache.clear();
+  syncStyles();
+  if (draft) setDraftStyles(draft);
+});
 
 /* ── storage ──────────────────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -83,11 +99,27 @@ const readLocal = () => run<Row>(SETTINGS, "readonly", (store) => store.get(KEY)
 const writeLocal = (list: Project[]) => run(SETTINGS, "readwrite", (store) => store.put({ key: KEY, value: list, pending: [...pending] }));
 const valid = (list: unknown[]) => list.flatMap((item) => { const { project } = normalizeProject(item); return project && project.id !== DRAFTS ? [project] : []; });
 
+/** The font files each project's fonts/ folder on the dev server holds (from its list, then what this browser sent). */
+const serverFonts = new Map<string, Set<string>>();
+
 async function serverList(): Promise<Project[] | null> {
   if (!DEV) return null;
-  const reply = await authorized<{ ok?: unknown; projects?: Array<{ project?: unknown }> }>("/projects");
+  const reply = await authorized<{ ok?: unknown; projects?: Array<{ project?: { id?: unknown }; fonts?: unknown }> }>("/projects");
   if (!reply || reply.status !== 200 || !Array.isArray(reply.body?.projects)) return null;
+  for (const row of reply.body.projects) if (typeof row?.project?.id === "string" && Array.isArray(row.fonts)) serverFonts.set(row.project.id, new Set(row.fonts.filter((file): file is string => typeof file === "string")));
   return valid(reply.body.projects.map((row) => row?.project));
+}
+
+/** The project's fonts both ways: what the dev server lacks goes up, what this browser lacks comes down (in the
+ *  background: the faces draw once their files are here). Only once the project is in the server's folder. */
+function syncFonts(project: Project) {
+  if (!DEV || !project.theme.type.uploads.length || pending.has(project.id)) return;
+  const onServer = serverFonts.get(project.id) ?? new Set<string>();
+  void loadUploads()
+    .then(() => pullFonts(project, onServer))
+    .then(() => pushFonts(project, onServer))
+    .then((has) => { serverFonts.set(project.id, has); })
+    .catch(() => undefined);
 }
 
 /** Writes to the dev server's folder: true when it took it, false when no server answered (a build, no token: the
@@ -119,7 +151,8 @@ function load(): Promise<void> {
       for (const id of [...pending]) if (known.has(id)) pending.delete(id);
       projects = byName([...remote, ...onlyHere]);
       await writeLocal(projects).catch(() => undefined);
-    }
+      projects.forEach(syncFonts);
+    } else if (projects.some((project) => project.theme.type.uploads.length)) void loadUploads();
     loaded = true;
     notify();
   })().finally(() => { loading = null; });
@@ -145,6 +178,7 @@ export async function createProject(name: string, theme: ProjectTheme, locale?: 
   if (!project) throw new Error(errors[0] ?? "Not a project");
   markSynced(project.id, await serverWrite("write", { project }));
   await commit([...projects, project]);
+  syncFonts(project);
   return project;
 }
 
@@ -157,6 +191,7 @@ export async function updateProject(id: string, change: { name?: string; theme?:
   if (!project) throw new Error(errors[0] ?? "Not a project");
   markSynced(id, await serverWrite("write", { project }));
   await commit(projects.map((item) => (item.id === id ? project : item)));
+  syncFonts(project);
   return project;
 }
 

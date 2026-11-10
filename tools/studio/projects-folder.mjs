@@ -3,15 +3,16 @@
 //
 //   .zen-studio/projects/<id>/project.json   the project: name and theme settings (the source)
 //   .zen-studio/projects/<id>/theme.css      its Base Colors (Project) mode, written from project.json on every save
+//   .zen-studio/projects/<id>/fonts/<file>   the fonts it uploaded (theme.type.uploads; 2026-11-10), theme.css names them
 //
-//   projectsFolder(root) → { list(), read(id), write(project), trash(id) }
+//   projectsFolder(root) → { list(), read(id), write(project), trash(id), writeFont(id, file, bytes), readFont(id, file) }
 //
 // Rules as for the pages (pages-folder.mjs): ids match PROJECT_ID, no symlink anywhere on the way, writes are atomic,
 // project.json is at most MAX_PROJECT bytes and goes through normalizeProject (an unknown value becomes the default),
 // nothing is ever deleted over HTTP: trash(id) moves the folder to `.zen-studio/trash/projects/<id>-<stamp>/`.
 import fsp from "node:fs/promises";
 import path from "node:path";
-import { PROJECT_ID, normalizeProject, projectThemeCss } from "./project-theme.mjs";
+import { FONT_FILE, MAX_FONT_BYTES, PROJECT_ID, fontKindOf, normalizeProject, projectThemeCss } from "./project-theme.mjs";
 
 export const PROJECTS_DIR = ".zen-studio/projects";
 export const MAX_PROJECT = 64 * 1024;
@@ -86,7 +87,25 @@ export function projectsFolder(root, { dir = PROJECTS_DIR } = {}) {
     }
     const { project, errors } = normalizeProject({ ...json, id });
     if (!project) throw new ProjectsError("invalid", `projects/${id}/project.json: ${errors[0]}`);
-    return { project, errors, mtime: Math.round(stat.mtimeMs) };
+    return { project, errors, mtime: Math.round(stat.mtimeMs), fonts: await fontsIn(abs) };
+  }
+
+  /** The font files a project's fonts/ folder holds (their names; a link or an odd name is skipped). */
+  async function fontsIn(abs) {
+    try {
+      const folder = path.join(abs, "fonts");
+      if ((await fsp.lstat(folder)).isSymbolicLink()) return [];
+      return (await fsp.readdir(folder, { withFileTypes: true })).filter((entry) => entry.isFile() && FONT_FILE.test(entry.name)).map((entry) => entry.name).sort();
+    } catch {
+      return [];
+    }
+  }
+  /** A font file's path in an existing project's fonts/ folder; refuses an odd name. */
+  async function fontPath(id, file) {
+    if (typeof file !== "string" || !FONT_FILE.test(file)) throw new ProjectsError("invalid", `Bad font file name ${JSON.stringify(file)}`);
+    const { abs, exists } = await folderOf(id);
+    if (!exists) throw new ProjectsError("not-found", `No project ${id} in ${dir}`);
+    return { folder: path.join(abs, "fonts"), abs: path.join(abs, "fonts", file) };
   }
 
   return {
@@ -128,6 +147,36 @@ export function projectsFolder(root, { dir = PROJECTS_DIR } = {}) {
       await writeAtomic(abs, "theme.css", projectThemeCss(project.id, project.theme, { name: project.name }));
       const stat = await fsp.stat(path.join(abs, "project.json"));
       return { project, errors, mtime: Math.round(stat.mtimeMs) };
+    },
+
+    /**
+     * Keeps an uploaded font in the project's fonts/ folder: a font file (its first bytes say the kind its name ends in)
+     * of up to 5 MB. Its name holds a hash of its bytes, so a file already there is the same font and stays.
+     */
+    async writeFont(id, file, bytes) {
+      const at = await fontPath(id, file);
+      if (!bytes?.length || bytes.length > MAX_FONT_BYTES) throw new ProjectsError("invalid", `A font file is at most ${MAX_FONT_BYTES / 1024 / 1024} MB`);
+      if (fontKindOf(bytes) !== file.split(".").pop()) throw new ProjectsError("invalid", `${file} is not a ${file.split(".").pop()} font`);
+      await ensureDir(at.folder);
+      if (await fileStat(at.abs, `projects/${id}/fonts/${file}`)) return { file, written: false };
+      const temp = path.join(at.folder, `.${file}.${process.pid}-${Date.now()}.tmp`);
+      await fsp.writeFile(temp, bytes);
+      try {
+        await fsp.rename(temp, at.abs);
+      } catch (error) {
+        await fsp.rm(temp, { force: true });
+        throw error;
+      }
+      return { file, written: true };
+    },
+
+    /** An uploaded font's bytes from the project's fonts/ folder. */
+    async readFont(id, file) {
+      const at = await fontPath(id, file);
+      const stat = await fileStat(at.abs, `projects/${id}/fonts/${file}`);
+      if (!stat) throw new ProjectsError("not-found", `projects/${id} has no font ${file}`);
+      if (stat.size > MAX_FONT_BYTES) throw new ProjectsError("invalid", `projects/${id}/fonts/${file} is over ${MAX_FONT_BYTES / 1024 / 1024} MB`);
+      return fsp.readFile(at.abs);
     },
 
     /** Moves the project's folder to the trash (never deletes); a missing one is already gone. Its pages stay. */

@@ -6,7 +6,8 @@ import { activeMirror, ASSETS, run, type PageMirror } from "../store/pageStore";
  * kept in the browser): PNG, JPEG, WebP, GIF or SVG up to 5 MB, kept as blobs in IndexedDB (pageStore.ts "assets") and,
  * when a folder is linked, in its assets/ beside the pages. A page writes `src="zen-asset:<id>"` (a literal: the page
  * stays valid); the renderer and Play show the photo's object URL, the exports carry its file. The id is the file's name
- * and a hash of its bytes (`team-photo-1a2b3c4d.png`): the same file uploaded twice is one photo.
+ * and a hash of its bytes (`team-photo-1a2b3c4d.png`): the same file uploaded twice is one photo. A project's uploaded
+ * fonts are kept here too (project/projectFonts.ts, type font/…), outside the photo lists.
  */
 
 export const ASSET_PREFIX = "zen-asset:";
@@ -60,10 +61,14 @@ function hashOf(bytes: Uint8Array): string {
   return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
-const slug = (name: string) => name.replace(/\.[a-z0-9]+$/i, "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "photo";
+const slug = (name: string, fallback: string) => name.replace(/\.[a-z0-9]+$/i, "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || fallback;
 
+/** The id of a file kept here: its name as a slug, a hash of its bytes, `extension`. */
+export const assetIdWith = (name: string, extension: string, bytes: Uint8Array, fallback = "photo") => `${slug(name, fallback)}-${hashOf(bytes)}.${extension}`;
 /** The id of a photo: its name as a slug, a hash of its bytes, its type's extension. */
-export const assetIdFor = (name: string, type: string, bytes: Uint8Array) => `${slug(name)}-${hashOf(bytes)}.${EXTENSION[type] ?? "png"}`;
+export const assetIdFor = (name: string, type: string, bytes: Uint8Array) => assetIdWith(name, EXTENSION[type] ?? "png", bytes);
+/** Whether a kept file is a project's font, not a photo. */
+export const isFontAsset = (upload: { type: string }) => upload.type.startsWith("font/");
 
 /** The text a photo gives an Image's alt: its file name in words ("team-photo.png" → "Team photo"). */
 export const altOf = (name: string) => { const words = name.replace(/\.[a-z0-9]+$/i, "").replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim(); return words ? words.charAt(0).toUpperCase() + words.slice(1) : "Photo"; };
@@ -151,12 +156,15 @@ export async function missingAssets(ids: string[]): Promise<string[]> {
   return missing;
 }
 
-/** Every uploaded photo, newest first (they load on first use). */
+/** Every uploaded photo, newest first (they load on first use); the projects' fonts are not photos. */
 export function useUploads(): Upload[] {
   useEffect(() => { void loadUploads(); }, []);
   useSyncExternalStore(subscribe, () => version, () => version);
-  return [...uploads.values()].sort((a, b) => b.createdAt - a.createdAt);
+  return [...uploads.values()].filter((upload) => !isFontAsset(upload)).sort((a, b) => b.createdAt - a.createdAt);
 }
+
+/** Calls `listener` whenever a file loads or arrives, outside React (the projects' font faces); returns the unsubscribe. */
+export const onUploadsChange = (listener: () => void) => subscribe(listener);
 
 /** Changes whenever a photo loads or arrives (the board renders again: its `zen-asset:` sources resolve). */
 export function useUploadsVersion(): number {

@@ -92,18 +92,38 @@
 .studio-project-setup__title { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-project-setup__history { display: flex; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .studio-project-setup__actions { display: flex; gap: var(--zen-spacing-gap-xsmall, 8px); margin-inline-start: var(--zen-spacing-gap-xsmall, 8px); }
-.studio-project-setup__body { display: grid; min-height: 0; flex: 1; grid-template-columns: 320px minmax(0, 1fr); }
+/* One settings panel with its tabs on top (v3, 2026-11-10: as shadcn /create, Radix's Theme panel, tweakcn), the preview
+   taking the rest of the window. The tabs stay put; the open tab's sections scroll under them, 20px apart, no rules
+   between them, every control on one right edge. */
+.studio-project-setup__body { display: grid; min-height: 0; flex: 1; grid-template-columns: 340px minmax(0, 1fr); }
 .studio-project-setup__settings {
+  display: flex;
   min-height: 0;
-  overflow: auto;
-  padding-bottom: var(--zen-spacing-padding-large, 20px);
+  flex-direction: column;
   background: var(--zen-color-background-surface-default);
   box-shadow: 1px 0 0 var(--zen-color-border-neutral-pale-default);
 }
+.studio-project-setup__tabs { padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-xsmall, 8px); }
+.studio-project-setup__panel {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-large, 20px);
+  overflow: auto;
+  padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-xlarge, 24px);
+}
+.studio-project-setup__panel:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }
 .studio-project-setup__preview { min-height: 0; overflow: auto; padding: var(--zen-spacing-padding-xlarge, 24px); }
-.studio-project-setup__strip { display: grid; grid-template-columns: repeat(12, 1fr); overflow: hidden; margin: var(--zen-spacing-gap-xsmall, 8px) 0 0; padding: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); list-style: none; }
+.studio-project-setup__section { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-project-setup__section-head { display: flex; min-height: 24px; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-project-setup__note { margin: 0; }
+.studio-project-setup__fields { display: grid; min-width: 0; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-project-setup__fields > * { min-width: 0; }
+.studio-project-setup__dot { display: inline-block; width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
+.studio-project-setup__strip { display: grid; grid-template-columns: repeat(12, 1fr); overflow: hidden; margin: 0; padding: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); list-style: none; }
 .studio-project-setup__strip > li { height: 16px; }
-.studio-project-setup__sectors { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0 0 var(--zen-spacing-gap-xsmall, 8px); padding: 0; list-style: none; }
+.studio-project-setup__sectors { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: 0; list-style: none; }
 .studio-project-setup__sector { height: 20px; border-radius: var(--zen-corner-radius-xsmall, 4px); }
 .studio-project-setup__tiles { display: grid; grid-template-columns: repeat(var(--studio-tiles, 4), minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-project-setup__tile {
@@ -144,21 +164,51 @@
    the probes: ProjectSetup DraftProbes). */
 .studio-project-setup__theme-art { display: flex; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .studio-project-setup__theme-fill { display: block; width: 20px; height: 16px; border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-neutral-pale-default); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
-/* Typography: "Aa" in that mode's Heading/3 (its own data-typography sets the sizes it reads), centred in a 32px box so
-   the three tiles stay one height while the letters grow. */
-.studio-project-setup__type-art {
+/* Type › Fonts (ProjectSetup FontRow), as Figma lists a family's styles: one box, a hairline between fonts; a font's row
+   (36px: disclosure, "Ag" in its face, its name, what it is, ⋯) and, opened, a slim row per style indented to its name
+   (the style in its own face, its weight on the right) and what the font lacks. "Ag" also leads each font in the role
+   lists. */
+.studio-project-setup__fonts { --studio-font-sample: 24px; display: grid; min-width: 0; overflow: hidden; margin: 0; padding: 0; border-radius: var(--zen-corner-radius-base, 12px); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); list-style: none; }
+.studio-project-setup__font { display: grid; min-width: 0; }
+.studio-project-setup__font + .studio-project-setup__font { box-shadow: inset 0 1px 0 var(--zen-color-border-neutral-pale-default); }
+.studio-project-setup__font-head { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding-inline-end: var(--zen-spacing-padding-2-xsmall, 4px); }
+.studio-project-setup__font-row {
   display: flex;
-  height: 32px;
+  min-width: 0;
+  height: 36px;
+  box-sizing: border-box;
+  flex: 1 1 auto;
   align-items: center;
-  font-family: var(--zen-typography-font-family-heading);
-  font-size: var(--zen-typography-font-size-heading-3);
-  font-weight: var(--zen-emphasis-font-weight-bold);
-  line-height: 1;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: 0 var(--zen-spacing-padding-2-xsmall, 4px) 0 var(--zen-spacing-padding-xsmall, 8px);
+  border: 0;
+  background: transparent;
   color: var(--zen-color-content-neutral-strongest);
+  text-align: start;
 }
+button.studio-project-setup__font-row { cursor: pointer; }
+button.studio-project-setup__font-row:hover { background: var(--zen-color-background-neutral-flat-hover); }
+button.studio-project-setup__font-row:active { background: var(--zen-color-background-neutral-flat-pressed); }
+button.studio-project-setup__font-row:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }
+.studio-project-setup__font-toggle { display: inline-flex; width: var(--zen-icon-size-sm, 16px); flex: none; justify-content: center; color: var(--zen-color-content-neutral-base); }
+.studio-project-setup__font-sample { display: inline-block; width: var(--studio-font-sample, 24px); flex: none; font-size: var(--zen-typography-font-size-body-base, 14px); font-weight: var(--zen-emphasis-font-weight-medium, 500); line-height: 1; text-align: center; }
+.studio-project-setup__font-name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-project-setup__font-meta { display: inline-flex; flex: none; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); white-space: nowrap; }
+/* ⋯, or the room it takes on Inter's row, so every row's meta ends on one edge. */
+.studio-project-setup__font-menu { display: inline-flex; width: var(--zen-button-size-xsmall, 24px); flex: none; justify-content: center; }
+.studio-project-setup__font-rename { min-width: 0; flex: 1 1 auto; padding: var(--zen-spacing-padding-2-xsmall, 4px) 0 var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); }
+/* The styles line up with the font's name: the row's padding, the disclosure, "Ag" and their gaps. */
+.studio-project-setup__font-faces {
+  display: grid;
+  gap: var(--zen-spacing-gap-3-xsmall, 2px);
+  padding: 0 var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-xsmall, 8px) calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-icon-size-sm, 16px) + var(--studio-font-sample) + 2 * var(--zen-spacing-gap-xsmall, 8px));
+}
+.studio-project-setup__font-face { display: grid; min-width: 0; min-height: var(--zen-input-size-small, 28px); grid-template-columns: minmax(0, 1fr) 96px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-project-setup__font-style { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-project-setup__font-range { text-align: end; }
+.studio-project-setup__font-gap { display: flex; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: var(--zen-spacing-gap-2-xsmall, 4px) 0 0; }
 /* Off screen and out of the way: never seen, hit or read. */
 .studio-project-setup__probes { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; visibility: hidden; }
-.studio-project-setup__reset { padding: var(--zen-spacing-padding-small, 12px); }
 
 /* ── the preview gallery ─────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -177,7 +227,7 @@
 @media (max-width: 900px) {
   /* One scrolling column: the settings, then the preview (each its own height, not squeezed into the window's). */
   .studio-project-setup__body { grid-template-columns: minmax(0, 1fr); align-content: start; overflow: auto; }
-  .studio-project-setup__settings, .studio-project-setup__preview { min-height: auto; overflow: visible; }
+  .studio-project-setup__settings, .studio-project-setup__panel, .studio-project-setup__preview { min-height: auto; overflow: visible; }
   .studio-project-setup__preview { padding: var(--zen-spacing-padding-medium, 16px); }
   .studio-theme-preview__columns[data-columns="2"] { --studio-preview-columns: 1; }
   .studio-project-setup__bar { flex-wrap: wrap; padding-block: var(--zen-spacing-padding-xsmall, 8px); }

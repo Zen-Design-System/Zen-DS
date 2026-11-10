@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { generateExpectedPalette } from "./zen-ramp.generated.mjs";
-import { DEFAULT_LOCALE, FONT_FAMILIES, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, SUPPORT_FAMILIES, defaultLibraries, defaultProjectTheme, normalizeLibraries, projectBaseValues, normalizeProject, projectIdFor, projectModes, projectPalettes, projectFontsUrl, projectThemeCss, projectTypeScale, tintedNeutralAnchor } from "./project-theme.mjs";
+import { DEFAULT_LOCALE, FONT_FAMILIES, MAX_FONT_FAMILIES, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, SUPPORT_FAMILIES, defaultLibraries, defaultProjectTheme, normalizeLibraries, projectBaseValues, normalizeProject, projectIdFor, projectModes, projectPalettes, projectFontsUrl, projectFontStack, projectThemeCss, projectTypeScale, tintedNeutralAnchor, uploadedFontName } from "./project-theme.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const collection = (file) => Object.values(JSON.parse(fs.readFileSync(path.join(root, "tokens/source/figma", file), "utf8")))[0];
@@ -115,6 +115,33 @@ ok(() => assert.equal(normalizeProject({ id: "acme", name: "Acme" }).project.the
   ok(() => assert.deepEqual(projectTypeScale({ base: 14, ratio: 1.14 })["heading-1"], { size: 32, lineHeight: 40, letterSpacing: -0.76 }), "plugin preset");
   ok(() => assert.deepEqual(projectTypeScale({ base: 16, ratio: 1.2 })["body-base"], { size: 16, lineHeight: 24, letterSpacing: 0 }), "the base is Body/Base");
   ok(() => { const { project, errors } = normalizeProject({ id: "acme", name: "Acme", theme: { type: { fonts: { sans: "Comic Sans" }, scale: { base: 40, ratio: 3 } } } }); assert.equal(project.theme.type.fonts.sans, "Inter"); assert.equal(project.theme.type.scale, null); assert.equal(errors.length, 2); }, "unknown font / scale out of range fall back with reasons");
+}
+
+// 6e. Uploaded fonts (user 2026-11-10): one @font-face per file under the family's project-scoped name, the role on that
+//     name then Inter; no Google request for it; names the list has, bad files and a role naming an unknown font fall back.
+{
+  const acme = { family: "Acme Sans", faces: [{ file: "acme-sans-regular-1a2b3c4d.woff2", weight: 400, style: "normal" }, { file: "acme-sans-var-0a0b0c0d.ttf", weight: [100, 900], style: "italic", vietnamese: false }] };
+  const { project, errors } = normalizeProject({ id: "acme", name: "Acme", theme: { type: { fonts: { sans: "Acme Sans", heading: "Fraunces", button: "Acme Sans" }, uploads: [acme] } } });
+  ok(() => assert.deepEqual(errors, []), "a valid upload has no errors");
+  ok(() => assert.deepEqual(project.theme.type.uploads[0].faces.map((face) => [face.weight, face.style, face.vietnamese]), [[400, "normal", true], [[100, 900], "italic", false]]), "faces keep weight, style, Vietnamese");
+  const fontCss = projectThemeCss("acme", project.theme);
+  ok(() => assert.ok(fontCss.includes('@font-face { font-family: "Acme Sans (acme)"; src: url("fonts/acme-sans-regular-1a2b3c4d.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }')), "a face per file, beside theme.css");
+  ok(() => assert.ok(fontCss.includes('src: url("fonts/acme-sans-var-0a0b0c0d.ttf") format("truetype"); font-weight: 100 900; font-style: italic;')), "a variable font takes its weight range");
+  ok(() => assert.ok(fontCss.includes('--zen-typography-font-family-sans: "Acme Sans (acme)", "Inter", sans-serif;')), "the role names the project's font");
+  ok(() => assert.ok(fontCss.startsWith('@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&display=swap");\n')), "only the list's fonts load from Google");
+  ok(() => assert.ok(fontCss.indexOf("@font-face") > fontCss.indexOf("@import")), "@import stays first");
+  ok(() => assert.ok(!projectThemeCss("acme", project.theme, { fontUrl: (file) => (file.endsWith(".ttf") ? null : `blob:x/${file}`) }).includes(".ttf")), "a file without a URL is left out");
+  ok(() => assert.equal(uploadedFontName("draft", "Acme Sans"), "Acme Sans (draft)"), "the draft's name");
+  ok(() => assert.equal(projectFontStack("acme", project.theme, "Fraunces"), '"Fraunces", "Inter", sans-serif'), "a listed font keeps its name");
+  const bad = normalizeProject({ id: "acme", name: "Acme", theme: { type: { fonts: { sans: "Ghost" }, uploads: [
+    { family: "Roboto", faces: acme.faces }, { family: 'Evil"; }', faces: acme.faces }, { family: "Bare", faces: [{ file: "../x.woff2", weight: 400 }, { file: "bare-1a2b3c4d.woff", weight: 450 }] }, acme, { ...acme },
+  ] } } });
+  ok(() => assert.deepEqual(bad.project.theme.type.uploads.map((font) => font.family), ["Acme Sans"]), "a listed name, quotes, bad files, a second Acme Sans are dropped");
+  ok(() => assert.equal(bad.project.theme.type.fonts.sans, "Inter"), "a role naming no font falls back");
+  ok(() => assert.equal(bad.errors.length, 7), "each with a reason");
+  const many = normalizeProject({ id: "acme", name: "Acme", theme: { type: { uploads: Array.from({ length: MAX_FONT_FAMILIES + 2 }, (_, n) => ({ family: `Font ${n}`, faces: acme.faces })) } } });
+  ok(() => assert.equal(many.project.theme.type.uploads.length, MAX_FONT_FAMILIES), "at most 8 fonts");
+  ok(() => assert.deepEqual(normalizeProject({ id: "acme", name: "Acme" }).project.theme.type.uploads, []), "an old project has none");
 }
 
 // 7. Ids from names, Vietnamese included.
