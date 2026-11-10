@@ -40,3 +40,5 @@ the supervisor 2026-11-07. Spec card: doc §4.1. Plugin unchanged (the pull runs
 - Tests: figma-pull selftest +15 (B3 round trip, second push/pull identical, a Figma-made frame, live fixture),
   figma-diff +5, arrange +1. Live: QA frame with the plugin's own calls in the Zen file (page 15872:3), read with the
   minified reader (6 readers stubbed, 25 KB) → `fixtures/figma-proto-vars.json`; frame and collection removed after.
+- Gate (2026-11-10, after the Mac slept through the first run): `npm run qa -- --isolated --files=<12 files>` PASS,
+  Studio E2E 459/459 (SE-12 on retry); `npm run build` ✓. No E2E row added (the pull runs outside the Studio).
