@@ -580,8 +580,11 @@ export function replacePlan(ctx, nodePath, op, h) {
   let media = false;
   const runtime = [];
   const builderPage = h.LOCAL_PAGE.test(ctx.file ?? "");
+  // The prototype variables the new code reads that the page lacks (Update from Figma, W-52 B4): declared with it.
+  const declaring = h.varsDeclaration(ctx, op.vars);
   for (const used of freeNames(node, h.patternNames, h.FUNCTION_TYPES)) {
     if (state.names.has(used) || h.bindingOf(nodePath, used)) continue;
+    if (used === "vars" && op.vars) continue;
     if (used === "toast") { toast = true; continue; }
     if (used === "platformMedia") { media = true; continue; }
     // A builder page's own runtime (an instance <Use>, a main <Component>, proto.*): the builder import gains it.
@@ -609,6 +612,7 @@ export function replacePlan(ctx, nodePath, op, h) {
   if (media) edits.push(...h.mediaImportEdits(ctx));
   edits.push(...tidyImports(ctx, h, edits, needed));
   if (runtime.length) edits.push(...h.builderImportEdits(ctx.ast, ctx.text, ctx.eol, runtime));
+  edits.push(...declaring);
   return {
     edits,
     focus: { edit, within: 0, name },

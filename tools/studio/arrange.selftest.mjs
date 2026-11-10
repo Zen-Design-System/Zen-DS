@@ -587,6 +587,35 @@ test("replaceElement refuses what is not one JSX element, unknown names, data-ze
   assert.ok(!trigger.error, trigger.error);
 });
 
+test("replaceElement `vars` (Update from Figma, W-52 B4): the variables the new code reads are declared in the same edit", () => {
+  const file = "local:vars-swap.zen.tsx";
+  const page = `// @zen-page {"format":1,"title":"Vars"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Home">
+        <Stack>
+          <Text>Hi</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const at = locOf(page, "<Text>Hi");
+  const swapped = (op) => applySlotOp(page, at, "Text", { op: "replaceElement", code: "<Text hidden={!vars.on}>{vars.greeting}</Text>", ...op }, { file, hash: sha1(page) });
+  assert.match(swapped({}).error ?? "", /`vars`/);
+  const result = swapped({ vars: { on: false, greeting: "Hi" } });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /export const mock = \{\};\nexport const vars = \{ on: false, greeting: "Hi" \};/);
+  assert.match(result.code, /<Text hidden=\{!vars\.on\}>\{vars\.greeting\}<\/Text>/);
+});
+
 /* ── F7c: an instance's slot from the canvas (slot-fill.mjs) ─────────────────────────────────────────────────────── */
 
 const PAGE_FILE = "local:slots-demo.zen.tsx";

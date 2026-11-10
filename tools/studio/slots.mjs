@@ -18,7 +18,8 @@
 //                                              (arrange.mjs); `moved` = { loc }, or `inserted` = { loc } for a copy;
 //                                              `replace` (with copy): paste to replace
 //        op "pasteCode" { code, before?, after?, replace?, vars? }  on the parent: ⌘V of code from another file (arrange.mjs)
-//        op "replaceElement" { code, state? }  on the element: Swap instance, `code` in its place (arrange.mjs)
+//        op "replaceElement" { code, state?, vars? }  on the element: Swap instance, `code` in its place (arrange.mjs);
+//                                    `vars` declares the prototype variables it reads (Update from Figma)
 //        op "many" { action: remove|duplicate|setProps|move, locs, ops?, to? }  a multi-selection in one file (arrange.mjs)
 //        op "clearSlot" { prop? }              on the host: empties the slot (Figma "Delete contents"); `cleared` = true
 //        op "resetSlot" { prop? }              on the host: the slot as the saved file has it (Figma "Reset slot"); `reset` = true

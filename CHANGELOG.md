@@ -20,6 +20,11 @@ How to maintain it:
   the settings say when a font lacks Regular to Bold or the Vietnamese letters. The font draws on the canvas, in Play,
   on a phone (Open on phone) and in the HTML export. The dev server keeps the files in the project's `fonts/` folder,
   so another browser gets them too.
+- Zen Studio: a page pulled from Figma keeps its prototype variables (W-52 B4). The frame's variables become the page's
+  `vars`, Figma's Set variable, Conditional and several actions become `proto.set`, `proto.if` and `proto.run`, and
+  words, Visible and component properties bound to a variable read it again, so a page pushed to Figma and pulled back
+  gives the same code. What the Studio cannot hold (colour variables, modes, Set variable mode) is named in the notes.
+  Update from Figma declares the variables it brings in.
 - Zen Studio: on the project setup page, changing the type scale, a font or the chart colours no longer switches the
   preview to its Typography or Charts tab; the preview stays on the tab you picked.
 - Zen Studio: the Frame tool draws a plain frame (Figma's frame) whatever its size: a narrow drag no longer turns into a

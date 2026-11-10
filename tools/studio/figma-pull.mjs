@@ -26,7 +26,7 @@ import { BADGE_STATUS, changedProgress, propertyValueElement } from "./figma-pro
 import { runsFromSegments } from "./text-runs.mjs";
 import { dayFromText } from "../../src/components/Table/tableDates.ts";
 import { zenLabels } from "../../src/components/_shared/labels.ts";
-import { ACTION_LAYERS, protoOfReaction } from "./figma-proto.mjs";
+import { ACTION_LAYERS, figmaNumber, protoOfReaction } from "./figma-proto.mjs";
 import { instanceLayerPaths } from "./instance-paths.mjs";
 import { gradientFillProps, READ_GRADIENT_FILL } from "./figma-gradient.mjs";
 import { imageFillProps, READ_IMAGE_FILL } from "./figma-image.mjs";
@@ -361,33 +361,127 @@ const destinationOf = async (id) => {
   }
   return destinationFrames.get(id);
 };
+// Prototype variables (W-52 B4): every variable an action or a binding names, by id (the frame's \`variables\`, below).
+const protoVarIds = new Set();
+const protoVarName = async (id) => { if (!id) return null; protoVarIds.add(id); return variableName(id); };
+// Figma's VariableData (a value, a variable, an expression) as figma-proto.mjs's Data.
+const dataOf = async (data) => {
+  if (!data) return null;
+  const value = data.value;
+  if (data.type === "VARIABLE_ALIAS" || (value && value.type === "VARIABLE_ALIAS")) {
+    const name = await protoVarName(value && value.id);
+    return name ? { type: "VARIABLE", name, resolvedType: data.resolvedType } : null;
+  }
+  if (data.type === "EXPRESSION" && value) {
+    const args = [];
+    for (const arg of value.expressionArguments || []) args.push(await dataOf(arg));
+    return { type: "EXPRESSION", fn: value.expressionFunction, args, resolvedType: data.resolvedType };
+  }
+  return { type: data.type, value };
+};
+// One of a reaction's actions: Navigate / Open overlay with its transition, Close, Back, Set variable, Conditional with
+// its blocks; any other by its type.
+const actionOf = async (action) => {
+  if (!action) return null;
+  if (action.type === "CLOSE" || action.type === "BACK") return { action: action.type };
+  if (action.type === "NODE" && (action.navigation === "NAVIGATE" || action.navigation === "OVERLAY")) {
+    const entry = { action: action.navigation, to: await destinationOf(action.destinationId) };
+    const t = action.transition;
+    if (t) {
+      const curve = t.easing && t.easing.easingFunctionCubicBezier;
+      entry.transition = { type: t.type, duration: t.duration };
+      if (t.direction) entry.transition.direction = t.direction;
+      if (curve) entry.transition.easing = [curve.x1, curve.y1, curve.x2, curve.y2];
+    }
+    return entry;
+  }
+  if (action.type === "SET_VARIABLE") return { action: "SET_VARIABLE", variable: await protoVarName(action.variableId), value: await dataOf(action.variableValue) };
+  if (action.type === "CONDITIONAL") {
+    const blocks = [];
+    for (const block of action.conditionalBlocks || []) {
+      const actions = [];
+      for (const inner of block.actions || []) { const read_ = await actionOf(inner); if (read_) actions.push(read_); }
+      blocks.push(block.condition ? { condition: await dataOf(block.condition), actions } : { actions });
+    }
+    return { action: "CONDITIONAL", blocks };
+  }
+  return { action: action.type + (action.navigation ? ":" + action.navigation : "") };
+};
+// A reaction of one Navigate / Open overlay / Close / Back holds it; several actions, a Set variable or a Conditional
+// come as \`actions\` (figma-proto.mjs).
 const reactionsOf = async (node, layer) => {
   let list = [];
   try { list = node.reactions || []; } catch (e) { list = []; }
   const out = [];
   for (const reaction of list) {
     const trigger = reaction.trigger || {};
-    for (const action of reaction.actions || (reaction.action ? [reaction.action] : [])) {
-      if (!action) continue;
-      const entry = { trigger: trigger.type || null };
-      if (trigger.type === "AFTER_TIMEOUT") entry.timeout = trigger.timeout;
-      if (action.type === "CLOSE" || action.type === "BACK") entry.action = action.type;
-      else if (action.type === "NODE" && (action.navigation === "NAVIGATE" || action.navigation === "OVERLAY")) {
-        entry.action = action.navigation;
-        entry.to = await destinationOf(action.destinationId);
-        const t = action.transition;
-        if (t) {
-          const curve = t.easing && t.easing.easingFunctionCubicBezier;
-          entry.transition = { type: t.type, duration: t.duration };
-          if (t.direction) entry.transition.direction = t.direction;
-          if (curve) entry.transition.easing = [curve.x1, curve.y1, curve.x2, curve.y2];
-        }
-      } else entry.action = action.type + (action.navigation ? ":" + action.navigation : "");
-      if (layer) entry.layer = layer;
-      out.push(entry);
-    }
+    const actions = [];
+    for (const action of reaction.actions || (reaction.action ? [reaction.action] : [])) { const read_ = await actionOf(action); if (read_) actions.push(read_); }
+    if (!actions.length) continue;
+    const entry = { trigger: trigger.type || null };
+    if (trigger.type === "AFTER_TIMEOUT") entry.timeout = trigger.timeout;
+    if (actions.length === 1 && actions[0].action !== "SET_VARIABLE" && actions[0].action !== "CONDITIONAL") Object.assign(entry, actions[0]);
+    else entry.actions = actions;
+    if (layer) entry.layer = layer;
+    out.push(entry);
   }
   return out;
+};
+// Its words, Visible or a component property bound to a prototype variable (figma-push varBind, the other way): a
+// property by its name; the nested text that shows an instance's words (the Zen plugin binds it when no property does).
+const varBindOf = async (node, out) => {
+  const bind = {};
+  let bound = {};
+  try { bound = node.boundVariables || {}; } catch (e) { bound = {}; }
+  if (node.type === "TEXT" && bound.characters) bind.text = await protoVarName(bound.characters.id);
+  if (bound.visible) bind.visible = await protoVarName(bound.visible.id);
+  if (node.type === "INSTANCE") {
+    let props = {};
+    try { props = node.componentProperties || {}; } catch (e) { props = {}; }
+    for (const key of Object.keys(props)) {
+      const alias = props[key].boundVariables && props[key].boundVariables.value;
+      const name = alias ? await protoVarName(alias.id) : null;
+      if (name) (bind.props = bind.props || {})[key.split("#")[0]] = name;
+    }
+    const text = !bind.props && typeof out.text === "string" ? node.findOne((layer) => layer.type === "TEXT" && layer.characters === out.text && Boolean(layer.boundVariables && layer.boundVariables.characters)) : null;
+    if (text) bind.text = await protoVarName(text.boundVariables.characters.id);
+  }
+  for (const key of Object.keys(bind)) if (!bind[key]) delete bind[key];
+  return Object.keys(bind).length ? bind : null;
+};
+const visibleBound = (node) => { try { return Boolean(node.boundVariables && node.boundVariables.visible); } catch (e) { return false; } };
+// The variables the frame names, at their collection's default mode, and every other variable of a collection the
+// Zen plugin made for a Studio page ("Prototype \\u00b7 <page>"), in its order: the page's \`vars\`.
+const protoVariablesOf = async () => {
+  const variables = [];
+  for (const id of protoVarIds) { const variable = await figma.variables.getVariableByIdAsync(id); if (variable) variables.push(variable); }
+  const collections = new Map();
+  for (const variable of variables) {
+    if (collections.has(variable.variableCollectionId)) continue;
+    let collection = null;
+    try { collection = await figma.variables.getVariableCollectionByIdAsync(variable.variableCollectionId); } catch (e) { collection = null; }
+    collections.set(variable.variableCollectionId, collection);
+  }
+  const list = [];
+  const seen = new Set();
+  const add = (variable, collection) => {
+    if (!variable || seen.has(variable.id)) return;
+    seen.add(variable.id);
+    const modeId = collection ? collection.defaultModeId : Object.keys(variable.valuesByMode || {})[0];
+    const value = (variable.valuesByMode || {})[modeId];
+    const entry = { name: variable.name, type: variable.resolvedType };
+    if (value !== undefined && (typeof value !== "object" || value === null)) entry.value = value;
+    else if (value && value.type === "VARIABLE_ALIAS") entry.alias = true;
+    if (collection && collection.modes.length > 1) entry.modes = collection.modes.length;
+    list.push(entry);
+  };
+  for (const [collectionId, collection] of collections) {
+    if (collection && String(collection.name).indexOf("Prototype \\u00b7 ") === 0) {
+      for (const id of collection.variableIds || []) add(await figma.variables.getVariableByIdAsync(id), collection);
+    } else for (const variable of variables) if (variable.variableCollectionId === collectionId) add(variable, collection);
+  }
+  const first = collections.values().next().value;
+  return list.length ? { collection: first ? first.name : null, vars: list } : null;
 };
 const ROOT_ID = ${JSON.stringify(nodeId)};
 // The Studio page the frame read was imported as (set once the frame is found, below).
@@ -583,6 +677,8 @@ const read = async (node) => {
     }
   }
   if (reactions.length) out.reactions = reactions;
+  const bind = out ? await varBindOf(node, out) : null;
+  if (bind) out.varBind = bind;
   return out;
 };
 // A closed Sidebar group's rows: hidden Menu-Item Level=Child rows (figma-push sidebarSubRows).
@@ -592,8 +688,9 @@ const closedSubRow = async (node) => {
   return Boolean(set && set.name === "Primitives/Side-Bar/Menu-Item/Master" && (await propsOf(node)).Level === "Child");
 };
 const readLayer = async (node) => {
-  // Hidden layers are not read, but a closed group's rows are, marked hidden (a Sidebar row's nested rows).
-  if (!node.visible) return (await closedSubRow(node)) ? { ...(await readInstance(node)), hidden: true } : null;
+  // Hidden layers are not read, but a closed group's rows are, marked hidden (a Sidebar row's nested rows), and a layer
+  // whose Visible is bound to a prototype variable (shown when it turns on).
+  if (!node.visible && !visibleBound(node)) return (await closedSubRow(node)) ? { ...(await readInstance(node)), hidden: true } : null;
   if (node.type === "TEXT") {
     // Words with styles of their own (Figma's mixed styles): the layer's style and colour are its longest segment's,
     // the words that differ come as segments (Studio text-runs.mjs writes them as TextRun).
@@ -988,6 +1085,12 @@ if (!node) throw new Error("No node " + ${JSON.stringify(nodeId)});
 READ_PAGE = studioPageOf(node);
 // ASCII only (\\uXXXX for the rest): an answer with many non-ASCII characters was cut short in transit.
 const result = node.type === "INSTANCE" || node.type === "TEXT" ? await read(node) : await readFrame(node, true);
+// The frame's own interactions (a Screen's After delay: figma-push writes it on the frame).
+const ownReactions = result && node.type !== "INSTANCE" && node.type !== "TEXT" ? await reactionsOf(node) : [];
+if (ownReactions.length) result.reactions = ownReactions;
+// The prototype variables its actions and bindings name (W-52 B4): the page's \`vars\`.
+const protoVariables = result && protoVarIds.size ? await protoVariablesOf() : null;
+if (protoVariables) result.variables = protoVariables;
 if (("overflowDirection" in node && node.overflowDirection !== "NONE") || scrolls(result)) markSticky(result, await stickyIdsOf(node));
 const json = JSON.stringify(result).replace(/[\\u0080-\\uffff]/g, (char) => "\\\\u" + char.charCodeAt(0).toString(16).padStart(4, "0"));
 const parts = Math.max(1, Math.ceil(json.length / ${PART_SIZE}));
@@ -2199,6 +2302,7 @@ function convert(node, ctx) {
     if (blend) element.props.blendMode = literal(blend);
   }
   bindings(element, node);
+  pulledVarBind(element, node, ctx);
   if (element && node.type === "INSTANCE") instanceName(element, node, ctx);
   if (element && !element.id) { const id = idOf(node, ctx); if (id) element.id = id; }
   // The layer's own element (not a wrapper that places it): an instance's overrides find its main's layers by it.
@@ -3511,6 +3615,8 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   const ctx = { mapping, notes: [], ids: new Set(), drawings: [], keyOwners: new Map(), locale };
   // A copy: the slots take their owner's key (slotKeys), and a push's frame read back here stays as it was.
   frame = frame ? JSON.parse(JSON.stringify(frame)) : frame;
+  // The prototype variables its actions and bindings name (W-52 B4): the page's `vars`.
+  ctx.vars = pageVarsOf(frame?.variables, ctx.notes);
   slotKeys(frame);
   ctx.local = localComponentsOf(frame);
   ctx.innerOf = new Map();
@@ -3530,7 +3636,9 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   }
   // The frame's After delay (figma-proto.mjs): the Screen's onDelay.
   for (const reaction of frame?.reactions ?? []) {
-    const made = protoOfReaction(reaction);
+    const made = protoOfReaction(reaction, ctx.vars.names);
+    for (const note of made.skipped ?? []) ctx.notes.push(`Screen onDelay: ${note} (left out of its actions)`);
+    for (const note of made.notes ?? []) ctx.notes.push(`Screen onDelay: ${note}`);
     if (made.prop === "onDelay") screenProps.onDelay = { kind: "proto", action: made.action, args: made.args };
     else ctx.notes.push(`the frame's ${made.note ?? `${made.prop} interaction`}: a Screen takes After delay only`);
   }
@@ -3568,8 +3676,85 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   // A frame the Zen plugin placed from a Studio page: that page and the export it holds (figma-diff picks its base by them).
   const pushed = typeof frame?.page === "string" ? { page: frame.page, ...(typeof frame.version === "string" ? { version: frame.version } : {}) } : {};
   const source = frame?.id ? { figma: { file: frame.file ?? file, node: frame.id, ...pushed } } : {};
-  const doc = { header: { format: 1, title, ...source }, mock: {}, board };
+  const doc = { header: { format: 1, title, ...source }, mock: {}, ...(Object.keys(ctx.vars.vars).length ? { vars: ctx.vars.vars } : {}), board };
   return { text: printPage(doc), notes: ctx.notes, doc };
+}
+
+/** A name in code for a Figma variable's ("Signed in", "cart/count" → signedIn, cartCount), unused in `taken`. */
+function varNameOf(name, taken) {
+  const words = String(name ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[^A-Za-z0-9_$]+/).filter(Boolean);
+  let base = /^[A-Za-z_$][\w$]*$/.test(String(name)) ? String(name) : words.map((word, at) => (at ? word[0].toUpperCase() + word.slice(1) : word[0].toLowerCase() + word.slice(1))).join("") || "variable";
+  if (/^\d/.test(base)) base = `v${base}`;
+  let out = base;
+  for (let n = 2; taken.has(out); n += 1) out = `${base}${n}`;
+  taken.add(out);
+  return out;
+}
+
+/** The start value a variable of each Figma type has when Figma gives none (an alias to another variable). */
+const VAR_STARTS = { STRING: "", FLOAT: 0, BOOLEAN: false };
+
+/**
+ * The frame's prototype variables (figmaReadCode `variables`; figma-push's package `variables`, the other way) as the
+ * page's `vars` ({ name: start value }) and `names` (each Figma name → { name, value }: the reactions and bindings name
+ * them so). A colour variable, a name that is no identifier and a collection with several modes are notes.
+ */
+function pageVarsOf(variables, notes) {
+  const vars = {};
+  const names = new Map();
+  const taken = new Set();
+  for (const entry of variables?.vars ?? []) {
+    if (!Object.hasOwn(VAR_STARTS, entry?.type)) { notes.push(`variable ${entry?.name}: a ${String(entry?.type ?? "").toLowerCase()} variable; the Studio's hold text, numbers and booleans (left out)`); continue; }
+    const read = entry.type === "FLOAT" ? figmaNumber(entry.value) : entry.value;
+    const fits = entry.type === "STRING" ? typeof read === "string" : entry.type === "FLOAT" ? typeof read === "number" && Number.isFinite(read) : typeof read === "boolean";
+    const value = fits ? read : VAR_STARTS[entry.type];
+    const name = varNameOf(entry.name, taken);
+    if (name !== entry.name) notes.push(`variable "${entry.name}" is vars.${name} (a name in code is one word)`);
+    if (!fits) notes.push(`variable ${entry.name}: Figma gives it another variable's value; it starts at ${JSON.stringify(value)}`);
+    if (entry.modes > 1) notes.push(`variable ${entry.name}: the value of its collection's first mode (the Studio's variables have no modes)`);
+    vars[name] = value;
+    names.set(entry.name, { name, value });
+  }
+  return { vars, names };
+}
+
+/**
+ * A layer's words, Visible or property bound to a prototype variable (figma-push varBind, the other way; W-52 B4):
+ * `{vars.x}` as its words, `hidden={!vars.x}`, `prop={vars.x}`. A property comes as the Studio's prop (a push read back
+ * here) or as Figma's (a read from Figma: the set's mapping gives the prop; its label is the words). A variable the page
+ * has not, or a property the Studio cannot bind, is a note and keeps its value.
+ */
+function pulledVarBind(element, node, ctx) {
+  const bind = node?.varBind;
+  if (!bind || element?.kind !== "element") return;
+  const where = element.name;
+  const refOf = (figmaName, what) => {
+    const variable = ctx.vars.names.get(figmaName);
+    if (!variable) ctx.notes.push(`${where}: its ${what} is bound to ${figmaName}, which is not one of the page's variables (kept as it shows)`);
+    return variable ? { kind: "ref", root: "vars", path: [variable.name] } : null;
+  };
+  const words = (ref, what) => {
+    if (!element.children.some((child) => child.kind === "text" || (child.kind === "element" && child.name === "TextRun"))) { ctx.notes.push(`${where}: its ${what} is bound to vars.${ref.path[0]}, but it shows no words (kept as it is)`); return; }
+    element.children = [ref, ...element.children.filter((child) => child.kind !== "text" && !(child.kind === "element" && child.name === "TextRun"))];
+  };
+  if (bind.text) { const ref = refOf(bind.text, "words"); if (ref) words(ref, "words"); }
+  if (bind.visible) { const ref = refOf(bind.visible, "Visible"); if (ref) element.props.hidden = { kind: "expr", op: "!", args: [ref] }; }
+  const set = node.type === "INSTANCE" && node.set ? ctx.mapping.sets.get(node.set.id) ?? ctx.mapping.sets.get(node.set.name) : null;
+  const api = set ? ctx.mapping.apiProps[set.code] : null;
+  for (const [key, name] of Object.entries(bind.props ?? {})) {
+    const ref = refOf(name, key);
+    if (!ref) continue;
+    const entry = set?.own.find((own) => (own.label ?? own.prop) === key);
+    let prop = api?.has(key) || Object.hasOwn(element.props, key) ? key : entry?.prop ?? (TEXT_PROPS.test(key) ? "children" : null);
+    if (entry && prop === entry.prop && entry.type === "VARIANT" && entry.options?.[ctx.vars.names.get(name).value] !== ctx.vars.names.get(name).value) {
+      ctx.notes.push(`${where}: its ${key} is bound to vars.${ref.path[0]}, but its options in Figma are not the code's (kept as it shows)`);
+      continue;
+    }
+    if (entry?.type === "INSTANCE_SWAP") prop = null;
+    if (prop === "children") words(ref, key);
+    else if (prop) element.props[prop] = ref;
+    else ctx.notes.push(`${where}: its ${key} is bound to vars.${ref.path[0]}, which the Studio has no prop for (kept as it shows)`);
+  }
 }
 
 /**
@@ -3579,7 +3764,9 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
  */
 function pulledReactions(element, node, ctx) {
   for (const reaction of node.reactions ?? []) {
-    const made = protoOfReaction(reaction);
+    const made = protoOfReaction(reaction, ctx.vars.names);
+    for (const note of made.skipped ?? []) ctx.notes.push(`${element.name}: ${note} (left out of its actions)`);
+    for (const note of made.notes ?? []) ctx.notes.push(`${element.name}: ${note}`);
     if (made.note) { ctx.notes.push(`${element.name}: ${made.note}`); continue; }
     const value = { kind: "proto", action: made.action, args: made.args };
     if (reaction.layer) {

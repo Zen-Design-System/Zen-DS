@@ -21,4 +21,5 @@ export function sameFigmaSource(a: FigmaSource | null, b: FigmaSource | null): b
 export function isFigmaId(id: unknown): boolean;
 export function describeNode(node: unknown): string;
 export function figmaChanges(docs: { base?: PageDoc | null; current: PageDoc; incoming: PageDoc; synced?: PageDoc | null }): { changes: FigmaChange[]; threeWay: boolean };
-export function mergeFigma(current: PageDoc, incoming: PageDoc, changes: FigmaChange[]): { doc: PageDoc; skipped: string[] };
+/** `declare`: the prototype variables the chosen changes read that `current` has not, at Figma's start values (null: none). */
+export function mergeFigma(current: PageDoc, incoming: PageDoc, changes: FigmaChange[]): { doc: PageDoc; skipped: string[]; declare: Record<string, string | number | boolean> | null };

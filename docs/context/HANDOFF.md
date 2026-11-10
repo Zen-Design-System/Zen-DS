@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-11-05.
+Last updated: 2026-11-07.
 
 ## Read order
 
@@ -47,7 +47,12 @@ Last updated: 2026-11-05.
   "Form · required field" (palette `vars`, op pasteCode / insertChild `vars` declares them: `declareVarsEdit`); E2E
   PT-61, PT-62. W-51b Smart animate (2026-11-05, branch `claude/studio-smart-animate-20261105`): Animation "Smart
   animate", Play matches layers by name path (`smartMatch.ts`) and moves them FLIP (`playSmart.ts`, builder.css
-  `studio-play-smart-*`), reduced motion = Dissolve, push/pull `SMART_ANIMATE`; E2E PT-64. Next: B4 pull optional.
+  `studio-play-smart-*`), reduced motion = Dissolve, push/pull `SMART_ANIMATE`; E2E PT-64. B4 pull (2026-11-07, branch
+  `claude/ecstatic-colden-354b9e`, spec card doc §4.1): `figma-pull.mjs` reads the frame's variables, Set variable /
+  Conditional / several actions (`figma-proto.mjs protoOfReaction` + `actions`), words / Visible / properties bound,
+  back into `vars`, `proto.set/if/run` and `vars.x` props; Update from Figma declares the variables it reads
+  (`mergeFigma` `declare`, op `replaceElement` `vars`). Live read in the Zen file: fixture `figma-proto-vars.json`. W-52 B
+  is complete.
 - **Studio Popover option (2026-10-30, user 2026-10-28 via Bug):** branch `zen/feat/studio-popover-option-20261030`.
   Every layer that takes a click: Design tab switch "Popover" and Prototype On click › Open popover (an Overlay holding a
   Popover, `proto.open`; a Chip uses `popoverItems`); rows Sample or a page-data list (`builder/proto/popoverModel.ts`,
