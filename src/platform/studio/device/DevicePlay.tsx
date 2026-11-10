@@ -3,7 +3,7 @@ import { ZenProvider, type ZenBrand } from "../../../components/Provider";
 import { Text } from "../../../components/Text";
 import { ToastProvider } from "../../../components/Toast";
 import { useZen } from "../../../components/_shared/zen-context";
-import { rememberUploads } from "../builder/assets/uploads";
+import { assetUrl, rememberUploads } from "../builder/assets/uploads";
 import { PlayScreens, usePlayFlow } from "../builder/proto/playFlow";
 import { PageOsContext, pageOsOf, ProtoContext, RealDeviceContext } from "../builder/proto/runtime";
 import { componentsOf, type LocalComponents, type PageTree } from "../builder/render/renderPage";
@@ -33,7 +33,8 @@ export function DevicePlay() {
         if (page.themeCss) {
           const style = document.createElement("style");
           style.dataset.zenProjectTheme = "";
-          style.textContent = page.themeCss;
+          // The project's uploaded fonts, shared by asset id: the files that came with the page.
+          style.textContent = page.themeCss.replace(/url\("zen-asset:([\w.-]+)"\)/g, (match, id: string) => { const url = assetUrl(id); return url ? `url("${url}")` : match; });
           document.head.append(style);
         }
         document.title = page.title;

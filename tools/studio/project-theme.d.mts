@@ -15,8 +15,12 @@ export type ProjectModes = {
 export type TypeRole = "sans" | "heading" | "display" | "button";
 /** A type scale: the Body/Base size and the ratio between steps (the Zen Figma plugin's Type Scale). */
 export type TypeScale = { base: number; ratio: number };
-/** A font per role and an optional type scale; `scale` null keeps the Typography mode's sizes. */
-export type ProjectType = { fonts: Record<TypeRole, string>; scale: TypeScale | null };
+/** One file of an uploaded font: its weight (a variable font's [min, max]), its style, whether it has Vietnamese letters. */
+export type FontFace = { file: string; weight: number | [number, number]; style: "normal" | "italic"; vietnamese: boolean };
+/** A font the project uploaded: its family name and files. */
+export type UploadedFont = { family: string; faces: FontFace[] };
+/** A font per role, an optional type scale (`scale` null keeps the Typography mode's sizes), the project's own fonts. */
+export type ProjectType = { fonts: Record<TypeRole, string>; scale: TypeScale | null; uploads: UploadedFont[] };
 export type ProjectTheme = {
   primary: ColourSource;
   neutral: NeutralSource;
@@ -44,6 +48,17 @@ export const SECTOR_NAMES: string[];
 export const STATUS_ROLES: Record<StatusRole, RampName>;
 export const MODE_VALUES: { [K in keyof ProjectModes]: Array<ProjectModes[K]> };
 export const FONT_FAMILIES: string[];
+export const FONT_FORMATS: Record<"woff2" | "woff" | "ttf" | "otf", string>;
+export const FONT_TYPES: Record<"woff2" | "woff" | "ttf" | "otf", string>;
+export const MAX_FONT_BYTES: number;
+export const MAX_FONT_FAMILIES: number;
+export const MAX_FONT_FACES: number;
+export const FONT_WEIGHTS: number[];
+export const FONT_FILE: RegExp;
+export function fontKindOf(bytes: Uint8Array): "woff2" | "woff" | "ttf" | "otf" | null;
+export function uploadedFontName(id: string, family: string): string;
+export function freeFontFamily(family: string, taken?: string[]): boolean;
+export function projectFontStack(id: string, theme: ProjectTheme, family: string): string;
 export const TYPE_ROLES: TypeRole[];
 export const TYPE_SCALE_LIMITS: { base: { min: number; max: number }; ratio: { min: number; max: number } };
 export function projectTypeScale(scale: TypeScale): Record<string, { size: number; lineHeight: number; letterSpacing: number }>;
@@ -61,6 +76,6 @@ export const DEFAULT_LOCALE: ProjectLocale;
 export function normalizeLocale(input: unknown): ProjectLocale;
 export function tintedNeutralAnchor(primaryHex: string): string;
 export function projectPalettes(theme: ProjectTheme): { primary: Palette; neutral: Palette; onBrand: { light: OnBrand; dark: OnBrand } };
-export function projectThemeCss(id: string, theme: ProjectTheme, options?: { name?: string; brand?: string }): string;
+export function projectThemeCss(id: string, theme: ProjectTheme, options?: { name?: string; brand?: string; fontUrl?: (file: string) => string | null }): string;
 export function projectModes(theme: ProjectTheme): ProjectModes;
 export function projectBaseValues(theme: ProjectTheme): Record<string, string>;

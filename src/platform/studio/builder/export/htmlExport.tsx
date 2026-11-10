@@ -162,8 +162,10 @@ function selectorParts(selector: string): string[] {
 }
 
 const classesOf = (part: string) => part.replace(/\[[^\]]*\]/g, "").match(/\.-?[_a-zA-Z][\w-]*/g) ?? [];
-/** A token or mode rule: only :root, data-attribute selectors and combinators (`[data-theme="dark"]`, `:root`). */
-const isTokenPart = (part: string) => !classesOf(part).length && !/#/.test(part) && !part.replace(/:root|:where\(|:is\(|\)|\[data-[\w-]+(?:[~|^$*]?=(?:"[^"]*"|'[^']*'|[\w-]+))?\]|[\s>+~*]/g, "");
+/** A token or mode rule: only :root, data-attribute selectors and combinators (`[data-theme="dark"]`, `:root`), `:not(…)`
+ *  of those too: a project's mode (`[data-brand="p-acme"] [data-contrast]:not([data-brand])`, project-theme.mjs) was left
+ *  out, so an exported project page lost its colours and fonts. */
+const isTokenPart = (part: string) => !classesOf(part).length && !/#/.test(part) && !part.replace(/:root|:where\(|:is\(|:not\(|\)|\[data-[\w-]+(?:[~|^$*]?=(?:"[^"]*"|'[^']*'|[\w-]+))?\]|[\s>+~*]/g, "");
 /** A library rule: every class it names is a `zen-` class (no Studio, docs or platform class), or a token rule. */
 const isLibraryPart = (part: string) => { const classes = classesOf(part); return classes.length ? classes.every((name) => name.startsWith(".zen-")) : isTokenPart(part); };
 
@@ -246,8 +248,8 @@ function collect(rules: CSSRule[], base: string, roots: HTMLElement[], into: Col
   }
 }
 
-/** A font file's place in the zip: fonts/<its file name>. */
-const fontPath = (url: string) => `fonts/${decodeURIComponent(new URL(url).pathname.split("/").pop() ?? "font")}`;
+/** A font file's place in the zip: fonts/<its file name>; a project's uploaded font (an object URL) by its asset id. */
+const fontPath = (url: string) => `fonts/${url.startsWith("blob:") ? assetOfUrl(url)?.id ?? "font" : decodeURIComponent(new URL(url).pathname.split("/").pop() ?? "font")}`;
 
 /** styles.css for `roots`: the reset, then the library's rules they use, the fonts and keyframes those name. */
 export function libraryCss(roots: HTMLElement[], title: string, assets: Assets): string {

@@ -21,7 +21,8 @@
 // Builder pages (2026-10-06, GĐ2 M2): GET /pages, POST /pages/write, POST /pages/trash keep the pages made in the
 // Studio in the gitignored `.zen-studio/pages/` (pages-folder.mjs: id regex, no links, 2 MB, dialect check first).
 // Projects (2026-10-17): GET /projects, POST /projects/write, POST /projects/trash keep Studio projects (a name and a theme
-// that is one extra Base Colors (Project) mode) in `.zen-studio/projects/<id>/` (projects-folder.mjs).
+// that is one extra Base Colors (Project) mode) in `.zen-studio/projects/<id>/` (projects-folder.mjs); POST /projects/font
+// keeps a font the project uploaded in its fonts/ folder, GET /projects/font?project=&file= reads it back (2026-11-10).
 // Promote (2026-10-07, GĐ5 M5): POST /promote writes a builder page into the repo as src/templates/studio/<Name>Template.tsx
 // with its photos (promote.mjs), then TypeScript and the harness on it; an existing different template needs
 // { overwrite: true }. ZEN_STUDIO_PROMOTE_DIR (relative to the root) moves it for the E2E server.
@@ -66,7 +67,7 @@ const DRAFTS_DIR = "node_modules/.cache/zen-studio";
 const STATUS = { forbidden: 403, "not-found": 404, stale: 409, invalid: 400, confirm: 409 };
 const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/css-edit", "/drafts", "/frame-drafts", "/save", "/discard", "/parity", "/parity-keep", "/parity-revert", "/binding-diff", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/comments", "/pages/comments-write", "/pages/figma", "/pages/figma-write", "/pages/asset-trash", "/promote", "/media"]);
 /** Studio projects (2026-10-17, projects-folder.mjs): their own set, so the routes above merge cleanly. */
-const PROJECT_ROUTES = new Set(["/projects", "/projects/write", "/projects/trash"]);
+const PROJECT_ROUTES = new Set(["/projects", "/projects/write", "/projects/trash", "/projects/font"]);
 /** A frame request names at most this many frames and locs (a page renders a few thousand elements). */
 const MAX_FRAMES = 200;
 const MAX_LOCS = 50_000;
@@ -408,6 +409,19 @@ export function zenStudio() {
         checkWriteHeaders(req);
         const body = await readJson(req);
         const result = await exclusive(() => projectsCall(() => (route === "POST /projects/write" ? projects().write(body.project) : projects().trash(body.id))));
+        return send(res, 200, { ok: true, ...result });
+      }
+      // A project's uploaded font: its bytes as base64 both ways (the body is JSON, as every write here).
+      if (route === "GET /projects/font") {
+        checkToken(req);
+        const bytes = await projectsCall(() => projects().readFont(url.searchParams.get("project"), url.searchParams.get("file")));
+        return send(res, 200, { ok: true, data: bytes.toString("base64") });
+      }
+      if (route === "POST /projects/font") {
+        checkWriteHeaders(req);
+        const body = await readJson(req);
+        if (typeof body.data !== "string") throw new HttpError("invalid", "Send the font's bytes as base64 `data`");
+        const result = await exclusive(() => projectsCall(() => projects().writeFont(body.project, body.file, Buffer.from(body.data, "base64"))));
         return send(res, 200, { ok: true, ...result });
       }
       if (route === "POST /promote") {

@@ -14,6 +14,12 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a project can use its own fonts (Project settings › Typography › Upload font; user 2026-11-10). WOFF2,
+  WOFF, TTF or OTF files up to 5 MB each; files of one family (AcmeSans-Regular, AcmeSans-Bold) become one font, and a
+  variable font is recognised. The uploaded font then shows in every role's list. Each file's weight can be changed;
+  the settings say when a font lacks Regular to Bold or the Vietnamese letters. The font draws on the canvas, in Play,
+  on a phone (Open on phone) and in the HTML export. The dev server keeps the files in the project's `fonts/` folder,
+  so another browser gets them too.
 - Zen Studio: on the project setup page, changing the type scale, a font or the chart colours no longer switches the
   preview to its Typography or Charts tab; the preview stays on the tab you picked.
 - Zen Studio: the Frame tool draws a plain frame (Figma's frame) whatever its size: a narrow drag no longer turns into a

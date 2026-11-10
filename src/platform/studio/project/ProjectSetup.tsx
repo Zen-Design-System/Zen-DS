@@ -12,11 +12,13 @@ import { previewValueLabel } from "../shell/modes";
 import { useStudio } from "../store";
 import {
   DEFAULT_LOCALE, FONT_FAMILIES, MODE_VALUES, PRIMARY_RAMPS, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, STATUS_ROLES, SUPPORT_FAMILIES, SUPPORT_LABELS, TYPE_ROLES, TYPE_SCALE_LIMITS,
-  defaultProjectTheme, projectPalettes, projectTypeScale,
-  type ProjectLocale, type ProjectModes, type ProjectTheme, type RampName, type StatusRole, type SupportFamily, type TypeRole, type TypeScale,
+  defaultProjectTheme, projectFontStack, projectPalettes, projectTypeScale,
+  type ProjectLocale, type ProjectModes, type ProjectTheme, type RampName, type StatusRole, type SupportFamily, type TypeRole, type TypeScale, type UploadedFont,
 } from "../../../../tools/studio/project-theme.mjs";
+import { uploadOf } from "../builder/assets/uploads";
 import { openProjectHome } from "./activeProject";
 import { DRAFT_BRAND, createProject, setDraftStyles, updateProject, useProject, useProjects } from "./projectStore";
+import { FONT_ACCEPT, WEIGHT_NAMES, fontGaps, removeFont, renameFont, setFaceWeight, uploadFonts, weightOptions } from "./projectFonts";
 import { ThemePreview, type GalleryId } from "./ThemePreview";
 import "./project.css";
 
@@ -278,35 +280,58 @@ function ThemeSettings({ theme, swatches, onChange }: { theme: ProjectTheme; swa
 /* Typography (user, 2026-11-06: "thiếu phần typography", then "vẫn không cho đổi typo như trong plugin"): the Zen
    Figma plugin's two tabs on one section — Typeface (a font per role) and Type Scale (a shipped mode, or Custom: the
    Body/Base size and the ratio between steps, sized by the plugin's formula). Each tile's "Aa" is that scale's
-   Heading/3 in the Heading font. */
+   Heading/3 in the Heading font. Upload font (user, 2026-11-10: "làm upload font riêng từng project") adds the
+   project's own fonts (projectFonts.ts) to every role's list. */
 const TYPE_ROLE_LABEL: Record<TypeRole, string> = { sans: "Body", heading: "Heading", display: "Display", button: "Button" };
 /** The Body/Base size of each shipped mode (tokens.css), where a Custom scale starts. */
 const MODE_BASE: Record<ProjectModes["typography"], number> = { dashboard: 14, popular: 16, mobile: 16 };
 const FONT_OPTIONS = FONT_FAMILIES.map((family) => ({ value: family, label: family, ...(family === "Inter" ? { meta: "Zen" } : {}) }));
 
 function TypographySettings({ theme, onChange }: { theme: ProjectTheme; onChange: (next: ProjectTheme) => void }) {
-  const { fonts, scale } = theme.type;
-  const setType = (type: ProjectTheme["type"]) => onChange({ ...theme, type });
-  const heading = { "--zen-typography-font-family-heading": `"${fonts.heading}", "Inter", sans-serif` } as CSSProperties;
+  const { fonts, scale, uploads } = theme.type;
+  const setType = (type: Partial<ProjectTheme["type"]>) => onChange({ ...theme, type: { ...theme.type, ...type } });
+  const heading = { "--zen-typography-font-family-heading": projectFontStack("draft", theme, fonts.heading) } as CSSProperties;
   const customSize = projectTypeScale(scale ?? { base: MODE_BASE[theme.modes.typography], ratio: 1.14 })["heading-3"].size;
   const tile = scale ? "custom" : theme.modes.typography;
   const pickScale = (id: typeof tile) => {
-    if (id === "custom") { if (!scale) setType({ fonts, scale: { base: MODE_BASE[theme.modes.typography], ratio: 1.14 } }); return; }
-    onChange({ ...theme, modes: { ...theme.modes, typography: id }, type: { fonts, scale: null } });
+    if (id === "custom") { if (!scale) setType({ scale: { base: MODE_BASE[theme.modes.typography], ratio: 1.14 } }); return; }
+    onChange({ ...theme, modes: { ...theme.modes, typography: id }, type: { ...theme.type, scale: null } });
   };
   const setScale = (key: keyof TypeScale, value: number | null) => {
     if (!scale || value === null) return;
     const { min, max } = TYPE_SCALE_LIMITS[key];
-    setType({ fonts, scale: { ...scale, [key]: Math.min(max, Math.max(min, value)) } });
+    setType({ scale: { ...scale, [key]: Math.min(max, Math.max(min, value)) } });
+  };
+  const options = [...uploads.map((font) => ({ value: font.family, label: font.family, meta: "Uploaded" })), ...FONT_OPTIONS];
+  const input = useRef<HTMLInputElement>(null);
+  const [reading, setReading] = useState(false);
+  const upload = (files: File[]) => {
+    if (!files.length) return;
+    setReading(true);
+    void uploadFonts(files, theme).then(({ theme: next, added, refused }) => {
+      if (added) onChange(next);
+      if (refused.length) say("error", `Not uploaded: ${refused.join("; ")}`);
+      else say("saved", `Uploaded ${added} font file${added === 1 ? "" : "s"}: pick it for Body, Heading, Display or Button`);
+    }).finally(() => setReading(false));
   };
   return (
-    <InspectorSection title="Typography" fieldGrid note="Fonts and text sizes on every page">
+    <InspectorSection title="Typography" fieldGrid note={<SectionNote text="Fonts and text sizes on every page" more="Upload WOFF2, WOFF, TTF or OTF files up to 5 MB each: fonts your licence lets you use in apps and on the web." />}>
       {TYPE_ROLES.map((role) => (
-        <InspectorFields key={role} labels={[TYPE_ROLE_LABEL[role]]} fields={[
-          <SelectField key={role} size="sm" aria-label={`${TYPE_ROLE_LABEL[role]} font`} value={fonts[role]} popoverSearch options={FONT_OPTIONS}
-            onValueChange={(value) => setType({ fonts: { ...fonts, [role]: value }, scale })} />,
+        <InspectorFields key={role} name={`font-${role}`} labels={[TYPE_ROLE_LABEL[role]]} fields={[
+          <SelectField key={role} size="sm" aria-label={`${TYPE_ROLE_LABEL[role]} font`} value={fonts[role]} popoverSearch options={options}
+            onValueChange={(value) => setType({ fonts: { ...fonts, [role]: value } })} />,
         ]} />
       ))}
+      {uploads.map((font) => <UploadedFontFields key={font.family} font={font} theme={theme} onChange={onChange} />)}
+      <div className="studio-project-setup__font-upload">
+        <Button level="tertiary" size="sm" startIcon="icon-upload-01-line" disabled={reading} onClick={() => input.current?.click()}>Upload font</Button>
+      </div>
+      <input ref={input} type="file" accept={FONT_ACCEPT} multiple hidden data-e2e="upload-fonts" onChange={(event) => {
+        // Copied first: clearing the input (so the same file can be picked again) empties its live FileList.
+        const files = Array.from(event.target.files ?? []);
+        event.target.value = "";
+        upload(files);
+      }} />
       <TileGroup label="Type scale" value={tile} onChange={pickScale}
         options={[
           ...MODE_VALUES.typography.map((mode) => ({ id: mode, label: previewValueLabel("typography", mode), art: <span className="studio-project-setup__type-art" data-typography={mode} style={heading} aria-hidden="true">Aa</span> })),
@@ -319,6 +344,48 @@ function TypographySettings({ theme, onChange }: { theme: ProjectTheme; onChange
         ]} />
       ) : null}
     </InspectorSection>
+  );
+}
+
+/**
+ * An uploaded font: its name (renamed on Enter or leaving the field; the roles follow), Remove (the roles that took it go
+ * back to Inter), and each file in its own face with its weight (a variable font shows its range). Under them, what the
+ * font lacks: a Zen weight (Regular, Medium, Semi Bold, Bold: text takes the nearest) or the Vietnamese letters.
+ */
+function UploadedFontFields({ font, theme, onChange }: { font: UploadedFont; theme: ProjectTheme; onChange: (next: ProjectTheme) => void }) {
+  const [name, setName] = useState(font.family);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => { setName(font.family); setError(null); }, [font.family]);
+  const rename = () => {
+    const next = renameFont(theme, font.family, name);
+    if (!next) { setError("Use another name: this one is taken or has a quote"); return; }
+    setError(null);
+    if (next !== theme) onChange(next);
+  };
+  const family = projectFontStack("draft", theme, font.family);
+  const gaps = fontGaps(font);
+  const lacks = [
+    gaps.weights.length ? `No ${gaps.weights.map((weight) => WEIGHT_NAMES[weight]).join(", ")}: text takes the nearest weight` : null,
+    gaps.vietnamese ? null : "No Vietnamese letters: they show in Inter",
+  ].filter(Boolean).join(". ");
+  return (
+    <div className="studio-project-setup__font" role="group" aria-label={`Uploaded font ${font.family}`}>
+      <InspectorFields labels={["Uploaded font"]} fields={[
+        <InputField key="name" size="sm" aria-label="Font name" value={name} error={error ?? undefined} onChange={(event) => setName(event.target.value)} onBlur={rename}
+          onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) { event.preventDefault(); rename(); } }} />,
+      ]} icon={<IconButton appearance="flat" level="secondary" size="xs" icon="icon-trash-line" aria-label={`Remove ${font.family}`} tooltip="Remove font" onClick={() => onChange(removeFont(theme, font.family))} />} />
+      {font.faces.map((face) => (
+        <InspectorFields key={face.file} fields={[
+          <Text key="file" as="span" textStyle="Body/Small/Regular" className="studio-project-setup__font-file" title={face.file}
+            style={{ fontFamily: family, fontWeight: Array.isArray(face.weight) ? 400 : face.weight, fontStyle: face.style }}>{uploadOf(face.file)?.name ?? face.file}</Text>,
+          Array.isArray(face.weight)
+            ? <Text key="weight" as="span" textStyle="Body/Small/Regular" tone="light" className="studio-project-setup__font-file">{`Variable ${face.weight[0]}–${face.weight[1]}`}</Text>
+            : <SelectField key="weight" size="sm" aria-label={`Weight of ${uploadOf(face.file)?.name ?? face.file}`} value={String(face.weight)} options={weightOptions}
+              onValueChange={(value) => onChange(setFaceWeight(theme, font.family, face.file, Number(value)))} />,
+        ]} />
+      ))}
+      {lacks ? <Text as="p" textStyle="Caption/Regular" tone="light" className="studio-project-setup__font-gap">{lacks}</Text> : null}
+    </div>
   );
 }
 

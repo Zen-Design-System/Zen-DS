@@ -7,7 +7,7 @@ import { STUDIO_API } from "../types";
  * loads none of the Studio.
  */
 
-/** An uploaded photo the page names (`zen-asset:<id>`), its bytes as base64. */
+/** An uploaded photo the page names (`zen-asset:<id>`), or a font its theme names, its bytes as base64. */
 export type SharedPhoto = { id: string; name: string; type: string; data: string };
 export type SharedPage = {
   title: string;
@@ -16,7 +16,8 @@ export type SharedPage = {
   start: string | null;
   modes: Partial<StudioPreviewSettings>;
   brand: string;
-  /** The project's theme (its `[data-brand="p-…"]` mode), when the page is in a project. */
+  /** The project's theme (its `[data-brand="p-…"]` mode), when the page is in a project; its uploaded fonts are
+   *  `url("zen-asset:<id>")`, the phone's object URLs of `uploads` once there. */
   themeCss: string;
   /** The project's language (ZenProvider `locale`); none: US English. */
   locale?: string;

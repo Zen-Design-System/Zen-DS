@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pagesDirOf } from "../lib/server.mjs";
-import { focusFrame, inViewport, openAssetLibrary, sleep, until } from "../lib/studio.mjs";
+import { focusFrame, inViewport, openAssetLibrary, openStudio, sleep, statusText, until } from "../lib/studio.mjs";
 import { newPage, seededPage } from "./builder.mjs";
 import { pageFromTemplate } from "./starters.mjs";
 
@@ -59,6 +59,25 @@ const frameView = (page) => page.evaluate((canvasSel) => {
   });
   return { frames, zoom: document.querySelector(".studio-zoom__value")?.textContent?.trim() ?? null, visible: [Math.round(x0), Math.round(x1)] };
 }, CANVAS);
+
+/** A page of project `project` with a heading (S-13). */
+const fontsPage = (project) => (title) => `// @zen-page ${JSON.stringify({ format: 1, title, project })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Heading, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop">
+        <Heading level={2}>Quarterly plan</Heading>
+        <Text>Ăn uống đầy đủ</Text>
+      </Screen>
+    </Board>
+  );
+}
+`;
 
 /** A page of project `project` with a Table whose date column holds this year's 25 October (S-12). */
 const languagePage = (project, year) => (title) => `// @zen-page ${JSON.stringify({ format: 1, title, project })}
@@ -377,6 +396,97 @@ export const rows = [
         if (langs[0] !== "vi-VN" || langs[1] !== "en-US") throw new Error(`Play's page says lang ${langs[0]}, its bar ${langs[1]}`);
         await page.keyboard.press("Escape");
         return "10/25 → Language Tiếng Việt → canvas 25/10 (lang vi-VN) · Play 25/10, bar en-US · project.json locale vi-VN";
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    // User 2026-11-10: "làm upload font riêng từng project".
+    id: "S-13", feature: "Project fonts: Project settings › Typography › Upload font takes a WOFF2 (InterVariable as AcmeSans-Variable: Acme Sans, Variable 100–900) and refuses a PNG with its reason; two JetBrains Mono files become one font at 400 and 700 with the Zen weights it lacks said; picked for Heading and saved, the canvas heading draws in its face (loaded from this browser), the project's fonts/ folder and theme.css hold it, a fresh browser gets the file from the dev server; Remove puts Heading back on Inter", wp: "user 2026-11-10", timeout: 120_000,
+    async run(ctx) {
+      const project = "e2e-fonts";
+      const family = "Acme Sans (e2e-fonts)";
+      const { defaultProjectTheme } = await import("../../project-theme.mjs");
+      const now = Date.now();
+      await ctx.api.writeProject({ id: project, name: "E2E Fonts", theme: defaultProjectTheme(), createdAt: now, updatedAt: now });
+      const folder = path.join(ctx.root, path.dirname(pagesDirOf(ctx.server.port)), "projects", project);
+      const font = fs.readFileSync(path.join(ctx.root, "src/assets/fonts/Inter/InterVariable.woff2"));
+      try {
+        const { page } = await seededPage(ctx, fontsPage(project), /Quarterly plan/);
+        const openSettings = async () => {
+          await page.locator(".studio-viewport").focus();
+          await page.keyboard.press("Escape");
+          await page.getByRole("button", { name: "E2E Fonts settings" }).click();
+          const settings = page.getByRole("dialog", { name: "E2E Fonts · Settings" });
+          await settings.waitFor({ state: "visible", timeout: 5000 });
+          return settings;
+        };
+        const settings = await openSettings();
+        const upload = settings.locator('input[data-e2e="upload-fonts"]');
+        await upload.setInputFiles({ name: "logo.png", mimeType: "image/png", buffer: Buffer.from("89504e470d0a1a0a0000000d49484452", "hex") });
+        await until(async () => /Not uploaded: logo\.png \(not a WOFF2, WOFF, TTF or OTF font\)/.test(await statusText(page)), { message: "the PNG refused with its reason" });
+        await upload.setInputFiles({ name: "AcmeSans-Variable.woff2", mimeType: "font/woff2", buffer: font });
+        const group = settings.getByRole("group", { name: "Uploaded font Acme Sans" });
+        await group.waitFor({ state: "visible", timeout: 8000 });
+        const range = (await group.innerText()).replace(/\s+/g, " ");
+        if (!/Variable 100–900/.test(range)) throw new Error(`the font's file reads "${range}"`);
+        // Two static files of one family: one font, each weight from its name, the Zen weights it lacks said under it.
+        const mono = path.join(ctx.root, "src/assets/fonts/JetBrainsMono");
+        await upload.setInputFiles(["JetBrainsMono-Regular.woff2", "JetBrainsMono-Bold.woff2"].map((name) => ({ name, mimeType: "font/woff2", buffer: fs.readFileSync(path.join(mono, name)) })));
+        const pair = settings.getByRole("group", { name: "Uploaded font Jet Brains Mono" });
+        await pair.waitFor({ state: "visible", timeout: 8000 });
+        const weights = await pair.locator("button").evaluateAll((buttons) => buttons.map((button) => button.textContent?.trim()).filter((text) => /\d00$/.test(text ?? "")));
+        if (weights.join() !== "Regular 400,Bold 700") throw new Error(`Jet Brains Mono's weights: ${weights.join(", ")}`);
+        const gap = (await pair.innerText()).replace(/\s+/g, " ");
+        if (!/No Medium, Semi Bold: text takes the nearest weight/.test(gap)) throw new Error(`Jet Brains Mono's note: ${gap}`);
+        const typography = settings.getByRole("region", { name: "Typography" });
+        await typography.scrollIntoViewIfNeeded();
+        await typography.screenshot({ path: ".qa/studio-e2e/shell-S-13-fonts.png" }).catch(() => undefined);
+        await settings.locator('[data-prop="font-heading"] button').first().click();
+        await page.getByRole("option", { name: /^Acme Sans/ }).first().click();
+        await settings.getByRole("button", { name: "Save", exact: true }).click();
+        await settings.waitFor({ state: "hidden", timeout: 8000 });
+        // The canvas: the heading names the project's font first, and its face is loaded from this browser's file.
+        const heading = page.locator('[data-zen-name="Heading"]').first();
+        await until(async () => (await heading.evaluate((el) => getComputedStyle(el).fontFamily)).startsWith(`"${family}"`), { message: "the heading in Acme Sans" })
+          .catch(async (error) => { throw new Error(`${error.message}: ${await heading.evaluate((el) => getComputedStyle(el).fontFamily)}`); });
+        const faces = await page.evaluate(async (name) => {
+          const list = [...document.fonts].filter((face) => face.family.replace(/"/g, "") === name);
+          await Promise.all(list.map((face) => face.load().catch(() => null)));
+          return list.map((face) => `${face.status} ${face.weight}`);
+        }, family);
+        if (faces.join() !== "loaded 100 900") throw new Error(`the faces of ${family}: ${faces.join(", ") || "none"}`);
+        // The HTML export's styles.css: the face with its file in the zip's fonts/, by the file's own name.
+        const exported = await page.evaluate(async () => {
+          const { libraryCss } = await import("/src/platform/studio/builder/export/htmlExport.tsx");
+          const assets = new Map();
+          const css = libraryCss([...document.querySelectorAll('[data-studio-frame="screen:screen-1"]')], "Fonts", assets);
+          return { face: css.split("\n").find((line) => line.includes("@font-face") && line.includes("Acme Sans")) ?? "", role: css.includes('--zen-typography-font-family-heading: "Acme Sans (e2e-fonts)"'), files: [...assets.keys()] };
+        });
+        if (!exported.role) throw new Error("the HTML export's styles.css has no project Heading font (the project's mode left out)");
+        if (!/url\("?fonts\/acmesans-variable-[0-9a-f]{8}\.woff2"?\)/.test(exported.face) || !exported.files.some((file) => /^fonts\/acmesans-variable-/.test(file))) throw new Error(`the HTML export's font: ${exported.face || "no @font-face"} (files ${exported.files.join(", ")})`);
+        // The dev server's copy: the file in fonts/, theme.css's @font-face beside it, project.json's Heading.
+        await until(() => fs.existsSync(path.join(folder, "fonts")) && fs.readdirSync(path.join(folder, "fonts")).some((file) => /^acmesans-variable-[0-9a-f]{8}\.woff2$/.test(file)), { timeout: 10_000, message: "fonts/acmesans-variable-<hash>.woff2 on the dev server" });
+        const css = fs.readFileSync(path.join(folder, "theme.css"), "utf8");
+        if (!css.includes(`@font-face { font-family: "${family}"; src: url("fonts/acmesans-variable-`)) throw new Error("theme.css has no @font-face for the file");
+        const saved = JSON.parse(fs.readFileSync(path.join(folder, "project.json"), "utf8"));
+        if (saved.theme.type.fonts.heading !== "Acme Sans") throw new Error(`project.json's Heading is ${saved.theme.type.fonts.heading}`);
+        // Another browser (its own IndexedDB): the file comes from the dev server, the face from that copy.
+        const other = await openStudio(ctx.browser, { url: ctx.server.url, page: ctx.host });
+        try {
+          await until(async () => (await other.page.evaluate(() => document.getElementById("zen-studio-projects")?.textContent ?? "")).includes(`font-family: "${family}"; src: url("blob:`), { timeout: 15_000, message: "the fresh browser's sheet with the font's object URL" });
+        } finally {
+          await other.context.close();
+        }
+        // Remove: Heading back on Inter, the project without the font.
+        const again = await openSettings();
+        await again.getByRole("button", { name: "Remove Acme Sans" }).click();
+        await again.getByRole("group", { name: "Uploaded font Acme Sans" }).waitFor({ state: "detached", timeout: 5000 });
+        await again.getByRole("button", { name: "Save", exact: true }).click();
+        await again.waitFor({ state: "hidden", timeout: 8000 });
+        await until(() => { const json = JSON.parse(fs.readFileSync(path.join(folder, "project.json"), "utf8")); return json.theme.type.fonts.heading === "Inter" && json.theme.type.uploads.map((font) => font.family).join() === "Jet Brains Mono"; }, { message: "project.json back on Inter without Acme Sans" });
+        return `PNG refused · AcmeSans-Variable.woff2 → Acme Sans, Variable 100–900 · JetBrainsMono Regular + Bold → one font, 400 + 700, "No Medium, Semi Bold" · Heading: canvas "${family}" face ${faces[0]} · fonts/ + theme.css @font-face · fresh browser pulled it · Remove → Inter`;
       } finally {
         await ctx.studio({ fresh: true });
       }

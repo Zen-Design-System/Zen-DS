@@ -156,6 +156,13 @@
   line-height: 1;
   color: var(--zen-color-content-neutral-strongest);
 }
+/* An uploaded font (ProjectSetup UploadedFontFields): its rows as one group, each file's name in its own face, one line
+   tall as the weight field beside it, and what the font lacks under them. */
+.studio-project-setup__font { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-project-setup__font-file { display: block; min-height: var(--zen-input-size-small, 28px); overflow: hidden; line-height: var(--zen-input-size-small, 28px); text-overflow: ellipsis; white-space: nowrap; }
+.studio-project-setup__font-gap { margin: 0; }
+/* Upload font hugs its words, as a panel's own action (a field cell would stretch it across the grid). */
+.studio-project-setup__font-upload { display: flex; }
 /* Off screen and out of the way: never seen, hit or read. */
 .studio-project-setup__probes { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; visibility: hidden; }
 .studio-project-setup__reset { padding: var(--zen-spacing-padding-small, 12px); }

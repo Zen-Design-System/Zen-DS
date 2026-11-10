@@ -20,12 +20,12 @@ async function base64Of(blob: Blob): Promise<string> {
   return btoa(binary);
 }
 
-/** Shares `page` (its photos read from this browser) and answers its links, or why it could not. */
+/** Shares `page` (its photos and its theme's uploaded fonts read from this browser) and answers its links, or why not. */
 export async function sharePage(page: Omit<SharedPage, "uploads">): Promise<ShareResult> {
   const uploads: SharedPhoto[] = [];
   let budget = PHOTO_BUDGET;
   let left = 0;
-  for (const id of assetIdsOf(page.text)) {
+  for (const id of assetIdsOf(`${page.text}\n${page.themeCss}`)) {
     const blob = await assetBlob(id).catch(() => null);
     if (!blob) continue;
     const data = await base64Of(blob);

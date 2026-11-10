@@ -33,7 +33,8 @@ export function OpenOnPhone({ page, title, text, start, modes, brand, locale }: 
     if (!text) return;
     setState({ status: "sharing" });
     setCopied(false);
-    const themeCss = project ? projectThemeCss(project.id, project.theme, { name: project.name }) : "";
+    // Its uploaded fonts by their asset ids: they travel with the page's photos, the phone puts in their URLs.
+    const themeCss = project ? projectThemeCss(project.id, project.theme, { name: project.name, fontUrl: (file) => `zen-asset:${file}` }) : "";
     // Instances of the project's other pages' components (Libraries' project components) draw on the phone too.
     const pages = text.includes("page=") ? await projectPageTexts(page, text) : {};
     setState(await sharePage({ title, text, start, modes, brand, themeCss, locale, id: page, pages }));
