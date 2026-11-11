@@ -16,7 +16,7 @@ import { previewValueLabel } from "../shell/modes";
 import { useStudio } from "../store";
 import {
   DEFAULT_LOCALE, FONT_FAMILIES, MODE_VALUES, PRIMARY_RAMPS, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, STATUS_ROLES, SUPPORT_FAMILIES, SUPPORT_LABELS, TYPE_ROLES, TYPE_SCALE_LIMITS,
-  defaultProjectTheme, projectFontStack, projectPalettes, projectTypeScale,
+  chartFollowsPrimary, defaultProjectTheme, projectFontStack, projectPalettes, projectTypeScale, suggestedChart,
   type ProjectLocale, type ProjectModes, type ProjectTheme, type RampName, type StatusRole, type SupportFamily, type TypeRole, type TypeScale, type UploadedFont,
 } from "../../../../tools/studio/project-theme.mjs";
 import { uploadOf } from "../builder/assets/uploads";
@@ -241,6 +241,10 @@ function ColorSettings({ theme, swatches, onChange }: { theme: ProjectTheme; swa
   const set = <K extends keyof ProjectTheme>(key: K, value: ProjectTheme[K]) => onChange({ ...theme, [key]: value });
   const primaryHex = palettes.primary.anchor;
   const onBrand = palettes.onBrand.light;
+  // Sectors 3–7 follow a new Primary while nobody picked one of them (suggestedChart, project-theme.mjs).
+  const follows = chartFollowsPrimary(theme);
+  const setPrimary = (primary: ProjectTheme["primary"]) =>
+    onChange({ ...theme, primary, ...(follows ? { chart: suggestedChart(primary.ramp ? RAMPS[primary.ramp] : primary.hex!) } : {}) });
   const neutralKind = theme.neutral.tint ? "tint" : theme.neutral.hex ? "custom" : "gray";
   const statusField = (role: StatusRole) => (
     <SelectField key={role} size="sm" layout="inline" label={STATUS_LABEL[role]} value={theme.status[role]} popoverSearch leading={dot(RAMPS[theme.status[role]])}
@@ -253,10 +257,10 @@ function ColorSettings({ theme, swatches, onChange }: { theme: ProjectTheme; swa
       <Section title="Primary" note={`${onBrand.default === "#ffffff" ? "White" : "Dark"} text on Primary · Lc ${onBrand.lc}${onBrand.lc < 60 ? " — hard to read" : ""}`}>
         <ColorSelector aria-label="Primary ramp" name="studio-primary" value={theme.primary.ramp ? RAMPS[theme.primary.ramp] : ""}
           colors={PRIMARY_RAMPS.map((ramp) => ({ value: RAMPS[ramp], label: ramp }))}
-          onValueChange={(value) => { const ramp = PRIMARY_RAMPS.find((name) => RAMPS[name] === value); if (ramp) set("primary", { ramp }); }} />
+          onValueChange={(value) => { const ramp = PRIMARY_RAMPS.find((name) => RAMPS[name] === value); if (ramp) setPrimary({ ramp }); }} />
         <Fields fields={[
           <ColorField key="primary" size="sm" layout="inline" label="Color" value={primaryHex} colorPicker
-            onValueChange={(value) => { if (/^#[0-9a-f]{6}$/i.test(value) && value.toUpperCase() !== primaryHex.toUpperCase()) set("primary", rampOrHex(value)); }} />,
+            onValueChange={(value) => { if (/^#[0-9a-f]{6}$/i.test(value) && value.toUpperCase() !== primaryHex.toUpperCase()) setPrimary(rampOrHex(value)); }} />,
         ]} />
         <RampStrip palette={palettes.primary.lightSolid} label="Primary, Light" />
       </Section>
@@ -278,7 +282,8 @@ function ColorSettings({ theme, swatches, onChange }: { theme: ProjectTheme; swa
         {(Object.keys(STATUS_ROLES) as StatusRole[]).map((role) => <Fields key={role} name={`status-${role}`} fields={[statusField(role)]} />)}
       </Section>
 
-      <Section title="Chart colors" note="Sectors 1 and 2 follow Primary and Neutral">
+      <Section title="Chart colors" note={follows ? <SectionNote text="Suggested from Primary" more="Sectors 1 and 2 follow Primary and Neutral, 3–7 follow Primary until you pick one." /> : "Sectors 1 and 2 follow Primary and Neutral"}
+        actions={follows ? undefined : <IconButton icon="icon-magic-wand-02-line" aria-label="Suggest from Primary" tooltip="Suggest from Primary" appearance="flat" level="secondary" size="xs" onClick={() => set("chart", suggestedChart(primaryHex))} />}>
         <ol className="studio-project-setup__sectors" aria-label="Chart sectors">
           {SECTOR_NAMES.map((sector, index) => (
             <li key={sector} className="studio-project-setup__sector" title={`Sector ${index + 1}`} style={{ background: swatches?.sectors[index] }} />

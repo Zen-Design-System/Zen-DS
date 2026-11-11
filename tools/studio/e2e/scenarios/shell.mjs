@@ -515,6 +515,53 @@ export const rows = [
     },
   },
   {
+    id: "S-14", feature: "Chart colors suggested from Primary: a new project's sectors 3–7 (Zen's palette) turn with a Primary picked (Blue) and the note says so; a sector picked by hand stays when Primary changes again (Violet) and the wand button puts the suggestion back; project.json keeps it", wp: "user 2026-11-11", timeout: 90_000,
+    async run(ctx) {
+      const project = "e2e-chart";
+      const { defaultProjectTheme, suggestedChart, RAMPS, SUPPORT_LABELS } = await import("../../project-theme.mjs");
+      const now = Date.now();
+      await ctx.api.writeProject({ id: project, name: "E2E Chart", theme: defaultProjectTheme(), createdAt: now, updatedAt: now });
+      const folder = path.join(ctx.root, path.dirname(pagesDirOf(ctx.server.port)), "projects", project);
+      try {
+        const { page } = await seededPage(ctx, fontsPage(project), /Quarterly plan/);
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Escape");
+        await page.getByRole("button", { name: "E2E Chart settings" }).click();
+        const settings = page.getByRole("dialog", { name: "E2E Chart · Settings" });
+        await settings.waitFor({ state: "visible", timeout: 5000 });
+        await settings.getByRole("tablist", { name: "Settings" }).getByRole("tab", { name: "Color" }).click();
+        const section = settings.locator("section", { has: page.getByRole("heading", { name: "Chart colors" }) });
+        const sectors = async () => (await section.innerText()).replace(/\s+/g, " ");
+        const reads = (chart) => chart.map((slot, index) => `Sector ${index + 3} ${SUPPORT_LABELS[slot.family]}`);
+        const expectChart = async (chart, message) => until(async () => { const text = await sectors(); return reads(chart).every((line) => text.includes(line)); }, { message })
+          .catch(async (error) => { throw new Error(`${error.message}: ${await sectors()}`); });
+        const pickPrimary = (ramp) => settings.getByRole("radiogroup", { name: "Primary ramp" }).getByRole("radio", { name: ramp, exact: true }).check({ force: true });
+        await pickPrimary("Blue");
+        await expectChart(suggestedChart(RAMPS.Blue), "sectors 3–7 suggested from Blue");
+        if (!(await sectors()).includes("Suggested from Primary")) throw new Error(`the note: ${await sectors()}`);
+        // A sector picked by hand: the suggestion stops; a new Primary keeps it; the wand puts the suggestion back.
+        await section.locator(".studio-project-setup__fields", { hasText: "Sector 3" }).locator("button").first().click();
+        await page.getByRole("option", { name: "Red", exact: true }).click();
+        await until(async () => (await sectors()).includes("Sector 3 Red"), { message: "Sector 3 on Red" });
+        await pickPrimary("Violet");
+        const suggest = settings.getByRole("button", { name: "Suggest from Primary" });
+        await suggest.waitFor({ state: "visible", timeout: 5000 });
+        if (!(await sectors()).includes("Sector 3 Red")) throw new Error(`a new Primary changed the picked sector: ${await sectors()}`);
+        await suggest.click();
+        await expectChart(suggestedChart(RAMPS.Violet), "the wand's suggestion from Violet");
+        await suggest.waitFor({ state: "hidden", timeout: 5000 });
+        await settings.locator(".studio-project-setup__settings").screenshot({ path: ".qa/studio-e2e/shell-S-14-chart.png" }).catch(() => undefined);
+        await settings.getByRole("button", { name: "Save", exact: true }).click();
+        await settings.waitFor({ state: "hidden", timeout: 8000 });
+        const want = JSON.stringify(suggestedChart(RAMPS.Violet));
+        await until(() => JSON.stringify(JSON.parse(fs.readFileSync(path.join(folder, "project.json"), "utf8")).theme.chart) === want, { message: "project.json's chart = the suggestion from Violet" });
+        return `Blue → ${reads(suggestedChart(RAMPS.Blue)).join(", ")} · Sector 3 Red kept on Violet · wand → ${suggestedChart(RAMPS.Violet).map((slot) => slot.family).join(", ")} · saved`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
     // §2.7: a panel note is one line, the rest in a tooltip (Changes on Desktop, Photos).
     id: "S-09", feature: "Panel notes run to one line with the rest behind an info button: the selected Screen's Changes on Desktop note and the Assets › Photos hint", wp: "ux review §7.6 2026-10-27", timeout: 60_000,
     async run(ctx) {
