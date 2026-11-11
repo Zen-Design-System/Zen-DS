@@ -162,10 +162,21 @@
   /* zen-allow-radius-role: a picture of a button's corner, not a container */
   border-top-left-radius: min(var(--zen-corner-radius-action-medium, 12px), var(--zen-corner-radius-xlarge, 20px));
 }
-/* Component theme: the primary button fill and a selected chip's fill of that mode, in the draft's colours (read from
-   the probes: ProjectSetup DraftProbes). */
-.studio-project-setup__theme-art { display: flex; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
-.studio-project-setup__theme-fill { display: block; width: 20px; height: 16px; border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-neutral-pale-default); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
+/* Component theme: one swatch the size of a field's or an option's leading icon (20px; two side by side ran out of the
+   list's left edge and into its label, user 2026-11-11), its left half the primary button's fill and its right half a
+   selected chip's, in the draft's colours (read from the probes: ProjectSetup DraftProbes). */
+.studio-project-setup__theme-art {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  width: var(--zen-icon-size-md, 20px);
+  height: var(--zen-icon-size-md, 20px);
+  flex: none;
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+}
+/* Its hairline above both halves (a white chip fill keeps an edge). */
+.studio-project-setup__theme-art::after { position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); content: ""; }
+.studio-project-setup__theme-fill { display: block; flex: 1 1 0; background: var(--zen-color-background-neutral-pale-default); }
 /* Type › Fonts (ProjectSetup FontRow), as Figma lists a family's styles: one box, a hairline between fonts; a font's row
    (36px: disclosure, "Ag" in its face, its name, what it is, ⋯) and, opened, a slim row per style indented to its name
    (the style in its own face, its weight on the right) and what the font lacks. "Ag" also leads each font in the role
@@ -193,7 +204,7 @@ button.studio-project-setup__font-row:hover { background: var(--zen-color-backgr
 button.studio-project-setup__font-row:active { background: var(--zen-color-background-neutral-flat-pressed); }
 button.studio-project-setup__font-row:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }
 .studio-project-setup__font-toggle { display: inline-flex; width: var(--zen-icon-size-sm, 16px); flex: none; justify-content: center; color: var(--zen-color-content-neutral-base); }
-.studio-project-setup__font-sample { display: inline-block; width: var(--studio-font-sample, 24px); flex: none; font-size: var(--zen-typography-font-size-body-base, 14px); font-weight: var(--zen-emphasis-font-weight-medium, 500); line-height: 1; text-align: center; }
+.studio-project-setup__font-sample { display: inline-block; width: var(--studio-font-sample, var(--zen-icon-size-md, 20px)); flex: none; font-size: var(--zen-typography-font-size-body-base, 14px); font-weight: var(--zen-emphasis-font-weight-medium, 500); line-height: 1; text-align: center; }
 .studio-project-setup__font-name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-project-setup__font-meta { display: inline-flex; flex: none; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); white-space: nowrap; }
 /* ⋯, or the room it takes on Inter's row, so every row's meta ends on one edge. */

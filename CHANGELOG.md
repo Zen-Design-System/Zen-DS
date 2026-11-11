@@ -14,6 +14,8 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: in Project settings › Style, each component theme's swatch fits its field and its list. One 20px square
+  shows the primary button and a selected chip; the two side-by-side swatches ran out of the list's left edge.
 - Zen Studio: the labels of the tabs you are not on (Pages · Layers · Assets, Design · Prototype · Code, Project
   settings and its Preview) are darker, so they read at 4.5:1 or more (7.9:1 in light mode, was 3.8:1; user
   2026-11-11). The library's Tabs keep their tone.
