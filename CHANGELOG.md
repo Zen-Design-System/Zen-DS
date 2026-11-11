@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: Project settings › Color suggests the chart colours from Primary. Sectors 3–7 turn with a new Primary
+  (the Zen palette turned by its hue, each colour kept apart from the others) until you pick one by hand; the wand
+  button beside Chart colors puts the suggestion back.
 - Zen Studio: New project / Project settings has a new layout (UX review 2026-11-10). One settings panel has four tabs
   on top (General, Color, Type, Style), and the preview takes most of the window. Fields carry their labels inside,
   colour fields show their colour, and every control ends on one right edge. Opening a tab shows its preview tab; a

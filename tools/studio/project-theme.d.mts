@@ -75,6 +75,8 @@ export const PROJECT_LOCALES: Record<ProjectLocale, string>;
 export const DEFAULT_LOCALE: ProjectLocale;
 export function normalizeLocale(input: unknown): ProjectLocale;
 export function tintedNeutralAnchor(primaryHex: string): string;
+export function suggestedChart(primaryHex: string): ProjectTheme["chart"];
+export function chartFollowsPrimary(theme: ProjectTheme): boolean;
 export function projectPalettes(theme: ProjectTheme): { primary: Palette; neutral: Palette; onBrand: { light: OnBrand; dark: OnBrand } };
 export function projectThemeCss(id: string, theme: ProjectTheme, options?: { name?: string; brand?: string; fontUrl?: (file: string) => string | null }): string;
 export function projectModes(theme: ProjectTheme): ProjectModes;

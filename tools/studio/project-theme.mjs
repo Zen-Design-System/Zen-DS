@@ -298,6 +298,48 @@ export function tintedNeutralAnchor(primaryHex) {
 
 const anchorOf = (source) => (source.ramp ? RAMPS[source.ramp] : source.hex);
 
+/* ── chart suggestion ──────────────────────────────────────────────────────────────────────────────────────────── */
+/* Chart sectors 3–7 suggested from the Primary (user, 2026-11-11: "tự gợi ý bản màu cho chart … khi tôi đổi màu brand"):
+ * the Zen palette (Cyan, Violet, Yellow, Orange, Green Soft around Zen pink) turned by the Primary's hue. Each sector
+ * takes the support family nearest its turned hue that stays CHART_MIN_DISTANCE (OKLab) from the Primary, Gray and the
+ * sectors before it; Brown is left out (muddy beside the others). For Zen it gives the Zen palette back. */
+const CHART_MIN_DISTANCE = 0.12;
+const familyRamp = (family) => (family === "red" ? "Tomato" : family === "green" ? "Grass" : family[0].toUpperCase() + family.slice(1));
+const oklab = (hex) => {
+  const { L, C, H } = hexToOklch(hex);
+  const rad = (H * Math.PI) / 180;
+  return { L, H, a: C * Math.cos(rad), b: C * Math.sin(rad) };
+};
+const labDistance = (p, q) => Math.hypot(p.L - q.L, p.a - q.a, p.b - q.b);
+const hueDistance = (x, y) => { const d = Math.abs(x - y) % 360; return d > 180 ? 360 - d : d; };
+const CHART_FAMILIES = SUPPORT_FAMILIES.filter((family) => !["brand", "neutral", "brown"].includes(family)).map((family) => ({ family, ...oklab(RAMPS[familyRamp(family)]) }));
+const ZEN_CHART = defaultProjectTheme().chart;
+const CHART_TURNS = ZEN_CHART.map(({ family }) => ((oklab(RAMPS[familyRamp(family)]).H - oklab(RAMPS.Zen).H + 540) % 360) - 180);
+
+/** Sectors 3–7 for a Primary colour (hex), the tones as Zen's (four Solid, the last Soft). */
+export function suggestedChart(primaryHex) {
+  const primary = oklab(primaryHex);
+  const taken = [primary, oklab(RAMPS.Gray)];
+  return CHART_TURNS.map((turn, index) => {
+    const target = (primary.H + turn + 360) % 360;
+    let best = null;
+    let bestScore = Infinity;
+    for (const candidate of CHART_FAMILIES) {
+      if (taken.includes(candidate)) continue;
+      const nearest = Math.min(...taken.map((other) => labDistance(candidate, other)));
+      const score = hueDistance(candidate.H, target) + (nearest < CHART_MIN_DISTANCE ? 1000 + (CHART_MIN_DISTANCE - nearest) * 1e4 : 0);
+      if (score < bestScore) { bestScore = score; best = candidate; }
+    }
+    taken.push(best);
+    return { family: best.family, tone: ZEN_CHART[index].tone };
+  });
+}
+
+const sameChart = (a, b) => a.length === b.length && a.every((slot, index) => slot.family === b[index].family && slot.tone === b[index].tone);
+
+/** Whether the theme's sectors 3–7 still follow its Primary: the suggestion for it, or Zen's untouched palette. */
+export const chartFollowsPrimary = (theme) => sameChart(theme.chart, suggestedChart(anchorOf(theme.primary))) || sameChart(theme.chart, ZEN_CHART);
+
 /**
  * The project's Primary and Neutral ramps as the plugin makes them: Neutral first (its Dark step 1 is the dark canvas
  * every other dark ramp is generated against), then Primary. `alias` names a shipped ramp the CSS points at instead of

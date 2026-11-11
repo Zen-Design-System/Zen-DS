@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { generateExpectedPalette } from "./zen-ramp.generated.mjs";
-import { DEFAULT_LOCALE, FONT_FAMILIES, MAX_FONT_FAMILIES, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, SUPPORT_FAMILIES, defaultLibraries, defaultProjectTheme, normalizeLibraries, projectBaseValues, normalizeProject, projectIdFor, projectModes, projectPalettes, projectFontsUrl, projectFontStack, projectThemeCss, projectTypeScale, tintedNeutralAnchor, uploadedFontName } from "./project-theme.mjs";
+import { DEFAULT_LOCALE, FONT_FAMILIES, MAX_FONT_FAMILIES, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, SUPPORT_FAMILIES, defaultLibraries, defaultProjectTheme, normalizeLibraries, projectBaseValues, normalizeProject, projectIdFor, projectModes, projectPalettes, projectFontsUrl, projectFontStack, projectThemeCss, projectTypeScale, suggestedChart, chartFollowsPrimary, tintedNeutralAnchor, uploadedFontName } from "./project-theme.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const collection = (file) => Object.values(JSON.parse(fs.readFileSync(path.join(root, "tokens/source/figma", file), "utf8")))[0];
@@ -148,5 +148,18 @@ ok(() => assert.equal(normalizeProject({ id: "acme", name: "Acme" }).project.the
 ok(() => assert.equal(projectIdFor("Dự án Đìzai Studio"), "du-an-dizai-studio"), "vi id");
 ok(() => assert.equal(projectIdFor("Acme", new Set(["acme", "acme-2"])), "acme-3"), "free id");
 ok(() => assert.equal(projectIdFor("!!!"), "project"), "empty id");
+
+// Chart sectors suggested from the Primary: Zen gives Zen's palette back; every ramp gets five different, distinct families.
+ok(() => assert.deepEqual(suggestedChart(RAMPS.Zen), defaultProjectTheme().chart), "chart suggestion for Zen = Zen palette");
+for (const ramp of Object.keys(RAMPS).filter((name) => name !== "Gray")) {
+  const chart = suggestedChart(RAMPS[ramp]);
+  ok(() => assert.equal(new Set(chart.map((slot) => slot.family)).size, 5), `chart suggestion for ${ramp}: five families`);
+  ok(() => assert.ok(chart.every((slot) => SUPPORT_FAMILIES.includes(slot.family) && !["brand", "neutral", "brown"].includes(slot.family))), `chart suggestion for ${ramp}: support families`);
+}
+ok(() => assert.deepEqual(suggestedChart("#0F73FF"), suggestedChart(RAMPS.Blue)), "chart suggestion from a hex");
+ok(() => assert.equal(chartFollowsPrimary(defaultProjectTheme()), true), "Zen palette follows");
+ok(() => assert.equal(chartFollowsPrimary({ ...defaultProjectTheme(), primary: { ramp: "Blue" }, chart: suggestedChart(RAMPS.Blue) }), true), "suggestion follows");
+ok(() => assert.equal(chartFollowsPrimary({ ...defaultProjectTheme(), primary: { ramp: "Blue" } }), true), "untouched Zen palette follows any Primary");
+ok(() => assert.equal(chartFollowsPrimary({ ...defaultProjectTheme(), chart: [{ family: "red", tone: "soft" }, ...defaultProjectTheme().chart.slice(1)] }), false), "a picked sector stops following");
 
 console.log(`project-theme selftest: ${checks} checks passed`);
