@@ -104,6 +104,8 @@
   box-shadow: 1px 0 0 var(--zen-color-border-neutral-pale-default);
 }
 .studio-project-setup__tabs { padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-xsmall, 8px); }
+/* Unselected labels in Neutral/Base, as the Studio's other tabs (inspector.css): 4.5:1 or more (user 2026-11-11). */
+:is(.studio-project-setup__tabs, .studio-theme-preview__tabs) { --zen-tab-content-default: var(--zen-color-content-neutral-base); }
 .studio-project-setup__panel {
   display: flex;
   min-height: 0;

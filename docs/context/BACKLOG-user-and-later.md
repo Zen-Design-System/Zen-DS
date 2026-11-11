@@ -9,9 +9,6 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
 - **P0/P1 · Studio prototype walk 2026-10-29: pick which fixes to build:** hands-on walk (4 pages, ~50 findings: 2 P0, 19
   P1) in `docs/research/studio-prototype-walk-2026-10-29.md`; §4 lists 9 fixes in order (W-47 Play status-bar band is a
   #345 regression; W-14 ⇧A on floating layers; W-35/36/41 Back + Dialog actions). Nothing built until approved.
-- **P3 · Studio chrome: the 12px tab labels at 3.79:1 (2026-10-04 A2, re-measured 2026-10-27):** the library's tab tone
-  on the Studio's own tabs stays under 4.5:1 (`studio-ux-review-2026-10-27.md` §5). Keep the library tone, or lift the
-  Studio chrome's tab labels to 4.5:1? The user decides; the review's other items were approved on 2026-10-27.
 - **P2 · LICENSE.md is a draft: legal review before selling (2026-10-08):** drafted on PR #5 (Dizai Studio, Vietnam law, subscription, apps-not-kits, per company + member limit); a lawyer must review it and remove its "Draft" note. Was: package.json has no `license` field and the repo no
   LICENSE/EULA; needed before selling (legal text from the user).
 - **P2 · Private registry: the user's steps, then Phase 6 (2026-10-08; rewritten 2026-10-25):** live since 2026-10-14

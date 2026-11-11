@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: the labels of the tabs you are not on (Pages · Layers · Assets, Design · Prototype · Code, Project
+  settings and its Preview) are darker, so they read at 4.5:1 or more (7.9:1 in light mode, was 3.8:1; user
+  2026-11-11). The library's Tabs keep their tone.
 - Zen Studio: New project / Project settings has a new layout (UX review 2026-11-10). One settings panel has four tabs
   on top (General, Color, Type, Style), and the preview takes most of the window. Fields carry their labels inside,
   colour fields show their colour, and every control ends on one right edge. Opening a tab shows its preview tab; a
