@@ -23,7 +23,7 @@ Every background sits on one of five layers, bottom to top: 1 Canvas (the page) 
 | --- | --- | --- |
 | 1 Canvas | `--zen-color-background-canvas-default · -alt · -flat` | page background (:root / app shell) |
 | 2 Surface | `--zen-color-background-surface-default · -alt · -flat` | cards, panels, sidebars on the page; -flat = top/bottom navigation on a canvas-flat page, and the Card / ListBox theme=on-container inside a Modal, Side Panel or Bottom Sheet (on their Container fill) |
-| 3 Other colours | `--zen-color-background-<family>-<subtle|solid|pale>…` | component fills and states |
+| 3 Other colours | `--zen-color-background-<family>-<subtle|solid|pale>…` | component fills and states, and a frame's deliberate fill (Box / Stack / Grid surface="accent-solid", "support-blue-pale": a band, tile or hero, its text in the content colour that reads on it) |
 | 4 Container | `--zen-color-background-container` | Modal, Dialog, Modal/Forms, Bottom-Sheet |
 | 5 Popover | `--zen-color-background-popover-default` | Popover, menus, tooltips, pickers, flyouts, toasts |
 | Box elevation | `effectStyle (Box): Shadow/Bottom|Top/Level-1…4 · Effect/Overlay` | a drop shadow only on surface="surface" over Canvas/Default, with no border (never on Subtle, Pale, Surface-Alt or a Canvas/Alt page); Effect/Overlay blurs behind a subtle or pale fill; Effect/Container and Effect/Popover stay with layers 4 and 5 |

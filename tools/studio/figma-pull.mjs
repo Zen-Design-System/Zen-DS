@@ -17,7 +17,7 @@
 //                                                              use_figma's answers → the page to import
 import { printPage } from "./doc.mjs";
 import { FIGMA_NAMED, LABEL_NAMED, NAME_PROP, isAutomaticName } from "./layer-meta.mjs";
-import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_VARIABLE, PADDING_PX, sameValue } from "./figma-steps.mjs";
+import { FRAME_FILL_OF, GAP_PX, LONG_TO_SHORT, MARGIN_VARIABLE, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
 import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./figma-charts.mjs";
@@ -3257,7 +3257,7 @@ function frameLookProps(node, ctx) {
   const where = `Frame "${node.name}"`;
   const surface = SURFACE_OF[String(node.fill ?? "").replace(/^Color\//, "")];
   if (surface) props.surface = literal(surface);
-  else if (node.fill) ctx.notes.push(`${where}: its fill ${node.fill} is no Zen background layer (surface · surface-alt · subtle · pale · canvas); left without a fill`);
+  else if (node.fill) ctx.notes.push(`${where}: its fill ${node.fill} is no Color/Background variable; left without a fill`);
   // An image fill (F8, figma-image.mjs) over the fill.
   const picture = imageFillProps(node.imageFill, literal);
   Object.assign(props, picture.props);
@@ -3314,8 +3314,8 @@ function frameLookProps(node, ctx) {
 }
 /** The effect styles a frame takes (Layout effects.ts boxEffectStyles). */
 const FRAME_EFFECT_STYLES = new Set(["Shadow/Bottom/Level-1", "Shadow/Bottom/Level-2", "Shadow/Bottom/Level-3", "Shadow/Bottom/Level-4", "Shadow/Top/Level-1", "Shadow/Top/Level-2", "Shadow/Top/Level-3", "Shadow/Top/Level-4", "Effect/Overlay"]);
-/** A Color/Background variable → the Box surface it paints (figma-push BOX_SURFACE, the other way). */
-const SURFACE_OF = Object.fromEntries(Object.entries(BOX_SURFACE).map(([surface, variable]) => [variable, surface]));
+/** A Color/Background variable → the frame fill it paints (figma-steps FRAME_FILL_OF: a background layer's own name first). */
+const SURFACE_OF = FRAME_FILL_OF;
 
 /** An icon's size from Figma (figma-push iconSizing, the other way): its Element-Size/Popular step, else its px. */
 const ICON_SIZE_OF = { "2XSmall": "2xs", XSmall: "xs", Small: "sm", Medium: "md", Large: "lg", XLarge: "xl", "2XLarge": "2xl", "3XLarge": "3xl" };

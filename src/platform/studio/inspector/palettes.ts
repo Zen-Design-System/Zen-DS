@@ -80,11 +80,34 @@ export const fillPalette = paintPalette(shapeFills, shapeFillTokens, [...commonF
 /** A Shape's stroke: Color/Border tokens. */
 export const strokePalette = paintPalette(shapeStrokes, shapeStrokeTokens, [...commonFamilies, ...supportFamilies]);
 
-/** A frame's fill (Box, Stack, Grid `surface`): the background layers, by their Color/Background variable. */
-export const surfacePalette = paintPalette(["none", "surface", "surface-alt", "subtle", "pale", "canvas"], {
+/** The background layers a frame paints in app UI (Layout boxSurfaces), by their Color/Background variable. */
+const LAYERS: Readonly<Record<string, string>> = {
   surface: "Color/Background/Surface/Default", "surface-alt": "Color/Background/Surface/Alt", subtle: "Color/Background/Neutral/Subtle/Default",
   pale: "Color/Background/Neutral/Pale/Default", canvas: "Color/Background/Canvas/Default",
-}, [{ name: "None", test: (option) => option === "none" }, { name: "Surface", test: (option) => option.startsWith("surface") }, { name: "Neutral", test: (option) => option === "subtle" || option === "pale" }, { name: "Canvas", test: (option) => option === "canvas" }]);
+};
+/** Shape's names of two layers: a frame writes `subtle` and `pale` (Layout appearance.ts frameLayerOf). */
+const LAYER_ALIASES: Readonly<Record<string, string>> = { "neutral-subtle": "subtle", "neutral-pale": "pale" };
+/** Every fill a frame's list offers: none, the background layers, then every other Color/Background token. */
+export const frameFillOptions: readonly string[] = ["none", ...Object.keys(LAYERS), ...shapeFills.filter((fill) => fill !== "none" && !(fill in LAYERS) && !(fill in LAYER_ALIASES))];
+/**
+ * A frame's fill (Box, Stack, Grid `surface`, and a drawn frame's): the background layers first, then any other
+ * Color/Background token, as a Shape's fill (user, 2026-11-11: "các màu background đều được phép đổ"; a device's Screen
+ * keeps its Canvas). Neutral Subtle and Pale are listed once, as the layers.
+ */
+const framePaint = paintPalette(frameFillOptions, { ...shapeFillTokens, ...LAYERS }, [
+  { name: "None", test: (option) => option === "none" },
+  { name: "Background layers", test: (option) => option in LAYERS },
+  ...commonFamilies.filter((family) => family.name !== "None"),
+  ...supportFamilies,
+]);
+export const surfacePalette: SwatchPalette = {
+  ...framePaint,
+  has: (option) => framePaint.has(option) || option in LAYER_ALIASES,
+  colorOf: (option) => framePaint.colorOf(LAYER_ALIASES[option] ?? option),
+  caption: (option) => framePaint.caption(LAYER_ALIASES[option] ?? option),
+  label: (option) => framePaint.label(LAYER_ALIASES[option] ?? option),
+  resolve: (option) => LAYER_ALIASES[option] ?? option,
+};
 /** A frame's stroke (Box, Stack, Grid `border`): the closed borders, Pale (static) and Subtle (actionable). */
 export const borderPalette = paintPalette(["none", "pale", "subtle"], { pale: "Color/Border/Neutral/Pale/Default", subtle: "Color/Border/Neutral/Subtle/Default" },
   [{ name: "None", test: (option) => option === "none" }, { name: "Neutral", test: (option) => option !== "none" }]);

@@ -4767,7 +4767,7 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   {
-    id: "FW-184", feature: "Pick color on a frame takes the picked layer's surface exactly (a Pale Box → surface=\"pale\"); from a colour its surfaces lack (Info/Solid) it takes the nearest surface and says so; several selected layers change in one edit", wp: "Pick color 2026-10-22", timeout: 60_000,
+    id: "FW-184", feature: "Pick color on a frame takes the picked layer's variable exactly: a Pale Box → surface=\"pale\", an Info/Solid Shape → surface=\"info-solid\" (a frame takes any Color/Background token since 2026-11-11), nothing said about a nearest variable", wp: "Pick color 2026-10-22", timeout: 60_000,
     async run(ctx) {
       const { page, id } = await pickPage(ctx);
       return restoring(page, id, async () => {
@@ -4781,7 +4781,8 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
         await page.keyboard.press("KeyI");
         const info = await middleOf(page, id, "Source");
         await page.mouse.click(info.x, info.y);
-        await until(async () => /nearest variable/.test(await statusText(page)) && /surface="(surface|surface-alt|subtle|pale|canvas)"/.test(await boxTag()), { message: "the nearest surface, said" });
+        await until(async () => /surface="info-solid"/.test(await boxTag()), { message: 'surface="info-solid" (exact)' });
+        if (/nearest variable/.test(await statusText(page))) throw new Error(`said a nearest variable: ${await statusText(page)}`);
         return `${(await boxTag()).match(/surface="[^"]+"/)?.[0]} · ${await statusText(page)}`;
       });
     },
@@ -4812,6 +4813,87 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       await page.keyboard.press("Escape");
       if (!/\bI\b/.test(text)) throw new Error(`Quick actions row: ${text}`);
       return "nothing selected → said · Esc → stopped · Quick actions › Pick color I";
+    },
+  },
+  {
+    id: "FW-265", feature: "A frame's Fill takes any Color/Background token (user 2026-11-11): a Box's list offers the background layers and Accent … Support; Accent / Solid writes surface=\"accent-solid\" and the canvas paints that token; ⌘Z", wp: "frame fills 2026-11-11", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      return restoring(page, id, async () => {
+        // The Box: a Shape in it, then Esc (Figma's Select parent).
+        await selectShape(page, id, 1);
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Escape");
+        // The Design panel heads a Box "Frame" (Figma's word), with its Fill's +.
+        await until(async () => /^Frame/.test(await selectedName(page)) && (await right(page).getByRole("button", { name: "Add fill" }).count()) > 0, { message: "the Box (Frame) selected" })
+          .catch(async (error) => { throw new Error(`${error.message}: heading "${await selectedName(page)}"`); });
+        const tag = async () => ((await pageText(page, id)) ?? "").match(/<Box width=\{358\}[^\n>]*>/)?.[0] ?? "";
+        await right(page).getByRole("button", { name: "Add fill" }).click();
+        await until(async () => /surface="surface"/.test(await tag()), { message: "+ adds Surface" });
+        const fill = right(page).locator('[data-prop="surface"]').first();
+        await fill.getByRole("combobox").or(fill.getByRole("button")).first().click();
+        const search = page.getByPlaceholder("Search colors");
+        await search.waitFor({ state: "visible", timeout: 5000 });
+        // Every Background token is there, the layers too.
+        for (const [query, name] of [["pale", /^Neutral \/ Pale|^Pale/], ["blue pale", /^Support \/ Blue \/ Pale/], ["inverse", /^Inverse \/ Solid/]]) {
+          await search.fill(query);
+          await page.getByRole("option", { name }).first().waitFor({ state: "visible", timeout: 3000 })
+            .catch(() => { throw new Error(`no ${name} in the Fill list (searched "${query}")`); });
+        }
+        await search.fill("accent");
+        await page.getByRole("option", { name: /^Accent \/ Solid/ }).first().click();
+        await until(async () => /surface="accent-solid"/.test(await tag()), { message: 'surface="accent-solid"' });
+        const box = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Box"]`).filter({ has: page.locator('[data-zen-name="Shape"]') }).first();
+        const painted = await box.evaluate((node) => {
+          const probe = document.createElement("span");
+          probe.style.background = "var(--zen-color-background-accent-solid-default)";
+          node.append(probe);
+          const want = getComputedStyle(probe).backgroundColor;
+          probe.remove();
+          return { got: getComputedStyle(node).backgroundColor, want };
+        });
+        if (painted.got !== painted.want) throw new Error(`the Box paints ${painted.got}, not Accent/Solid (${painted.want})`);
+        await shot(page, "fw-265-box-accent");
+        return `+ → Surface · list has Pale, Support / Blue / Pale, Inverse / Solid · Accent / Solid → ${await tag()} · painted ${painted.got}`;
+      });
+    },
+  },
+  {
+    id: "FW-266", feature: "A frame drawn with F has a Fill row (any Color/Background token) instead of the Screen's Canvas: Support / Teal / Pale writes <Screen frame surface=\"support-teal-pale\"> and the canvas paints it; a device's Screen keeps Canvas; ⌘Z", wp: "frame fills 2026-11-11", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        await roomAround(page);
+        const first = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+        await page.keyboard.press("KeyF");
+        await page.mouse.click(first.x + first.width + 120, first.y + 40);
+        await until(async () => /<Screen id="screen-2"[^>]*\bframe\b/.test((await pageText(page, id)) ?? ""), { message: "a drawn frame" });
+        await selectFrame(page, "screen:screen-2");
+        const fill = right(page).locator('[data-prop="surface"]').first();
+        await fill.waitFor({ state: "visible", timeout: 5000 });
+        if (await right(page).locator('[data-prop="canvas"]').count()) throw new Error("a drawn frame shows the Screen's Canvas");
+        await fill.getByRole("combobox").or(fill.getByRole("button")).first().click();
+        const search = page.getByPlaceholder("Search colors");
+        await search.waitFor({ state: "visible", timeout: 5000 });
+        await search.fill("teal pale");
+        await page.getByRole("option", { name: /^Support \/ Teal \/ Pale/ }).first().click();
+        await until(async () => /surface="support-teal-pale"/.test(boardTag((await pageText(page, id)) ?? "", "Screen", "screen-2")), { message: "<Screen frame surface=\"support-teal-pale\">" });
+        const painted = await page.locator('[data-studio-frame="screen:screen-2"] .studio-builder-screen').first().evaluate((node) => {
+          const probe = document.createElement("span");
+          probe.style.background = "var(--zen-color-background-support-teal-pale)";
+          node.append(probe);
+          const want = getComputedStyle(probe).backgroundColor;
+          probe.remove();
+          return { got: getComputedStyle(node).backgroundColor, want };
+        });
+        if (painted.got !== painted.want) throw new Error(`the frame paints ${painted.got}, not Support/Teal/Pale (${painted.want})`);
+        await shot(page, "fw-266-frame-teal");
+        // A device's Screen keeps its Canvas, no Fill.
+        await selectFrame(page, "screen:screen-1");
+        await right(page).locator('[data-prop="canvas"]').first().waitFor({ state: "visible", timeout: 5000 });
+        if (await right(page).locator('[data-prop="surface"]').count()) throw new Error("a device's Screen shows a Fill row");
+        return `drawn frame: Fill (no Canvas) → Support / Teal / Pale, painted ${painted.got} · device Screen: Canvas only`;
+      });
     },
   },
   {

@@ -3,7 +3,7 @@
  * layout frame with a fill is one element in code (decision 2 of docs/research/studio-figma-design-parity-2026-10-18.md;
  * spec docs/research/studio-f5-right-panel-spec-2026-10-19.md §2), so Stack and Grid take what Box takes.
  *
- * Tokens only: the fill is a background layer (Color/Background), the stroke Border/Neutral Pale or Subtle, the corners
+ * Tokens only: the fill is a Color/Background token (a background layer, or since 2026-11-11 any other), the stroke Border/Neutral Pale or Subtle, the corners
  * Corner-Radius. Weight, opacity, rotation and flip are numbers, as Figma's fields. Unset props render nothing, and every
  * custom property is read only next to its own data attribute (an inherited value never leaks into a nested frame).
  * Rotation and flip are CSS individual transforms (`rotate`, `scale`): they compose with any `transform` and leave the
@@ -13,10 +13,34 @@ import { cornerRadiusValue, type CornerRadiusProps, type CornerSmoothingProps } 
 import type { ZenCornerRadius } from "../_shared/scale";
 import { imageFillPropNames, type ImageFillProps } from "../_shared/image-fill";
 import { gradientPropNames, gradientStyle, type GradientFillProps } from "../_shared/gradient";
+import { fillPaint, type ShapeFill } from "../Shape/paint";
 
-/** The background layers a frame may paint (docs/guidelines/background-layers.md). */
+/** The background layers a frame paints in app UI (docs/guidelines/background-layers.md). */
 export const boxSurfaces = ["none", "surface", "surface-alt", "subtle", "pale", "canvas"] as const;
 export type BoxSurface = (typeof boxSurfaces)[number];
+/**
+ * Every fill a frame takes (user, 2026-11-11: "các màu background đều được phép đổ", as Figma's frame): a background
+ * layer, or any other Color/Background token by the path Shape's fill names it ("accent-solid", "support-blue-pale").
+ * "neutral-subtle" and "neutral-pale" are the layers `subtle` and `pale`.
+ */
+export type FrameFill = BoxSurface | ShapeFill;
+/** The background layer a fill draws as (its own name, or `subtle` / `pale` for their Neutral paths), else null. */
+export function frameLayerOf(fill: string | undefined): Exclude<BoxSurface, "none"> | null {
+  if (fill === "neutral-subtle") return "subtle";
+  if (fill === "neutral-pale") return "pale";
+  return fill && fill !== "none" && (boxSurfaces as readonly string[]).includes(fill) ? (fill as Exclude<BoxSurface, "none">) : null;
+}
+/** `var(--token)` a frame's fill paints with, or undefined (none, unknown). */
+export function frameFillPaint(fill: string | undefined): string | undefined {
+  switch (frameLayerOf(fill)) {
+    case "surface": return "var(--zen-color-background-surface-default)";
+    case "surface-alt": return "var(--zen-color-background-surface-alt)";
+    case "subtle": return "var(--zen-color-background-neutral-subtle-default)";
+    case "pale": return "var(--zen-color-background-neutral-pale-default)";
+    case "canvas": return "var(--zen-color-background-canvas-default)";
+    default: return fillPaint(fill);
+  }
+}
 /** Closed borders: Border/Neutral/Pale (static) and Border/Neutral/Subtle (actionable). */
 export const frameBorders = ["none", "pale", "subtle"] as const;
 export type FrameBorder = (typeof frameBorders)[number];
@@ -39,13 +63,15 @@ export type ZenBlendMode = (typeof zenBlendModes)[number];
 
 export interface FrameAppearanceProps extends CornerRadiusProps, CornerSmoothingProps, ImageFillProps, GradientFillProps {
   /**
-   * Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable.
-   * `surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt)
-   * canvas, `subtle` / `pale` (Background/Neutral) for wells. `canvas` (Background/Canvas/Default) is the page itself:
-   * only for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card.
-   * Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). Default none.
+   * Fill: Figma's frame fill bound to its Color/Background variable. The background layers
+   * (docs/guidelines/background-layers.md) for the page's boxes: `surface` (Background/Surface/Default) for cards and
+   * panels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` (Background/Neutral) for wells.
+   * `canvas` (Background/Canvas/Default) is the page itself: only for a whole screen or page area drawn inside something
+   * else (an app screen in a preview), never for a card. Any other Color/Background token by its path, as Shape's fill
+   * (`accent-solid`, `support-blue-pale`), paints a coloured band, tile or hero: its text takes the matching content
+   * colour (On-Accent, Inverse) — Text and Icon don't change by themselves. Default none.
    */
-  surface?: BoxSurface;
+  surface?: FrameFill;
   /**
    * Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale`
    * (Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md). Inside the frame, as Figma's
@@ -98,10 +124,13 @@ export function frameAppearance({ surface, border, borderWeight, borderSides, bo
   const turned = finite(rotation) && rotation % 360 !== 0 ? rotation : undefined;
   // A gradient fill (gradient.ts): its layers over the surface colour, under an image fill.
   const painted = gradientStyle(gradient);
+  // A background layer draws by its data-surface (layout.css, the effect styles read it); any other token by its paint.
+  const layer = frameLayerOf(surface);
+  const paint = layer ? undefined : frameFillPaint(surface);
   return {
     attributes: {
       ...painted.attributes,
-      "data-surface": surface && surface !== "none" ? surface : undefined,
+      "data-surface": layer ?? (paint ? "fill" : undefined),
       "data-border": stroked ? border : undefined,
       "data-border-weight": weight !== undefined ? "true" : undefined,
       "data-border-sides": stroked && borderSides && borderSides !== "all" ? borderSides : undefined,
@@ -113,6 +142,7 @@ export function frameAppearance({ surface, border, borderWeight, borderSides, bo
     },
     vars: {
       ...painted.vars,
+      "--zen-layout-fill": paint,
       "--zen-layout-border-weight": weight !== undefined ? `${weight}px` : undefined,
       "--zen-layout-opacity": shown !== undefined ? String(shown / 100) : undefined,
       "--zen-layout-blend": blend,

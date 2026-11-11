@@ -1,6 +1,7 @@
 import api from "../../api.generated.json";
 import { zenComponents } from "../builder/engine";
 import { contentTones } from "../../../components/_shared/contentTone";
+import { boxSurfaces } from "../../../components/Layout";
 import { shapeFills, shapeStrokes } from "../../../components/Shape/paint";
 import { normalizeScale, zenMargins, zenScale, type ZenScaleInput } from "../../../components/_shared/scale";
 import { iconNames } from "../../../icons/generated/names";
@@ -238,7 +239,11 @@ export function editorFor(type: string): PropEditor {
   // The long Color/Content tone list (Text, Heading, Icon) is named in the API docs instead of spelled out.
   if (members.includes("ContentTone") || members.includes("(typeof contentTones)[number]")) return { kind: "enum", options: [...contentTones] };
   // A Shape's fill and stroke: the Color/Background and Color/Border token lists (Shape/paint.ts), also named in the docs.
-  if (members.includes("ShapeFill") || members.includes("(typeof shapeFills)[number]")) return { kind: "enum", options: [...shapeFills] };
+  // A frame's `surface` (Layout FrameFill: BoxSurface | ShapeFill) adds the background layers ("subtle", "pale"…).
+  if (members.includes("ShapeFill") || members.includes("(typeof shapeFills)[number]")) {
+    const layers = members.includes("BoxSurface") ? boxSurfaces : [];
+    return { kind: "enum", options: [...new Set([...layers, ...members.map(stringLiteral).filter((member): member is string => member !== null), ...shapeFills])] };
+  }
   if (members.includes("ShapeStroke") || members.includes("(typeof shapeStrokes)[number]")) return { kind: "enum", options: [...shapeStrokes] };
   if (members.includes("(typeof headingLevels)[number]") || members.includes("HeadingLevel")) return { kind: "number-enum", options: [1, 2, 3, 4, 5, 6] };
   const literals: string[] = [];

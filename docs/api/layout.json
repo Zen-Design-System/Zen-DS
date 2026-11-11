@@ -228,10 +228,10 @@
         },
         {
           "name": "surface",
-          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
+          "type": "BoxSurface | ShapeFill",
           "required": false,
           "default": "\"none\"",
-          "description": "Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable.\n`surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt)\ncanvas, `subtle` / `pale` (Background/Neutral) for wells. `canvas` (Background/Canvas/Default) is the page itself:\nonly for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card.\nNever Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). Default none.",
+          "description": "Fill: Figma's frame fill bound to its Color/Background variable. The background layers\n(docs/guidelines/background-layers.md) for the page's boxes: `surface` (Background/Surface/Default) for cards and\npanels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` (Background/Neutral) for wells.\n`canvas` (Background/Canvas/Default) is the page itself: only for a whole screen or page area drawn inside something\nelse (an app screen in a preview), never for a card. Any other Color/Background token by its path, as Shape's fill\n(`accent-solid`, `support-blue-pale`), paints a coloured band, tile or hero: its text takes the matching content\ncolour (On-Accent, Inverse) — Text and Icon don't change by themselves. Default none.",
           "deprecated": null
         },
         {
@@ -669,10 +669,10 @@
         },
         {
           "name": "surface",
-          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
+          "type": "BoxSurface | ShapeFill",
           "required": false,
           "default": "\"none\"",
-          "description": "Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable.\n`surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt)\ncanvas, `subtle` / `pale` (Background/Neutral) for wells. `canvas` (Background/Canvas/Default) is the page itself:\nonly for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card.\nNever Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). Default none.",
+          "description": "Fill: Figma's frame fill bound to its Color/Background variable. The background layers\n(docs/guidelines/background-layers.md) for the page's boxes: `surface` (Background/Surface/Default) for cards and\npanels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` (Background/Neutral) for wells.\n`canvas` (Background/Canvas/Default) is the page itself: only for a whole screen or page area drawn inside something\nelse (an app screen in a preview), never for a card. Any other Color/Background token by its path, as Shape's fill\n(`accent-solid`, `support-blue-pale`), paints a coloured band, tile or hero: its text takes the matching content\ncolour (On-Accent, Inverse) — Text and Icon don't change by themselves. Default none.",
           "deprecated": null
         },
         {
@@ -1110,10 +1110,10 @@
         },
         {
           "name": "surface",
-          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
+          "type": "BoxSurface | ShapeFill",
           "required": false,
           "default": "\"none\"",
-          "description": "Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable.\n`surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt)\ncanvas, `subtle` / `pale` (Background/Neutral) for wells. `canvas` (Background/Canvas/Default) is the page itself:\nonly for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card.\nNever Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). Default none.",
+          "description": "Fill: Figma's frame fill bound to its Color/Background variable. The background layers\n(docs/guidelines/background-layers.md) for the page's boxes: `surface` (Background/Surface/Default) for cards and\npanels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` (Background/Neutral) for wells.\n`canvas` (Background/Canvas/Default) is the page itself: only for a whole screen or page area drawn inside something\nelse (an app screen in a preview), never for a card. Any other Color/Background token by its path, as Shape's fill\n(`accent-solid`, `support-blue-pale`), paints a coloured band, tile or hero: its text takes the matching content\ncolour (On-Accent, Inverse) — Text and Icon don't change by themselves. Default none.",
           "deprecated": null
         },
         {
@@ -1329,6 +1329,7 @@
     }
   ],
   "types": {
+    "BoxSurface": "type BoxSurface = \"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
     "GradientStop": "interface GradientStop { color: Exclude<ShapeFill, \"none\">; at: number; }",
     "GradientType": "type GradientType = \"linear\" | \"radial\" | \"angular\" | \"diamond\"",
     "Responsive": "type Responsive<T> = T | { desktop?: T; tablet?: T; mobile?: T }",

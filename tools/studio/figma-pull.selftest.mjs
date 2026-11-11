@@ -385,7 +385,9 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
     children: [
       { type: "FRAME", name: "Card", fill: "Color/Background/Surface/Default", stroke: "Color/Border/Neutral/Pale/Default", strokeWeights: [0, 0, 1, 0], radii: [16, 16, 16, 16], radiiVars: ["Corner-Radius/Large", "Corner-Radius/Large", "Corner-Radius/Large", "Corner-Radius/Large"], opacity: 0.5, rotation: 30, layout: column, children: [text("One"), text("Two")] },
       { type: "FRAME", name: "Mirrored", fill: "Background/Neutral/Subtle/Default", effectStyle: "Effect/Overlay", flip: "horizontal", stroke: "Border/Neutral/Subtle/Default", strokeWeights: [2, 2, 2, 2], dash: [2, 2], radii: [20, 20, 4, 20], radiiVars: ["Corner-Radius/XLarge", "Corner-Radius/XLarge", "Corner-Radius/XSmall", "Corner-Radius/XLarge"], layout: column, children: [text("Three"), text("Four")] },
-      { type: "FRAME", name: "Odd", fill: "Background/Accent/Solid/Default", stroke: "unbound", strokeWeights: [1, 1, 1, 1], radii: [13, 13, 13, 13], radiiVars: [null, null, null, null], effectStyle: "Effect/Popover", layout: column, children: [text("Five"), text("Six")] },
+      { type: "FRAME", name: "Odd", fill: "#FF7A00", stroke: "unbound", strokeWeights: [1, 1, 1, 1], radii: [13, 13, 13, 13], radiiVars: [null, null, null, null], effectStyle: "Effect/Popover", layout: column, children: [text("Five"), text("Six")] },
+      { type: "FRAME", name: "Tinted", fill: "Color/Background/Support/Blue/Pale", layout: column, children: [text("Seven"), text("Eight")] },
+      { type: "FRAME", name: "Accent", fill: "Background/Accent/Solid/Default", layout: column, children: [text("Nine"), text("Ten")] },
     ],
   };
   const pulled = pageFromFigma(looks, { mapping });
@@ -395,6 +397,9 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("frame looks: fill, one-sided stroke, corners, opacity, rotation", /surface="surface"/.test(line("opacity")) && /border="pale"/.test(line("opacity")) && /borderSides="bottom"/.test(line("opacity")) && /radius="lg"/.test(line("opacity")) && /opacity=\{50\}/.test(line("opacity")) && /rotation=\{30\}/.test(line("opacity")), true);
   check("frame looks: blur, dashed subtle stroke 2px, a differing corner, flip", /surface="subtle"/.test(line("flip")) && /effectStyle="Effect\/Overlay"/.test(line("flip")) && /borderStyle="dashed"/.test(line("flip")) && /borderWeight=\{2\}/.test(line("flip")) && /radius="xl"/.test(line("flip")) && /radiusBottomRight="xs"/.test(line("flip")) && /flip="horizontal"/.test(line("flip")), true);
   check("frame looks: no token → noted, left out", [/Frame "Odd": its fill/.test(pulled.notes.join("\n")), /Frame "Odd": its stroke is no colour variable/.test(pulled.notes.join("\n")), /Frame "Odd": a corner radius/.test(pulled.notes.join("\n")), /Frame "Odd": its effect style Effect\/Popover/.test(pulled.notes.join("\n"))], [true, true, true, true]);
+  // Any Color/Background variable is a frame fill (user 2026-11-11): Shape's path names it; a background layer keeps its own.
+  const tinted = pulled.text.split("\n").find((candidate) => /<Stack\b/.test(candidate) && candidate.includes("support-blue-pale")) ?? "";
+  check("frame looks: any Background variable → surface by its path", [/surface="support-blue-pale"/.test(tinted), /surface="accent-solid"/.test(pulled.text), /its fill Color\/Background\/Support/.test(pulled.notes.join("\n"))], [true, true, false]);
   check("frame looks: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
 }
 
