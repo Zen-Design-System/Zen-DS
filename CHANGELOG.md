@@ -14,6 +14,12 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Layout: a frame's `surface` (Box, Stack, Grid) takes any Color/Background token by its path, as Shape's `fill`
+  (`surface="accent-solid"`, `"support-blue-pale"`), besides the background layers surface · surface-alt · subtle ·
+  pale · canvas, which draw as before. New exports: `FrameFill`, `frameFillPaint`, `frameLayerOf`.
+- Zen Studio: a frame's Fill offers every Color/Background token (user 2026-11-11): a Box, Stack or Grid's list, and a
+  frame drawn with the Frame tool, whose Fill row replaces the Screen's Canvas. A device's Screen keeps Canvas
+  (Default / Alt / Flat). Push to Figma writes the token's variable, and a pull reads any Color/Background variable back.
 - Zen Studio: Project settings › Color suggests the chart colours from Primary. Sectors 3–7 turn with a new Primary
   (the Zen palette turned by its hue, each colour kept apart from the others) until you pick one by hand; the wand
   button beside Chart colors puts the suggestion back.

@@ -20,7 +20,7 @@ export { gridTrackCount, useGridCell, type LayoutCellOutput, type LayoutCellProp
 export { layoutConstraintsX, layoutConstraintsY, layoutPositions, positionPropNames, type LayoutConstraintX, type LayoutConstraintY, type LayoutPosition, type LayoutPositionProps } from "./position";
 export { boxEffectStyles, effectPropNames, type BoxEffectProps, type BoxEffectStyle, type FrameEffectProps } from "./effects";
 export { cornerRadiusPropNames, radiusPropNames, type CornerRadiusProps, type CornerSmoothingProps } from "../_shared/corners";
-export { boxSurfaces, frameAppearancePropNames, frameBorders, frameBorderSides, frameBorderStyles, frameFlips, zenBlendModes, type BoxSurface, type FrameAppearanceProps, type FrameBorder, type FrameBorderSide, type FrameBorderStyle, type FrameFlip, type FrameTransformProps, type ZenBlendMode } from "./appearance";
+export { boxSurfaces, frameAppearancePropNames, frameBorders, frameBorderSides, frameBorderStyles, frameFillPaint, frameFlips, frameLayerOf, zenBlendModes, type BoxSurface, type FrameFill, type FrameAppearanceProps, type FrameBorder, type FrameBorderSide, type FrameBorderStyle, type FrameFlip, type FrameTransformProps, type ZenBlendMode } from "./appearance";
 
 export const layoutElements = ["div", "section", "article", "aside", "header", "footer", "main", "nav", "form", "fieldset", "ul", "ol", "li"] as const;
 /** Figma "Overflow scrolling": the frame scrolls along one axis and keeps the scroll inside it. */

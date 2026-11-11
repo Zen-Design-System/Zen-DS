@@ -3,7 +3,7 @@ import { announceEditStatus, parseSrc, studioApi } from "../api";
 import { canvasApi, getViewportBox } from "../canvas/viewport";
 import type { Rgb } from "../inspector/controls/colorMatch";
 import { colorKey, colorTokensFor } from "../inspector/partInfo";
-import { fillPalette, surfacePalette, tonePalette, type SwatchPalette } from "../inspector/palettes";
+import { fillPalette, frameFillOptions, surfacePalette, tonePalette, type SwatchPalette } from "../inspector/palettes";
 import { componentSchema, splitUnion } from "../inspector/propSchema";
 import { annotatedAt, rectOf } from "../select/picker";
 import { selectedLayers, type ExtraLayer } from "../select/multiSelection";
@@ -31,7 +31,8 @@ const say = (message: string, kind: "unchanged" | "error" = "unchanged") => anno
 
 const PALETTES: Record<PickPalette, SwatchPalette> = { fill: fillPalette, surface: surfacePalette, tone: tonePalette };
 const FILL_OPTIONS: readonly string[] = shapeFills.filter((fill) => fill !== "none");
-const SURFACE_OPTIONS: readonly string[] = ["surface", "surface-alt", "subtle", "pale", "canvas"];
+// A frame takes any Color/Background token (user 2026-11-11), the background layers first.
+const SURFACE_OPTIONS: readonly string[] = frameFillOptions.filter((option) => option !== "none");
 const baseName = (name: string) => name.slice(name.lastIndexOf(".") + 1);
 
 /** A component's text-colour tones (its API's `tone` union, when every value is a Color/Content tone), else null. */

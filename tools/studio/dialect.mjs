@@ -598,6 +598,10 @@ export function parsePage(text, { components } = {}) {
         // A plain frame (Figma's frame, user 2026-11-07): `frame` alone, on a desktop Screen (no device of its own).
         const plain = child.props.frame;
         if (plain && !(plain.kind === "literal" && plain.value === true)) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: "frame is written alone (<Screen frame>): a plain frame, not a device's screen" });
+        // Its fill (user 2026-11-11): a Color/Background token by its path, as a Box's surface; a device's Screen keeps its canvas.
+        const fill = child.props.surface;
+        if (fill && !(fill.kind === "literal" && typeof fill.value === "string" && /^[a-z][a-z0-9-]*$/.test(fill.value))) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: "surface is a Color/Background token by its path (surface, pale, accent-solid, support-blue-pale…)" });
+        else if (fill && !plain) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: "surface fills a drawn frame (<Screen frame surface=…>); a device's Screen takes canvas" });
         else if (plain && device && device.value !== "desktop") errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: "A plain frame (frame) is desktop: a phone or tablet is a Screen" });
       }
     }

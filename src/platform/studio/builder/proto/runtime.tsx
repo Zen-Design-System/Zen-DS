@@ -1,6 +1,7 @@
 import { useModeScope, type ZenModes } from "../../../../components/_shared/zen-context";
 import { Children, cloneElement, createContext, isValidElement, useContext, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactElement, type ReactNode, type RefObject } from "react";
 import { AppShell } from "../../../../components/AppShell";
+import { frameFillPaint } from "../../../../components/Layout";
 import { ZenPortalProvider } from "../../../../components/Portal";
 import { OverlayPreviewContext } from "../../../../components/_shared/overlay";
 import { typographyStyles } from "../../../../tokens/typography.generated";
@@ -153,6 +154,9 @@ type ScreenProps = HTMLAttributes<HTMLDivElement> & {
   /** A tablet's layout: a phone's frame (mobile, the default) or a desktop's. */
   layout?: ScreenLayout;
   canvas?: ScreenCanvas;
+  /** A drawn frame's fill (`frame`; user 2026-11-11): any Color/Background token, as a Box's `surface` (Layout
+   *  FrameFill), over the Canvas. A device's Screen keeps its Canvas. */
+  surface?: string;
   state?: string;
   /** The app frame (dialect SCREEN_CHROME). The desktop layout's is the Screen's master layout, one root AppShell
    *  (tools/studio/screen-frame.mjs; `sidebar` and `header` are the props of pages made before it, moved into the
@@ -288,7 +292,7 @@ function withScrollLink(topNavigation: ReactNode, scrollRef: RefObject<HTMLEleme
   return cloneElement(topNavigation as ReactElement<{ scrollRef?: RefObject<HTMLElement | null> }>, { scrollRef });
 }
 
-export function Screen({ id, title, device: drawnDevice = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, x: _x, y: _y, width, height, modes, versionOf: _versionOf, frame: _frame, ...rest }: ScreenProps) {
+export function Screen({ id, title, device: drawnDevice = "desktop", layout, canvas = "default", surface, state, sidebar, header, topNavigation, bottomNavigation, children, style, x: _x, y: _y, width, height, modes, versionOf: _versionOf, frame: _frame, ...rest }: ScreenProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const presentScroll = usePresentScroller(rootRef);
   useAbsoluteOverflow(rootRef, Boolean(presentScroll));
@@ -320,6 +324,8 @@ export function Screen({ id, title, device: drawnDevice = "desktop", layout, can
   const safe = real ? REAL_SAFE_AREAS : bars ? ({ "--zen-safe-area-top": `${bars.top}px`, "--zen-safe-area-bottom": `${bars.bottom}px` } as CSSProperties) : null;
   const tall = simulated ? simulated.height : height;
   const drawn = real ? REAL_HEIGHT : typeof tall === "number" ? ({ "--studio-screen-height": `${tall}px` } as CSSProperties) : null;
+  // A drawn frame's fill, over the Canvas the class paints.
+  const fill = frameFillPaint(surface);
   const active = screenLayoutOf(device, simulated ? simulated.layout : layout);
   const desktop = active === "desktop";
   // A root AppShell with phone parts of its own on a Screen without bars (a page pulled from Figma's
@@ -355,7 +361,7 @@ export function Screen({ id, title, device: drawnDevice = "desktop", layout, can
       data-os={bars ? barsOs : undefined}
       data-inset={inset || undefined}
       {...scope.attributes}
-      style={safe || drawn ? { ...safe, ...drawn, ...style } : style}
+      style={safe || drawn || fill ? { ...safe, ...drawn, ...(fill ? { background: fill } : {}), ...style } : style}
       aria-label={title}
     >
       {scope.wrap(<>

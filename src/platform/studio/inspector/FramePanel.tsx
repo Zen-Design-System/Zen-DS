@@ -31,6 +31,8 @@ import { SectionPanel } from "../builder/SectionPanel";
 import { SlicePanel } from "../builder/SlicePanel";
 import { InspectorFields, InspectorRow, InspectorSection } from "./Section";
 import { RowSelectField } from "./rowFields";
+import { frameFillOptions, surfacePalette } from "./palettes";
+import { SwatchControl } from "./PropField";
 import { SlotHost, useSlotFilled } from "./SlotHost";
 import { presentKeys } from "../shell/modKey";
 import { setLayerHidden, slotSwitchOp } from "../edit/visibility";
@@ -84,6 +86,7 @@ function ScreenSection({ frameId }: { frameId: string }) {
   if (!localPage || !node) return null;
   const device = (literal(node, "device") as PageDevice | undefined) ?? "desktop";
   const canvas = (literal(node, "canvas") as ScreenCanvas | undefined) ?? "default";
+  const surface = literal(node, "surface") as string | undefined;
   // A plain frame (`frame`, the Frame tool's; user 2026-11-07): Figma's frame, no device, app frame or breakpoints of its
   // own until "This is a screen" is ticked or a screen size picked.
   const plain = literal(node, "frame") === true;
@@ -197,6 +200,12 @@ function ScreenSection({ frameId }: { frameId: string }) {
     const op = next ? { op: "setProp" as const, name: "modes", value: { kind: "expression" as const, code: modeCode(next) } } : { op: "removeProp" as const, name: "modes" };
     void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, `Screen ${label}`);
   };
+  // A drawn frame's Fill (user 2026-11-11: "các màu background đều được phép đổ … nếu nó là Screen thì mới giới hạn"):
+  // any Color/Background token, as a Box's (inspector/palettes.ts surfacePalette); None leaves the Canvas.
+  const writeSurface = (next: string) => {
+    const op = next === "none" ? { op: "removeProp" as const, name: "surface" } : { op: "setProp" as const, name: "surface", value: { kind: "string" as const, value: next } };
+    void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, `Frame fill → ${surfacePalette.label(next)}`);
+  };
   // Default is no prop at all, as the device's desktop default.
   const writeCanvas = (next: ScreenCanvas) => {
     if (next === canvas) return;
@@ -287,7 +296,14 @@ function ScreenSection({ frameId }: { frameId: string }) {
           ]}
         />
       ))}
-      <InspectorFields
+      {plain ? (
+        <InspectorFields
+          name="surface"
+          labels={["Fill"]}
+          code="Screen surface"
+          fields={[<SwatchControl key="surface" label="Fill" value={surface} fallback="none" disabled={!admin} options={[...frameFillOptions]} palette={surfacePalette} onSet={writeSurface} />]}
+        />
+      ) : <InspectorFields
         name="canvas"
         labels={["Canvas"]}
         code="Screen canvas"
@@ -303,7 +319,7 @@ function ScreenSection({ frameId }: { frameId: string }) {
             options={CANVASES.map((item) => ({ id: item.id, label: item.label, "aria-label": `${item.label} canvas, ${item.token}` }))}
           />
         )]}
-      />
+      />}
     </InspectorSection>
     {plain ? null : <BreakpointSection frameId={frameId} node={node} tree={tree} />}
     </>

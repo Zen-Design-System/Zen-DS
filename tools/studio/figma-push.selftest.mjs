@@ -3242,6 +3242,33 @@ export default function Page() {
   check("vars: what Figma cannot bind or run is named", [notes.some((note) => /Chip selected: bound to a condition/.test(note)), notes.some((note) => /toast: Figma has no such action .*left out of its actions/.test(note))], [true, true]);
 }
 
+{
+  // Any Color/Background token on a frame (user 2026-11-11): a Box's surface by Shape's path, and a drawn frame's own fill
+  // (<Screen frame surface>), both as their variable. The Box comes back the same; a drawn frame comes back a Screen (no
+  // `frame` in Figma, #387) whose content carries its fill, so it looks the same.
+  const page = `// @zen-page {"format":1,"title":"Fills"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Text } from "@zen-ds/react";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Fills" frame surface="support-teal-pale" width={400} height={300}>
+        <Box surface="accent-solid" position="absolute" insetLeft={24} insetTop={24} width={200} padding="md">
+          <Text>Band</Text>
+        </Box>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(page);
+  const band = frame.children.find((child) => child.name !== "Text" && child.fill);
+  check("frame fills: a drawn frame's own fill and a Box's any Background token, as their variables", [frame.fill, band?.fill], ["Background/Support/Teal/Pale", "Background/Accent/Solid/Default"]);
+  const back = pageFromFigma(frame, { mapping }).text;
+  check("round trip: the Box's fill comes back; the drawn frame's on its content", [back.includes('surface="accent-solid"'), back.includes('surface="support-teal-pale"')], [true, true]);
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

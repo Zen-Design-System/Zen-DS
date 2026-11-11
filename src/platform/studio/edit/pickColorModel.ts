@@ -3,7 +3,7 @@
  * §3; user 2026-10-22: "Token layer, rồi pixel"). A picked colour is a colour variable (decision 1 of the 2026-10-18
  * parity plan): the layer under the pointer paints with one, and the target takes it when its palette has it (exact);
  * otherwise (a picture's pixel, or a variable the target's palette lacks) the target takes the nearest colour of its own
- * palette: the fill palette for a Shape, the surfaces for a frame, the text tones for a Text, Heading or Icon. Type-only
+ * palette: the fill palette for a Shape, a frame's fills (any Color/Background token), the text tones for a Text, Heading or Icon. Type-only
  * imports, so pickColorModel.selftest.mjs imports it directly.
  */
 import type { Rgb } from "../inspector/controls/colorMatch";

@@ -1,5 +1,6 @@
 // The Spacing steps and value matching both directions of the Figma bridge share: figma-pull.mjs (Figma → page) and
 // figma-push.mjs (page → Figma). Isomorphic: no Node imports.
+import { shapeFillTokens } from "../../src/components/Shape/paint.ts";
 
 /** Spacing/Gap and Spacing/Padding in px (src/components/_shared/scale.ts), for a value bound to no variable. */
 export const GAP_PX = [[0, "none"], [2, "3xs"], [4, "2xs"], [8, "xs"], [12, "sm"], [16, "md"], [24, "lg"], [32, "xl"], [40, "2xl"], [48, "3xl"], [64, "giant"], [88, "xgiant"], [144, "2xgiant"]];
@@ -19,6 +20,16 @@ export const sameValue = (a, b) => a === b || (typeof a === "string" && typeof b
 
 /** Box surface (layout.css) → the Color/Background variable that paints it (figma-push writes it, figma-pull reads it). */
 export const BOX_SURFACE = { surface: "Background/Surface/Default", "surface-alt": "Background/Surface/Alt", subtle: "Background/Neutral/Subtle/Default", pale: "Background/Neutral/Pale/Default", canvas: "Background/Canvas/Default" };
+/**
+ * Every fill a frame takes (Layout FrameFill; user 2026-11-11: any Color/Background token, as Figma's frame): a background
+ * layer as BOX_SURFACE, else its variable as Shape's fill names it ("support-blue-pale" → Background/Support/Blue/Pale).
+ */
+export const FRAME_FILL = { ...Object.fromEntries(Object.entries(shapeFillTokens).map(([fill, variable]) => [fill, variable.replace(/^Color\//, "")])), ...BOX_SURFACE };
+/** A Color/Background variable → the frame fill that paints it: a background layer's own name first (subtle, not neutral-subtle). */
+export const FRAME_FILL_OF = Object.fromEntries([
+  ...Object.entries(FRAME_FILL).filter(([fill]) => !(fill in BOX_SURFACE) && fill !== "neutral-subtle" && fill !== "neutral-pale"),
+  ...Object.entries(BOX_SURFACE),
+].map(([fill, variable]) => [variable, fill]));
 
 /** Figma Progress-Bar's fill steps and how far each fills (the live file, 2026-10-16: Low 20%, Medium 40%, Good 80%). */
 const PROGRESS_STEPS = [["Low", 20], ["Medium", 40], ["Good", 80], ["Done", 100]];

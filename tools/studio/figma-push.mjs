@@ -17,7 +17,7 @@ import { docFromText } from "./doc.mjs";
 import { PROPERTY_BINDINGS, componentSets, layerChain, localComponents, resolveInstance, variantName } from "./dialect.mjs";
 import { figmaBlendOf } from "./blend-modes.mjs";
 import { INSTANCE_LOOK_PROPS, instanceLookStyle, takesInstanceLook } from "./instance-look.mjs";
-import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
+import { FRAME_FILL, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
 import { varType, withStartValues } from "./proto-vars.mjs";
@@ -1921,7 +1921,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
    */
   function frameLook(code, element = null) {
     const look = {};
-    const fill = BOX_SURFACE[code.surface];
+    // Any Color/Background token (a background layer or another, Layout FrameFill).
+    const fill = FRAME_FILL[code.surface];
     if (fill) look.fill = fill;
     // An image fill (F8, figma-image.mjs) over the frame's fill.
     const picture = imageFillOf(code, element);
@@ -2867,10 +2868,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   // The Screen's canvas and height (builder.css .studio-builder-screen: Canvas/Default, Alt or Flat; at least 900px, a
   // phone 844, or the height it is drawn at): the plugin's frame was Figma's default white, the paste's had no fill.
   const canvas = { alt: "Alt", flat: "Flat" }[literalOf(screen.props.canvas)] ?? "Default";
+  // A drawn frame's own fill (`<Screen frame surface>`, user 2026-11-11) instead of the Canvas.
+  const ownFill = literalOf(screen.props.frame) === true ? FRAME_FILL[literalOf(screen.props.surface)] : undefined;
   const screenHeight = literalOf(screen.props.height);
   const frame = overlay ? { ...root, name: title } : {
     ...root, name: title, width: DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop,
-    ...(root.fill || root.fillStyle ? {} : { fill: `Background/Canvas/${canvas}` }),
+    ...(root.fill || root.fillStyle ? {} : { fill: ownFill ?? `Background/Canvas/${canvas}` }),
     minH: typeof screenHeight === "number" ? screenHeight : device === "phone" ? 844 : 900,
     ...(doc.header?.figma?.file ? { file: doc.header.figma.file } : {}),
   };

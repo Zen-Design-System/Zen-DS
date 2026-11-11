@@ -670,7 +670,7 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
     const nodes = screens.filter((node) => String(literalOf(node, "id")) === id);
     const variants = nodes.filter((node) => typeof literalOf(node, "state") === "string");
     const plain = nodes.find((node) => literalOf(node, "state") === undefined) ?? nodes[0];
-    return { id, title: String(literalOf(plain, "title") ?? id), device: literalOf(plain, "device") ?? "desktop", canvas: literalOf(plain, "canvas") ?? "default", variants, plain };
+    return { id, title: String(literalOf(plain, "title") ?? id), device: literalOf(plain, "device") ?? "desktop", canvas: literalOf(plain, "canvas") ?? "default", surface: literalOf(plain, "surface"), variants, plain };
   });
   /** A screen's content at `indent`: a chain over its state variants (`state === "empty" ? (…) : (…)`) or the content. */
   const branchCode = (branch, indent) => {
@@ -731,7 +731,9 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
 
   const screenLines = branches.flatMap((branch) => {
     // A Screen on another background layer says so: the app's page (AppShell canvas, or its own) sets it.
-    const comment = `${body}{/* Screen "${branch.id}" · ${branch.title} · ${branch.device}${branch.canvas === "default" ? "" : ` · canvas ${branch.canvas} (Background/Canvas/${branch.canvas === "alt" ? "Alt" : "Flat"})`} */}`;
+    // A drawn frame's fill (Layout FrameFill, user 2026-11-11): the app's page or a Box around it paints it.
+    const fill = typeof branch.surface === "string" ? ` · fill ${branch.surface} (Box surface="${branch.surface}")` : "";
+    const comment = `${body}{/* Screen "${branch.id}" · ${branch.title} · ${branch.device}${branch.canvas === "default" ? "" : ` · canvas ${branch.canvas} (Background/Canvas/${branch.canvas === "alt" ? "Alt" : "Flat"})`}${fill} */}`;
     const inner = `${body}${UNIT}`;
     if (!many) return [comment, branch.variants.length ? `${body}{${branchCode(branch, body)}}` : `${body}${branchCode(branch, body)}`];
     return [comment, `${body}{screen === ${json(branch.id)} && (\n${inner}${branchCode(branch, inner)}\n${body})}`];

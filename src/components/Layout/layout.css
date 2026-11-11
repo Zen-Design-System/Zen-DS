@@ -56,6 +56,8 @@
 :is(.zen-box, .zen-stack, .zen-grid)[data-surface="pale"] { background: var(--zen-color-background-neutral-pale-default); }
 /* zen-allow-canvas-layer: surface="canvas" is the page layer itself, for a whole screen or page area drawn inside something else (Box JSDoc). */
 :is(.zen-box, .zen-stack, .zen-grid)[data-surface="canvas"] { background: var(--zen-app-shell-canvas, var(--zen-color-background-canvas-default)); }
+/* Any other Color/Background token (surface="accent-solid", "support-blue-pale"…; appearance.ts frameFillPaint). */
+:is(.zen-box, .zen-stack, .zen-grid)[data-surface="fill"] { background: var(--zen-layout-fill); }
 /* An image fill (image prop, _shared/image-fill.ts): the picture over the fill, from the frame's outer edge (Figma
    paints it under an inside stroke). After the fills: the same weight, so the picture's longhands win. */
 :is(.zen-box, .zen-stack, .zen-grid)[data-image] {

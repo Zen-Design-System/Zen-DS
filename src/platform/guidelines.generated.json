@@ -6731,7 +6731,7 @@
       [
         "3 Other colours",
         "--zen-color-background-<family>-<subtle|solid|pale>…",
-        "component fills and states"
+        "component fills and states, and a frame's deliberate fill (Box / Stack / Grid surface=\"accent-solid\", \"support-blue-pale\": a band, tile or hero, its text in the content colour that reads on it)"
       ],
       [
         "4 Container",
@@ -8478,9 +8478,9 @@
         "the columns and rows the child takes: a whole number or \"full\" (the whole row), per breakpoint { desktop, tablet, mobile }; clamped to the Grid's columns, the whole row while the Grid stacks, only \"full\" in an auto-fill Grid; placement keeps the reading order (a span that doesn't fit starts the next row); anything else takes it through a <Box span>"
       ],
       [
-        "Background layer (Figma Fill)",
+        "Fill (Figma Fill)",
         "surface (Box, Stack, Grid)",
-        "surface · surface-alt · subtle · pale · canvas (a whole screen or page area drawn inside something else, never a card)"
+        "the background layers surface · surface-alt · subtle · pale · canvas (a whole screen or page area drawn inside something else, never a card); or any other Color/Background token by its path, as Shape's fill: accent-solid · info-subtle · inverse-solid · support-blue-pale … (a coloured band, tile or hero)"
       ],
       [
         "Image fill (Figma's Image paint)",
@@ -8568,6 +8568,7 @@
       "Lay a dashboard's widgets in one Grid columns={12} with span, every row adding up to 12 (KPIs 3 · 3 · 3 · 3, a hero 8 beside a companion 4), and give the narrower breakpoints their own spans (tablet: KPIs 3 of 6, the hero \"full\"), so no row leaves a hole (skills/zen-component-usage/references/dashboard-layout.md).",
       "Put page content in a Container so its margin follows the breakpoint.",
       "Use per-breakpoint values for structure (direction, columns, wrap, hideOn on a side panel) and leave sizes to tokens and modes: gap and padding steps, page margins and type already follow the breakpoint and density, so a per-breakpoint gap or padding is for a structure that changes with it.",
+      "Fill a frame with a colour other than a background layer (surface=\"accent-solid\", \"support-blue-pale\") only for a deliberate band, tile or hero, and give its text the content colour that reads on it (On-Accent or Inverse on a Solid fill, the family's Strongest on a Pale one): Text and Icon don't change by themselves.",
       "Give a frame a surface only when it really is a separate layer; a Surface frame on a white (Alt) canvas needs border=\"pale\".",
       "Put the fill, stroke and corners of an auto layout frame on the Stack or Grid itself (Figma's frame with a fill is one layer): <Stack surface=\"surface\" padding=\"lg\" gap=\"md\" radius=\"lg\">, not a Box around a Stack.",
       "Size like Figma auto layout: Hug for content-sized pieces, Fill for what takes the rest of a row or the full width (a main column; a Search next to buttons or filters goes in a Box width=\"fill\" maxWidth={240}, since Search has no sizing props and a toolbar Search is at most 240px wide), maxWidth to cap a Fill line of text; use Fixed (a number) only for widths that really are fixed, such as a side column or a preview frame.",
