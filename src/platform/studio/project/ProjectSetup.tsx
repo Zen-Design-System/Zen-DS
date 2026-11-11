@@ -282,7 +282,7 @@ function ColorSettings({ theme, swatches, onChange }: { theme: ProjectTheme; swa
         {(Object.keys(STATUS_ROLES) as StatusRole[]).map((role) => <Fields key={role} name={`status-${role}`} fields={[statusField(role)]} />)}
       </Section>
 
-      <Section title="Chart colors" note={follows ? "Sectors 1–2 follow Primary and Neutral, 3–7 are suggested from Primary" : "Sectors 1 and 2 follow Primary and Neutral"}
+      <Section title="Chart colors" note={follows ? <SectionNote text="Suggested from Primary" more="Sectors 1 and 2 follow Primary and Neutral, 3–7 follow Primary until you pick one." /> : "Sectors 1 and 2 follow Primary and Neutral"}
         actions={follows ? undefined : <IconButton icon="icon-magic-wand-02-line" aria-label="Suggest from Primary" tooltip="Suggest from Primary" appearance="flat" level="secondary" size="xs" onClick={() => set("chart", suggestedChart(primaryHex))} />}>
         <ol className="studio-project-setup__sectors" aria-label="Chart sectors">
           {SECTOR_NAMES.map((sector, index) => (

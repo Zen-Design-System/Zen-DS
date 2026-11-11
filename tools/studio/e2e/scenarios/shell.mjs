@@ -538,7 +538,7 @@ export const rows = [
         const pickPrimary = (ramp) => settings.getByRole("radiogroup", { name: "Primary ramp" }).getByRole("radio", { name: ramp, exact: true }).check({ force: true });
         await pickPrimary("Blue");
         await expectChart(suggestedChart(RAMPS.Blue), "sectors 3–7 suggested from Blue");
-        if (!(await sectors()).includes("3–7 are suggested from Primary")) throw new Error(`the note: ${await sectors()}`);
+        if (!(await sectors()).includes("Suggested from Primary")) throw new Error(`the note: ${await sectors()}`);
         // A sector picked by hand: the suggestion stops; a new Primary keeps it; the wand puts the suggestion back.
         await section.locator(".studio-project-setup__fields", { hasText: "Sector 3" }).locator("button").first().click();
         await page.getByRole("option", { name: "Red", exact: true }).click();
