@@ -44,3 +44,11 @@ mới giới hạn". Asked which frames: "Cả hai" — frames drawn on the boar
 - `--only=figma` found 4 rows broken on main too (FW-80, 101, 181, 183). They also break rows run after them
   (FW-130, 182, 184, 186 pass alone, on main and on this branch). Logged P1 in BACKLOG.md: they are outside this change
   (Shape image and gradient painting, the pick tag), and the group isn't in the gate.
+- The first gate failed two static steps: `compile-api.generated.mjs` and `docs/ai-ui` were stale for the new `surface`
+  type. Both were regenerated.
+- `npm run qa -- --isolated` PASS:
+  - Studio E2E 461 works, 0 broken;
+  - the platform audit (1512 / 390 / 320), the dark audit and behaviour: 0 errors;
+  - Vitest 95;
+  - Layout self-test ✓.
+- `npm run build` ✓. The Layout contact sheets (390 / 1512) look as before.
