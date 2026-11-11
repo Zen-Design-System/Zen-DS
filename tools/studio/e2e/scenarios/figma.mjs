@@ -2648,16 +2648,27 @@ export const rows = [
   {
     id: "FW-101", feature: "⌘Y Outlines: every layer of the frames as a thin outline, fills gone; ⌘Y again restores", wp: "F10 2026-10-19",
     async run(ctx) {
-      const { page } = await newPage(ctx);
+      // A page with text (a new page has none since its hint is the canvas's, not a layer).
+      const { page } = await walkPage(ctx);
       const viewport = page.locator(".studio-viewport");
-      await viewport.focus();
-      await page.keyboard.press("ControlOrMeta+KeyY");
-      await until(async () => (await viewport.getAttribute("data-outlines")) === "true", { message: "Outlines on" });
-      const look = await page.locator('[data-studio-frame^="screen:"] .zen-text').first().evaluate((element) => ({ outline: getComputedStyle(element).outlineStyle, background: getComputedStyle(element.closest(".studio-builder-screen") ?? element).backgroundImage + getComputedStyle(element.closest(".studio-builder-screen") ?? element).backgroundColor }));
-      if (look.outline !== "solid" || !/none.*rgba\(0, 0, 0, 0\)|^none(rgba\(0, 0, 0, 0\)|transparent)/.test(look.background)) throw new Error(`outlines: ${JSON.stringify(look)}`);
-      await page.keyboard.press("ControlOrMeta+KeyY");
-      await until(async () => (await viewport.getAttribute("data-outlines")) === null, { message: "Outlines off" });
-      return "⌘Y → outlines, no fills; ⌘Y → back";
+      try {
+        await viewport.focus();
+        await page.keyboard.press("ControlOrMeta+KeyY");
+        await until(async () => (await viewport.getAttribute("data-outlines")) === "true", { message: "Outlines on" });
+        const look = await page.locator('[data-studio-frame^="screen:"] .zen-text').first().evaluate((element) => ({ outline: getComputedStyle(element).outlineStyle, background: getComputedStyle(element.closest(".studio-builder-screen")).backgroundImage + getComputedStyle(element.closest(".studio-builder-screen")).backgroundColor }), undefined, { timeout: 5000 });
+        if (look.outline !== "solid" || !/none.*rgba\(0, 0, 0, 0\)|^none(rgba\(0, 0, 0, 0\)|transparent)/.test(look.background)) throw new Error(`outlines: ${JSON.stringify(look)}`);
+        await page.keyboard.press("ControlOrMeta+KeyY");
+        await until(async () => (await viewport.getAttribute("data-outlines")) === null, { message: "Outlines off" });
+        return "⌘Y → outlines, no fills; ⌘Y → back";
+      } finally {
+        // Outlines live in localStorage for every page (canvas/viewOptions.ts): a failure here must not leave them on for
+        // the rows after this one (they read fills, pictures and gradients: FW-80, 181, 183 failed after it, 2026-11-11).
+        if ((await viewport.getAttribute("data-outlines").catch(() => null)) === "true") {
+          await viewport.focus();
+          await page.keyboard.press("ControlOrMeta+KeyY");
+          await until(async () => (await viewport.getAttribute("data-outlines")) === null, { message: "Outlines off after the row" }).catch(() => undefined);
+        }
+      }
     },
   },
   {
