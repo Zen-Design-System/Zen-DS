@@ -153,3 +153,14 @@ v3 is approved ("ok, làm theo v3"), then "v3 ok":
     700 on the right, file name in the tooltip).
   - S-13 now removes through the ⋯ menu. Row locators skip "<font> actions".
 - QA: `npm run qa -- --isolated` PASS (Studio E2E 460 works, 0 broken; TypeScript, style, usage ✓); `npm run build` ✓.
+
+## 2026-11-11: Component theme swatch fixed (tier XS; branch zen/fix/studio-theme-swatch-20261111)
+
+The user reported a screenshot as a bug. In Style › Theme the two swatches (about 42px) sat in Zen's 20px leading slot,
+so they ran out of the list's left edge and into the label. They are now one 20px square in two halves, its hairline
+drawn on top in `::after`. The role lists' "Ag" sample also takes the 20px slot. Only `project.css` changed.
+
+QA:
+- The probe measured all 9 options: swatch 20px wide, 6px inside the list, 10px clear of the label.
+- S-12 and S-13 work.
+- `npm run qa -- --isolated --files=project.css` PASS (Studio E2E 460 works, 0 broken). `npm run build` ✓.
