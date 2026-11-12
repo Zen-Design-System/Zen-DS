@@ -56,6 +56,7 @@ import { MotionTokens } from "../foundations/MotionTokens";
 import { collections } from "../foundations/collections";
 import { PlatformPageTemplate, PlatformTypographyContext } from "./PlatformTemplate";
 import { PlatformCode } from "./PlatformCode";
+import { LanguagesSection } from "./code/LanguagesSection";
 import { ComponentGuidelines } from "./PlatformGuidelines";
 import { ComponentApi, ComponentKeyboard, ComponentProps, PlatformSection } from "./PlatformReference";
 import { VoicePlayground } from "./PlatformVoicePlayground";
@@ -1863,7 +1864,7 @@ ${code}`} />
   colors={[
     { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" },
     { value: "var(--zen-color-background-support-yellow-solid)", label: "Yellow", contrast: "dark" },
-    …
+    // one entry per swatch: green, orange, red, pink, purple, teal
   ]}
 />`} />
       </ComponentPreview>
@@ -2211,7 +2212,7 @@ ${code}`} />
             ]} />
         </div>
         {actionNote}
-        <PlatformCode code={`import { Table, TableMedia, TableText, TableTrend, TableActions } from "@zen-ds/react";
+        <PlatformCode code={`import { Badge, DockIcon, EmptyState, Icon, IconButton, ProgressBar, Table, TableActions, TableMedia, TableTrend, VisuallyHidden } from "@zen-ds/react";
 
 <Table
   aria-label="Projects"
@@ -2235,7 +2236,7 @@ ${code}`} />
     { id: "status", header: "Status", cell: (row) => <Badge size="medium" theme="green" background="subtle">{row.status}</Badge> },
     { id: "progress", header: "Progress", cell: (row) => <ProgressBar value={row.progress} label aria-label={\`\${row.name} progress\`} /> },
     { id: "trend", header: "Traffic", cell: (row) => <TableTrend trend={row.trend}>{row.delta}</TableTrend> },
-    { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" aria-label="Open" … /></TableActions> },
+    { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" size="md" aria-label={\`Open \${row.name}\`} icon={<Icon name="icon-dots-horizontal-line" />} onClick={() => openProject(row.id)} /></TableActions> },
   ]}
 />`} />
       </ComponentPreview>
@@ -2593,6 +2594,7 @@ createRoot(document.getElementById("root")!).render(
               {step.code ? <PlatformCode code={step.code} /> : null}
             </section>
           ))}
+          <LanguagesSection />
           <PlatformAiKit />
         </div>
       </ExamplePage>

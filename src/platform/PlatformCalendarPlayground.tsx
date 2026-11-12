@@ -68,13 +68,13 @@ export function CalendarPlayground() {
 
 const [view, setView] = useState<CalendarView>("${view}");
 const [date, setDate] = useState(today);
+// events: { id, title, start, end?, allDay?, color?: "brand" | "blue" | "violet" | "teal" | "green" | "orange" | "pink", meta?, attendees? }[]
 
 <CalendarToolbar${mobile ? ` device="mobile"` : ""} date={date} view={view} onViewChange={setView}
   onToday={() => setDate(today)} onPrevious={() => setDate(shiftPeriod(date, view, -1))} onNext={() => setDate(shiftPeriod(date, view, 1))} />
 ${view === "month" ? `<CalendarMonth${mobile ? ` device="mobile"` : ""} month={date} value={date} onValueChange={setDate} events={events} />`
   : view === "agenda" ? `<CalendarAgenda${mobile ? ` device="mobile"` : ""} from={date} events={events} />`
-  : `<CalendarTimeGrid${mobile ? ` device="mobile"` : ""} view="${view}" date={date} events={events} />`}
-// events: { id, title, start, end?, allDay?, color?: "brand" | "blue" | "violet" | "teal" | "green" | "orange" | "pink", meta?, attendees? }[]`} />
+  : `<CalendarTimeGrid${mobile ? ` device="mobile"` : ""} view="${view}" date={date} events={events} />`}`} />
     </ComponentPreview>
   );
 }

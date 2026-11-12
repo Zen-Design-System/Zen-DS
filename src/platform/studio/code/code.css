@@ -61,6 +61,18 @@
   tab-size: 2;
 }
 
+/* Instead of the code (the picked language has none for this snippet): the message, then what works today. */
+.studio-code__notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-2-xsmall);
+  padding: var(--zen-spacing-padding-small);
+  color: var(--zen-color-content-neutral-light);
+}
+
+.studio-code__notice p { margin: 0; }
+.studio-code__notice > :first-child { color: var(--zen-color-content-neutral-strongest); }
+
 .studio-code__scroller:focus-visible {
   outline: 2px solid var(--zen-color-focus-neutral-solid);
   outline-offset: -2px;

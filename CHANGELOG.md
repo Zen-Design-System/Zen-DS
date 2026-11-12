@@ -14,6 +14,11 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Docs and Zen Studio: every code snippet has a language picker (React, HTML, Vue, Swift, Flutter, Svelte), one choice
+  for every snippet, remembered per viewer and kept in the link (`?code=vue`). A language that has no code for the
+  snippet yet says so ("Vue isn't available for Button yet. React is available.") instead of showing code, and links to
+  the new Languages section of the Installation page (status per language and per component). Only React has code
+  today; HTML + CSS comes next.
 - Zen Studio: Pages | Layers starts 240 px wide (was 272), so at 1280 px the canvas is 688 px wide (was 656, narrower
   than the 680 at 1024). A width you dragged stays yours; the Inspector keeps 320. When the canvas is too narrow for the tools centred beside
   the "?" and zoom corner, the tools start at its left edge; at 1280 × 800 the "?" covered the last tool.

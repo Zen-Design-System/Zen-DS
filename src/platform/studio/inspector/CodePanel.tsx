@@ -1,8 +1,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { EmptyState } from "../../../components/EmptyState";
 import { typographyStyles } from "../../../tokens/typography.generated";
+import { SnippetCode } from "../../code/SnippetCode";
 import { parseSrc, studioApi } from "../api";
-import { CodeView } from "../code/CodeView";
 import { SourcePanel } from "../code/SourcePanel";
 import { onSourceUpdate } from "../select/picker";
 import { useStudio } from "../store";
@@ -67,7 +67,7 @@ export function CodePanel({ selection, codeSlot, properties }: { selection: Stud
       ) : null}
       {!inPlayground && example ? (
         <InspectorSection title="Example code">
-          <CodeView code={example.code} language="tsx" maxHeight={320} />
+          <SnippetCode code={example.code} maxHeight={320} />
         </InspectorSection>
       ) : null}
       {selection.kind === "frame" && !inPlayground && !example ? (

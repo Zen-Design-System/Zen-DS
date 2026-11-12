@@ -8,6 +8,7 @@ import { guidelines, keyboard } from "./guidelines.source.mjs";
 import { rules, setDeprecatedProps } from "./check-usage.mjs";
 import { buildApi, compactProps } from "../../scripts/build-api.mjs";
 import { checkUnions } from "./check-unions.mjs";
+import { codeLanguagesManifest } from "../code-languages/manifest.mjs";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const outDir = path.join(root, "docs/guidelines");
@@ -117,6 +118,8 @@ const index = {
 for (const [slug, entry] of api.bySlug) files.set(path.join(root, "docs/api", `${slug}.json`), JSON.stringify(entry, null, 2) + "\n");
 files.set(path.join(root, "src/platform/api.generated.json"), JSON.stringify(Object.fromEntries([...api.bySlug].map(([slug, entry]) => [slug, entry.components.map(({ name, extends: base, props }) => ({ name, extends: base, props }))])), null, 2) + "\n");
 files.set(path.join(outDir, "index.json"), JSON.stringify(index, null, 2) + "\n");
+// The docs Code view's language status per component (the picker's "Not yet" / "Markup only").
+files.set(path.join(root, "src/platform/code-languages.generated.json"), codeLanguagesManifest(api.bySlug, root));
 // Platform copy: the component pages render Do/Don't from this file (same source, no drift).
 files.set(path.join(root, "src/platform/guidelines.generated.json"), JSON.stringify(Object.fromEntries(guidelines.map((g) => [g.slug, {
   title: g.title, purpose: g.purpose, use: g.use, avoid: g.avoid, api: g.api, keyboard: keyboard[g.slug] ?? [], do: g.do, dont: g.dont, a11y: g.a11y, content: g.content, refs: g.refs,

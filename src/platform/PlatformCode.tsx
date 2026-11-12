@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 import { useStudioBridge, useStudioPanel } from "./studio/bridge";
-import { CodeView } from "./studio/code/CodeView";
+import { SnippetCode } from "./code/SnippetCode";
 
 export function PlatformCode({ code }: { code: string }) {
   const studio = useStudioBridge();
@@ -12,11 +12,11 @@ export function PlatformCode({ code }: { code: string }) {
   return <PlatformCodeView code={code} />;
 }
 
-/** Classic docs: the same git-style code view as Zen Studio (React · TSX badge, line numbers, Wrap and Copy). */
+/** Classic docs: the same snippet view as Zen Studio (language picker, line numbers, Wrap and Copy). */
 function PlatformCodeView({ code }: { code: string }) {
   return (
     <section className="platform-code" aria-label="Code preview">
-      <CodeView code={code} language="tsx" />
+      <SnippetCode code={code} />
     </section>
   );
 }

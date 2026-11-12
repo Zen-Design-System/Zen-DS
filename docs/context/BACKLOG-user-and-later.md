@@ -33,11 +33,12 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   `docs/research/studio-collaboration-plan-2026-11-07.md` (GĐ 1 host + Share with PocketBase roles, GĐ 2 cloud
   `PageMirror`, GĐ 3 realtime + soft lock, GĐ 4 team comments, GĐ 5 CRDT multiplayer). To answer when it starts
   (§3): editing model, hosting + domain, who may sign in. Nothing built.
-- **Code view in other languages — on hold (user, 2026-10-08: "tạm lưu backlog, sẽ làm giai đoạn sau"):** order chosen:
-  HTML/CSS → Vue → Swift → Flutter → Svelte. Plan `docs/research/code-languages-plan-2026-10-03.md`, phases P1–P9, each
-  approved on its own. Still to answer when it starts: web strategy (§8.1; proposed A, native Vue/Svelte on the shared
-  CSS), the dropdown meanwhile (§8.4; proposed: all six with honest states), example snippets as the render's source
-  (§8.3; proposed). Examples get every language too (user, 2026-10-03). Nothing built.
+- **Code view in other languages — started (user, 2026-11-12: "Code view: HTML/CSS"; on hold since 2026-10-08):**
+  order HTML/CSS → Vue → Swift → Flutter → Svelte. Plan `docs/research/code-languages-plan-2026-10-03.md`, phases
+  P1–P9, each approved on its own; P1 + P2 approved. §8 answered 2026-11-12: web strategy A (native Vue/Svelte on the
+  shared CSS), the dropdown lists all six with honest states, example snippets become the render's source (P2b).
+  Examples get every language too (user, 2026-10-03). P1 (picker, status manifest, not-ready state, parser) built
+  2026-11-13 (plan §9); P2 (HTML + CSS) next. P2b–P9 wait for approval.
 - **ListItem Value in Figma — decided, not built (user, 2026-10-23: "not now"; 2026-10-13: "code first"):** code has
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user

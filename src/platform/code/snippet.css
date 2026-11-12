@@ -1,0 +1,6 @@
+/* The snippet's language picker (SelectField sm) in the code view's header, where the language badge sits elsewhere:
+   it keeps the width of its longest label instead of filling the header. */
+.platform-snippet__language {
+  flex: none;
+  width: auto;
+}
