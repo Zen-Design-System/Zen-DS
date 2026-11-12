@@ -14,6 +14,19 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: Pages | Layers starts 240 px wide (was 272), so at 1280 px the canvas is 688 px wide (was 656, narrower
+  than the 680 at 1024). A width you dragged stays yours; the Inspector keeps 320. When the canvas is too narrow for the tools centred beside
+  the "?" and zoom corner, the tools start at its left edge; at 1280 × 800 the "?" covered the last tool.
+- Zen Studio, on the docs pages: Pages groups the components as Assets does (Text, Actions, Navigation, Data display…),
+  each group with its icon. A page's name shows once on the board ("Components", then the title) and the Inspector
+  says "Page". Layers name HTML elements as Frame, Heading, Text or Image instead of div and h2.
+- Zen Studio: a layer inside a playground no longer lists the props its controls set twice. Properties names them on
+  one line ("Set in Playground properties: Appearance, Size, Level").
+- Zen Studio: Keyboard shortcuts shows its groups in up to four columns; the title and Close stay in view while the list
+  scrolls. Present's and Play's Modes panel says where the modes apply ("This presentation only"), not three of them.
+  The canvas tip writes Ctrl-click off a Mac. The Code tab's file header keeps the file's name (the folder shortens) on
+  its own row in a narrow Inspector, and the Button, IconButton and Chip snippets import from "@zen-ds/react" once.
+
 - Layout: a frame's `surface` (Box, Stack, Grid) takes any Color/Background token by its path, as Shape's `fill`
   (`surface="accent-solid"`, `"support-blue-pale"`), besides the background layers surface · surface-alt · subtle ·
   pale · canvas, which draw as before. New exports: `FrameFill`, `frameFillPaint`, `frameLayerOf`.

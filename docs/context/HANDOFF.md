@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-11-07.
+Last updated: 2026-11-12.
 
 ## Read order
 
@@ -19,6 +19,11 @@ Last updated: 2026-11-07.
 
 ## State in short
 
+- **Studio UX polish N1–N11 (2026-11-12, BACKLOG-user-and-later P3 closed):** re-checked on main; N3 fixed earlier, N10
+  moot (Caption 11px is Zen's), the rest built with B1 ("?" over the tools at 1280). Pages | Layers starts at 240, the
+  Inspector keeps 320 (`shell/layout.ts`; `store.ts` reads a saved 272 as the default), tools/corner placement `canvas/CanvasChrome.tsx`,
+  docs Pages grouped (`shell/navigation.ts` COMPONENT_GROUPS), playground-driven props on one line
+  (`GroupedProperties.tsx`), HTML layer words (`select/layerNames.ts`). Detail: session log 2026-11-12.
 - **Studio project language (2026-11-05, BACKLOG-user-and-later P3 closed):** project.json `locale` (en-US default,
   vi-VN), Project settings › Language. Canvas and Play through `project/projectLocale.tsx` `LocaleScope` (never around a
   root ZenProvider: Present passes `locale` to ExampleCard's), the phone share, the Figma push (`figmaPackage({ locale })`,

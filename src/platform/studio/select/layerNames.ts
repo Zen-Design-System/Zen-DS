@@ -10,6 +10,17 @@ import type { IconName } from "../../../icons/generated/names";
 
 const SHAPE_LABELS: Readonly<Record<string, string>> = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star", vector: "Vector" };
 
+/**
+ * An HTML element on a docs page (a playground's wrapper, a set's title) in Figma's words: what it is, not its tag
+ * (polish note N8: Layers read "div" and "h2 ×6"). Tags not listed keep their name.
+ */
+const HTML_LABELS: Readonly<Record<string, string>> = {
+  ...Object.fromEntries(["div", "section", "article", "header", "footer", "main", "nav", "aside", "form", "fieldset", "figure", "ul", "ol", "li", "dl", "table", "thead", "tbody", "tr", "td", "th"].map((tag) => [tag, "Frame"])),
+  ...Object.fromEntries(["h1", "h2", "h3", "h4", "h5", "h6"].map((tag) => [tag, "Heading"])),
+  ...Object.fromEntries(["p", "span", "label", "strong", "em", "b", "i", "small", "code", "pre", "dt", "dd", "figcaption", "legend", "blockquote", "kbd"].map((tag) => [tag, "Text"])),
+  img: "Image", picture: "Image", video: "Video", svg: "Vector", a: "Link", button: "Button", input: "Input", textarea: "Input", select: "Input",
+};
+
 /** `name` as the layer shows it, given its props (a Shape's `type`). */
 export function layerName(name: string, props: Record<string, unknown> | null | undefined): string {
   // A page-local component (renderPage marks its main's root and its instances): its name, as Figma lists them.
@@ -19,7 +30,7 @@ export function layerName(name: string, props: Record<string, unknown> | null | 
   if (typeof props?.["data-zen-set-name"] === "string") return props["data-zen-set-name"] as string;
   if (name === "Shape" && props?.type === "boolean") return BOOLEAN_LABELS[String(props.operation ?? "union")] ?? "Union";
   if (name === "Shape") return SHAPE_LABELS[String(props?.type ?? "rectangle")] ?? "Rectangle";
-  return name;
+  return Object.hasOwn(HTML_LABELS, name) ? HTML_LABELS[name] : name;
 }
 
 /**

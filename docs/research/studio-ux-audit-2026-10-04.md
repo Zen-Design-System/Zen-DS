@@ -163,6 +163,11 @@ Inspector "State —" placeholder rgba(0,0,0,0.267) on Surface: 1.92:1 (dark: 3.
 Placeholders are not strictly in SC 1.4.3. "Not set" in Light tone (as Sort/Selected ids already use) reads better.
 
 ### Notes (polish)
+
+> **Re-checked 2026-11-12 on main (2146bf58), after B4 and F0–F10:** N3 was fixed on 2026-10-27 (§2.7) and N10 is moot
+> (Caption 11px is Zen's text style, used across the Studio, as Figma UI3's 11px). The others were still true and are
+> fixed, with a new one, B1: at 1280 × 800 the "?" covered the floating tools' last button. Detail: session log 2026-11-12.
+
 - **N1.** Pages lists 56 components flat, all with the same cube icon (1 distinct icon over 56 rows). Assets already
   groups them (Text, Actions, Navigation, Data display…). Grouping Pages the same way halves the scan.
 - **N2.** The page name appears three times: the toolbar breadcrumb "Components › Button", the board eyebrow

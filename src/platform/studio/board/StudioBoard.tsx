@@ -342,7 +342,8 @@ export function StudioBoard({ parts }: { parts: StudioPageParts }) {
   return (
     <div className="studio-board" data-page={page}>
       <header className="studio-board__title" {...noteModes}>
-        <Text as="p" textStyle="Body/Small/Medium" tone="base">{parts.eyebrow}</Text>
+        {/* The section alone ("Components", not "Components / Button"): the title under it names the page (note N2). */}
+        <Text as="p" textStyle="Body/Small/Medium" tone="base">{parts.eyebrow.split(" / ")[0]}</Text>
         <Heading level={1} textStyle="Heading/1">{parts.title}</Heading>
         <Text textStyle="Body/Base/Regular" tone="base">{parts.description}</Text>
       </header>

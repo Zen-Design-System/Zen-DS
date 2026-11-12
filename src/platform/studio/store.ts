@@ -29,8 +29,19 @@ const defaults: StudioState = {
   undo: [],
   redo: [],
   drawer: null,
-  panels: { left: 272, right: 320, ui: true },
+  // shell/layout.ts PANEL_LIMITS initial (not imported: layout.ts reads this store).
+  panels: { left: 240, right: 320, ui: true },
 };
+
+/**
+ * Saved pane widths. Every browser saved Pages | Layers' old default (272) before 2026-11-12 whether or not it was
+ * resized, so that reads as the new default (polish note N11); a width someone dragged to stays theirs.
+ */
+function savedPanels(saved: Partial<StudioState["panels"]> | undefined): Partial<StudioState["panels"]> {
+  if (!saved) return {};
+  const { left, ...rest } = saved;
+  return { ...rest, ...(left === undefined || left === 272 ? {} : { left }) };
+}
 
 type SessionPart = Pick<StudioState, "page" | "localPage" | "space" | "collection" | "tool" | "selection" | "leftTab" | "inspectorTab" | "frameOverrides" | "undo" | "redo">;
 /** The viewport of each page lives with the preferences (localStorage) since 2026-10-27: a page reopens where it was
@@ -67,7 +78,7 @@ function initialState(): StudioState {
     // chrome's light/dark (chromeTheme) is its own since 2026-10-27 (UX review §2.9): the frames' Mode no longer follows it.
     preview: { ...defaults.preview, theme: prefs.preview?.theme ?? defaults.preview.theme },
     // Panel widths are remembered; Show/Hide UI is not (Figma shows the panels again when the file opens).
-    panels: { ...defaults.panels, ...prefs.panels, ui: true },
+    panels: { ...defaults.panels, ...savedPanels(prefs.panels), ui: true },
     // Undo history (context hunks, see history.ts) keeps at most HISTORY_LIMIT edits each way.
     undo: (session.undo ?? []).slice(-HISTORY_LIMIT),
     redo: (session.redo ?? []).slice(-HISTORY_LIMIT),

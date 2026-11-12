@@ -6,7 +6,7 @@ import { FullScreenBarDivider, FullScreenExit } from "../../PlatformFullScreen";
 import { ChromeScope } from "../shell/ChromeScope";
 import { usePanelLayout } from "../shell/layout";
 import { PreviewModeFields } from "../shell/ModesMenu";
-import { previewSummary, type ModeKey } from "../shell/modes";
+import type { ModeKey } from "../shell/modes";
 import type { StudioPreviewSettings } from "../types";
 import { viewportButton, ViewportFields, type PresentViewport } from "./presentViewport";
 
@@ -29,7 +29,7 @@ type PresentBarProps = {
   onStep?: (delta: -1 | 1, focus: "prev" | "next") => void;
   /** Controls before light/dark (Play's Back and Restart), then a divider. */
   leading?: ReactNode;
-  /** The panel's note on where the modes apply. Default "this presentation only". */
+  /** The panel's note on where the modes apply (the rows show their values: note N7). Default "This presentation only". */
   modesScope?: string;
   /** The presented screen's viewport (presentViewport.tsx: Auto, a device or a typed W × H) and its setter; without
    *  them the bar has no Viewport button. */
@@ -52,7 +52,7 @@ type PresentBarProps = {
  * open a panel below their button (the presented screen's own: the canvas keeps its modes and frame widths). The bar is
  * in the Studio chrome's modes; the caller lays the page out under it (.studio-present__page).
  */
-export function PresentBar({ title, theme, onToggleTheme, modes, onModeChange, onExit, index = 0, count = 0, onStep, leading, modesScope = "this presentation only", viewport = null, onViewportChange, viewportScale = 1, autoWidth = 0, framed, onFramedChange }: PresentBarProps) {
+export function PresentBar({ title, theme, onToggleTheme, modes, onModeChange, onExit, index = 0, count = 0, onStep, leading, modesScope = "This presentation only", viewport = null, onViewportChange, viewportScale = 1, autoWidth = 0, framed, onFramedChange }: PresentBarProps) {
   const { phone } = usePanelLayout();
   const [panelOpen, setPanelOpen] = useState<"modes" | "viewport" | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -120,7 +120,7 @@ export function PresentBar({ title, theme, onToggleTheme, modes, onModeChange, o
     <div ref={panelRef} id={`${id}-panel`} className="studio-present-bar__panel" style={panelStyle} role="dialog" aria-labelledby={`${id}-title`}>
       <div className="studio-modes__head">
         <Text as="p" id={`${id}-title`} textStyle="Body/Small/Bold">Preview modes</Text>
-        <Text as="p" textStyle="Caption/Regular" tone="light">{previewSummary(modes)} · {modesScope}</Text>
+        <Text as="p" textStyle="Caption/Regular" tone="light">{modesScope}</Text>
       </div>
       <PreviewModeFields idPrefix={id} keys={PANEL_MODES} values={modes} onChange={onModeChange} />
     </div>

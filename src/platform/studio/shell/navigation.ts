@@ -2,6 +2,8 @@ import type { IconName } from "../../../components/Icon";
 import { collections } from "../../../foundations/collections";
 import { componentNavigation, pageLabels } from "../../PlatformApp";
 import type { PlatformPage } from "../../PlatformExamples";
+import { GROUP_ICON } from "../builder/library/catalog";
+import { PALETTE_GROUPS, type PaletteGroup } from "../slots/palette";
 import { studioStore } from "../store";
 
 /* Routing and the page list of Zen Studio: the classic PlatformApp's URL scheme (?page=…&collection=…), its labels and
@@ -71,10 +73,37 @@ export function pageSections(): PageNavSection[] {
       { id: "typography", label: "Typography", page: "typography", icon: "icon-type-01-line" },
       { id: "iconography", label: "Iconography", page: "iconography", icon: "icon-bezier-curve-02-line" },
     ] },
-    { id: "components", label: "Components", items: componentNavigation
-      .map(({ id, label }) => ({ id, label, page: id, icon: "icon-cube-line" as IconName }))
-      .sort((left, right) => left.label.localeCompare(right.label)) },
+    ...componentSections(),
   ];
+}
+
+/**
+ * The component pages in the Assets tab's groups, with their icons (polish note N1: 68 rows under one "Components"
+ * label, all with the same cube). A page with no group here (a page added later) lists under "More components".
+ */
+const COMPONENT_GROUPS: Readonly<Record<PaletteGroup, readonly string[]>> = {
+  Text: ["text", "visually-hidden"],
+  Actions: ["button", "link", "menu"],
+  Navigation: ["breadcrumbs", "pagination", "segmented", "stepper", "tabs"],
+  "Data display": ["avatar", "badge", "calendar", "card", "description-list", "dock-icon", "image", "list-item", "metric", "progress", "schedule", "sheet-table", "table", "tag", "timeline"],
+  Charts: ["chart", "curve-preview"],
+  Widgets: ["widgets"],
+  Feedback: ["alert-banner", "empty-state", "inline-message", "skeleton", "toast"],
+  Inputs: ["checkbox", "chip", "color-picker", "color-selector", "date-picker", "form", "input", "radio-button", "rating", "search", "slider", "slider-field", "toggle", "uploader"],
+  Overlays: ["bottom-sheet", "dialog", "popover", "side-panel", "tooltip"],
+  Layout: ["accordion", "divider", "layout", "shape"],
+  Page: ["action-bar", "app-shell", "bottom-navigation", "dashboard-header", "page-header", "sidebar", "templates", "top-navigation"],
+  Chat: ["ai-chat", "ai-ui", "chat", "voice"],
+};
+
+function componentSections(): PageNavSection[] {
+  const groupOf = new Map(PALETTE_GROUPS.flatMap((group) => COMPONENT_GROUPS[group].map((id) => [id, group] as const)));
+  const itemsOf = (group: PaletteGroup | null) => componentNavigation
+    .filter(({ id }) => (groupOf.get(id) ?? null) === group)
+    .map(({ id, label }) => ({ id, label, page: id, icon: group ? GROUP_ICON[group] : ("icon-cube-line" as IconName) }))
+    .sort((left, right) => left.label.localeCompare(right.label));
+  const sections = PALETTE_GROUPS.map((group) => ({ id: `components-${group.toLowerCase().replace(/\s+/g, "-")}`, label: group as string, items: itemsOf(group) }));
+  return [...sections, { id: "components-more", label: "More components", items: itemsOf(null) }].filter((section) => section.items.length);
 }
 
 /** Case- and accent-insensitive text for matching ("Tokens", "tokens", "Tóken" all match "token"). */

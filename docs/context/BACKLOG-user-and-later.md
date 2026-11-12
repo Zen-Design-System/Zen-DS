@@ -38,8 +38,6 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   approved on its own. Still to answer when it starts: web strategy (§8.1; proposed A, native Vue/Svelte on the shared
   CSS), the dropdown meanwhile (§8.4; proposed: all six with honest states), example snippets as the render's source
   (§8.3; proposed). Examples get every language too (user, 2026-10-03). Nothing built.
-- **P3 · Studio UX polish N1–N11 — deferred by the user 2026-10-08 ("để sau"):** `docs/research/studio-ux-audit-2026-10-04.md`.
-  Written before the UI3 shell (#63) and F0–F10, so re-check each note in the Studio UI design check (next phase).
 - **ListItem Value in Figma — decided, not built (user, 2026-10-23: "not now"; 2026-10-13: "code first"):** code has
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user

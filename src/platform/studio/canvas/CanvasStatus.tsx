@@ -1,6 +1,7 @@
 import { IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
+import { modKey } from "../shell/modKey";
 import { openShortcuts } from "../shell/shortcutsOpen";
 import { ZoomMenu } from "./ZoomControls";
 import { ChromeScope } from "../shell/ChromeScope";
@@ -12,7 +13,8 @@ export const CANVAS_STATUS_ID = "studio-canvas-status";
 
 /** What the tool does, in Figma's words, short (the details are in Keyboard shortcuts). */
 const hints: Record<StudioTool, string> = {
-  select: "Move V · click to select, ⌘-click inside a frame, drag to move, ⌥-drag to duplicate",
+  // The modifier as Keyboard shortcuts writes it on this platform (⌘ on a Mac, Ctrl elsewhere; note N9).
+  select: `Move V · click to select, ${modKey === "⌘" ? "⌘" : "Ctrl"}-click inside a frame, drag to move, ⌥-drag to duplicate`,
   interact: "Interact · try the components · V for Move",
   hand: "Hand H · drag to pan",
   scale: "Scale K · drag a corner, or type a scale in the right panel · Zen steps stay · V for Move",
@@ -39,10 +41,11 @@ const hints: Record<StudioTool, string> = {
  * shortcuts. The tip also describes the canvas
  * (aria-describedby) for screen-reader users, so its text stays in the DOM, visually hidden.
  */
-export function CanvasStatus() {
+/** `raised`: no room beside the tools at the bottom (CanvasChrome), so the corner sits at the canvas's top-right. */
+export function CanvasStatus({ raised = false }: { raised?: boolean }) {
   const tool = useStudio((state) => state.tool);
   return (
-    <ChromeScope className="studio-status" data-tool={tool}>
+    <ChromeScope className="studio-status" data-tool={tool} data-raised={raised || undefined}>
       <VisuallyHidden id={CANVAS_STATUS_ID}>{hints[tool]}</VisuallyHidden>
       <IconButton appearance="main" level="tertiary" size="sm" aria-label="Help and keyboard shortcuts" aria-keyshortcuts="Shift+?" tooltip={hints[tool]} icon={<Icon name="icon-help-circle-line" />} onClick={openShortcuts} />
       <ZoomMenu />

@@ -28,11 +28,12 @@ export function ShortcutsDialog() {
   const onOpenChange = setShortcutsOpen;
   return (
     <Dialog open={open} onOpenChange={onOpenChange} title="Keyboard shortcuts" icon={false} className="studio-shortcuts" primaryAction={{ label: "Close" }}>
+      {/* Columns of about 250px (shell.css): each row stays one line, action then keys (stackBelow 0). */}
       <div className="studio-shortcuts__groups">
         {groups.map((group) => (
           <section key={group.label} className="studio-shortcuts__group" aria-label={group.label}>
             <Text as="p" textStyle="Body/Small/Bold" tone="base">{group.label}</Text>
-            <DescriptionList items={group.rows.map(([action, keys]) => ({ term: action, description: <kbd className={`studio-kbd ${typographyStyles["Body/Code/Regular"]}`}>{keys}</kbd> }))} />
+            <DescriptionList stackBelow={0} items={group.rows.map(([action, keys]) => ({ term: action, description: <kbd className={`studio-kbd ${typographyStyles["Body/Code/Regular"]}`}>{keys}</kbd> }))} />
           </section>
         ))}
       </div>

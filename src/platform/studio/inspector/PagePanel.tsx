@@ -5,7 +5,6 @@ import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Heading } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
-import { pageLabels } from "../../PlatformApp";
 import type { PlatformPage } from "../../PlatformExamples";
 import { previewModeDefinitions, previewValueLabel } from "../shell/modes";
 import { useStudio } from "../store";
@@ -107,7 +106,8 @@ export function PagePanel() {
       {/* One Page section (UX review 2026-10-27 §2.10: a header block and a "Page" section both named the page). A page
           you made is named in it as you work (user, 2026-10-09: no title to give when it is made), where it is kept is
           its note. Export (GĐ5: the page as React code or its design file) is the top bar's primary action since 2026-11-01. A docs page has
-          no fields: it keeps the header block alone. The section's title is the panel's h2 (the subject with nothing
+          no fields: it keeps a header block that says "Page" alone, as Figma's panel does (the top bar and the board's
+          title name it already; polish note N2). The section's title is the panel's h2 (the subject with nothing
           selected), the sections after it h3, as with a layer's name. */}
       {localPage && builderPage ? (
         <InspectorSection
@@ -125,11 +125,15 @@ export function PagePanel() {
           <InspectorFields name="project" labels={["Project"]} fields={[<PageProject key="project" id={localPage} />]}
             icon={project ? <IconButton icon="icon-settings-01-line" aria-label={`${project.name} settings`} tooltip="Project settings" appearance="flat" level="secondary" size="xs" onClick={() => openProjectSetup({ kind: "edit", id: project.id })} /> : null} />
         </InspectorSection>
-      ) : (
+      ) : localPage ? (
         <header className="studio-inspector__head-block">
           <p className={`studio-inspector__eyebrow ${typographyStyles["Body/Small/Medium"]}`}>Page</p>
-          <Heading level={2} textStyle="Body/Small/Bold">{localPage ? builderPage?.title ?? localPage : pageLabels[page] ?? page}</Heading>
+          <Heading level={2} textStyle="Body/Small/Bold">{builderPage?.title ?? localPage}</Heading>
           {description ? <p className={`studio-inspector__description ${typographyStyles["Body/Small/Regular"]}`}>{description}</p> : null}
+        </header>
+      ) : (
+        <header className="studio-inspector__head-block">
+          <Heading level={2} textStyle="Body/Small/Bold">Page</Heading>
         </header>
       )}
       {/* Figma's right panel with nothing selected: Local variables opens the Variables window (the Zen tokens). */}
