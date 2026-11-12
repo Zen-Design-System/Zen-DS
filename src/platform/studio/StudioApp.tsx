@@ -16,7 +16,7 @@ import { CanvasChrome } from "./canvas/CanvasChrome";
 import { StudioCanvas } from "./canvas/StudioCanvas";
 import { canvasApi, zoomIn, zoomOut } from "./canvas/viewport";
 import { zoomToSelection } from "./canvas/zoomToSelection";
-import { CodeView } from "./code/CodeView";
+import { SnippetCode } from "../code/SnippetCode";
 import { detachSelection } from "./inspector/detach";
 import { DetachDialog } from "./inspector/DetachAction";
 import { ExportDialog } from "./builder/export/ExportDialog";
@@ -239,7 +239,7 @@ export function StudioApp() {
   const activePanel = selection?.kind === "node" ? selection.panelId : playgroundSelected ? lastPanel : null;
 
   const renderComponentPage = useCallback((parts: StudioPageParts) => <StudioBoard parts={parts} />, []);
-  const renderCode = useCallback((code: string) => <CodeView code={code} language="tsx" />, []);
+  const renderCode = useCallback((code: string) => <SnippetCode code={code} />, []);
   useEffect(() => { setStudioActivePanel(activePanel); }, [activePanel]);
   useEffect(() => () => setStudioActivePanel(null), []);
   const bridge = useMemo<StudioBridge>(() => ({ renderComponentPage, renderCode, controlsSlot, codeSlot }), [renderComponentPage, renderCode, controlsSlot, codeSlot]);

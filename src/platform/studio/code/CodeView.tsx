@@ -29,6 +29,13 @@ export type CodeViewProps = {
    * when there is none, so every code view names its language.
    */
   title?: ReactNode;
+  /** Takes the language badge's place: the docs snippet's language picker (code/SnippetCode). */
+  languageControl?: ReactNode;
+  /**
+   * Shown instead of the code, with the header kept and Wrap and Copy left out: the snippet is not available in the
+   * picked language. Give the view a new `key` when it switches between code and notice.
+   */
+  notice?: ReactNode;
   actions?: ReactNode;
   maxHeight?: number | string;
   /**
@@ -96,6 +103,8 @@ export function CodeView({
   changes = null,
   scrollToLine = null,
   title: titleProp,
+  languageControl,
+  notice,
   actions,
   maxHeight,
   wrap: wrapProp,
@@ -343,10 +352,10 @@ export function CodeView({
     <div className={["studio-code", wrap && "studio-code--wrap", !wrap && scrolledX && "studio-code--scrolled-x", className].filter(Boolean).join(" ")} data-theme="dark" style={style}>
       <div className="studio-code__header">
         {titleProp ? <div className={`studio-code__title ${typographyStyles["Caption/Medium"]}`}>{titleProp}</div> : null}
-        <CodeLanguageBadge language={language} />
+        {languageControl ?? <CodeLanguageBadge language={language} />}
         <div className="studio-code__actions">
           {actions}
-          {toolbar ? (
+          {toolbar && !notice ? (
             <>
               {/* zen-allow-secondary: pressed state of a toolbar toggle (Wrap on). */}
               <IconButton size="xs" level={wrap ? "secondary" : "tertiary"} icon="icon-corner-down-left-line" aria-label="Wrap lines" aria-pressed={wrap} onClick={toggleWrap} />
@@ -356,6 +365,7 @@ export function CodeView({
         </div>
         <VisuallyHidden role="status">{copied ? "Copied to the clipboard" : ""}</VisuallyHidden>
       </div>
+      {notice ? <div className={`studio-code__notice ${typographyStyles["Body/Small/Regular"]}`}>{notice}</div> : (
       <div
         ref={scrollerRef}
         className={`studio-code__scroller ${typographyStyles["Body/Code/Regular"]}`}
@@ -399,6 +409,7 @@ export function CodeView({
           ) : null}
         </div>
       </div>
+      )}
     </div>
   );
 }

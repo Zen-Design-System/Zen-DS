@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { playwright } from "@vitest/browser-playwright";
@@ -9,10 +10,13 @@ import { playwright } from "@vitest/browser-playwright";
 //   ZEN_UPDATE_AXE=1 npm test -- tests/smoke   rewrite tests/smoke/axe-baseline.json from the current results
 export default defineConfig({
   plugins: [react()],
+  // The docs' templates import the package by name (src/templates/*); suites that render the docs pages
+  // (code-languages) reach them. Same alias as vite.config.ts, or Vite's dependency scan fails and reloads mid-run.
+  resolve: { alias: { "@zen-ds/react": fileURLToPath(new URL("./src/index.ts", import.meta.url)) } },
   define: { __ZEN_UPDATE_AXE__: JSON.stringify(process.env.ZEN_UPDATE_AXE === "1") },
   // Pre-bundle what the suites import late (Studio's PocketBase client, react-dom/client): found mid-run, Vite re-optimizes
   // and reloads the page, and the test file loading at that moment fails to import (CI on #53, 2026-10-14).
-  optimizeDeps: { include: ["pocketbase", "react-dom/client"] },
+  optimizeDeps: { include: ["pocketbase", "react-dom/client", "@babel/parser"] },
   test: {
     include: ["tests/**/*.test.{ts,tsx}"],
     setupFiles: ["tests/setup.ts"],

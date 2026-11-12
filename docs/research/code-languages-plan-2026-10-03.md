@@ -1,7 +1,7 @@
 # Code view in other languages: Vue, Svelte, HTML, Swift, Flutter (plan, 2026-10-03)
 
-Status: **plan only, waiting for the user's decisions (§8)**. Nothing is built. Each phase in §6 needs its own approval
-(Scope lock).
+Status: **P1 and P2 approved (user, 2026-11-12: "Code view: HTML/CSS"); §8 answered the same day.** P1 (the Code view
+base) is built: see §9. P2 (HTML + CSS) follows as its own PR. P2b–P9 still need their own approval (Scope lock).
 
 ## 1. Where we are
 
@@ -251,15 +251,36 @@ with a note for the rest. Every other language says plainly what is missing.
 
 ## 8. Decisions for the user
 
-1. **Web strategy:**
+1. **Web strategy:** **Decided 2026-11-12: (A).**
    - **(A) Native Vue/Svelte ports on the shared CSS + DOM parity (recommended).**
    - (B) Web Components that wrap the React components. One package then serves Vue, Svelte, Angular and plain HTML,
      with exactly the same behaviour. The cost: it ships the React runtime (~45 kB gzip), offers no SSR, and props that
      take React nodes need mapping.
    - (C) Drop Vue and Svelte, and offer only HTML for the web.
-2. **Which languages, and in what order.** The dropdown has five. Suggested order: HTML → Vue → Swift/Flutter for the
-   phone set → Svelte. It depends on what your clients use.
+2. **Which languages, and in what order.** **Decided 2026-10-08:** HTML/CSS → Vue → Swift → Flutter → Svelte.
 3. ~~Examples: React only, or translate the pure-JSX ones.~~ **Decided 2026-10-03:** examples get every language (§4,
-   phase P2b). Still open: should the snippet become the source of the render (`*.example.tsx` + `?raw`), or stay a
-   string checked by the compile gate?
-4. **The dropdown until then:** keep all six with honest states (recommended), or list only the ready languages.
+   phase P2b). **Decided 2026-11-12:** the snippet becomes the source of the render (`*.example.tsx` + `?raw`), so
+   snippet and render cannot differ (P2b).
+4. **The dropdown until then:** **Decided 2026-11-12:** all six, each with its honest state.
+
+## 9. P1 as built (2026-11-13)
+
+- **Where the plan's "Where we are" had moved on:** the classic docs already rendered the Studio's `CodeView` (one
+  highlighter, `studio/code/tokenize.ts`, with `html`), and the "Coming Soon" picker was gone (no picker at all). So P1
+  added the picker; the Vue/Svelte/Swift/Dart scanners come with their emitters (P3+), when there is code to colour.
+- **Picker:** `src/platform/code/SnippetCode.tsx`, a `SelectField` (sm) in place of the language badge, in the classic
+  docs (`PlatformCode`, playgrounds and examples) and in Zen Studio (the playground's and the example's Code tab). All
+  six languages, each with its state for the snippet ("Not yet", later "Markup only"). The choice is one per viewer
+  (`code/preference.ts`: localStorage `zen-docs:code-language`, every tab) and in the address (`?code=vue`).
+- **Not ready:** the code area says "Vue isn't available for Button yet." and "React is available." with a link to the
+  Installation page's Languages section (`code/LanguagesSection.tsx`: per language, then per component in an
+  Accordion). Wrap and Copy leave.
+- **Status manifest:** `src/platform/code-languages.generated.json`, built with the guidelines
+  (`tools/code-languages/manifest.mjs`; `guidelines:check` fails when stale). A language lists its components in
+  `platforms/<language>/code-language.json` (`ready`, `markup`); none exists yet, so only React is ready.
+- **Parser:** `src/platform/code/snippet.ts` reads a snippet (a module, imports + bare or sibling tags, imports +
+  statements + markup) into `{ imports, elements, statements }`, props as string · number · boolean · enum · icon ·
+  node · handler · expression (enum and icon from the props docs). `tests/interaction/code-languages.test.tsx` reads
+  every playground's code at its default state: 75/75 on 68 pages (the plan's 44 were PlatformCode call sites). Three
+  were not valid TSX and were fixed: ColorSelector and Table had a `…` placeholder, Calendar a comment after its tags. Example `code:` strings: 422 of 458 read; the rest are excerpts with
+  `…`, pseudo-code or CSS beside the TSX, which P2b rewrites as complete components.
