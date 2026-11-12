@@ -30,11 +30,6 @@ export const previewModeLabel = (key: ModeKey) => previewModeDefinitions.find((m
 /** "Compact": the label of a mode's value. */
 export const previewValueLabel = (key: ModeKey, value: string) => previewModeDefinitions.find((mode) => mode.key === key)?.values.find((option) => option.id === value)?.label ?? value;
 
-/** "Light · Neutral-S1 · Compact": the toolbar summary of the current modes. */
-export function previewSummary(preview: StudioPreviewSettings) {
-  return (["theme", "componentTheme", "density"] as const).map((key) => previewValueLabel(key, preview[key])).join(" · ");
-}
-
 /**
  * Light or dark for the Studio's own panels and chrome (Zen Studio menu › Dark mode, Quick actions), as Figma's theme
  * setting: the frames keep the Mode chosen in Preview modes (user, 2026-10-27, UX review §2.9; before that the canvas's

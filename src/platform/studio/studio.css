@@ -14,7 +14,7 @@
   --studio-edge: var(--zen-spacing-padding-xsmall, 8px);
   /* zen-allow-slot-size: the top bar's height (its 32px controls and Spacing/Padding/XSmall above and below). */
   --studio-top: 48px;
-  --studio-left-width: 272px;
+  --studio-left-width: 240px;
   --studio-right-width: 320px;
   /* zen-allow-slot-size: a docked Inspector never squeezes the visible canvas below 360px (it stops at its 280px minimum). */
   --studio-right-column: min(var(--studio-right-width), max(280px, calc(100vw - var(--studio-left-width) - 360px)));

@@ -18,6 +18,7 @@ function check(label, actual, expected) {
 check("heading: a frame is Frame, a group Group (Figma UI3)", [panelTitle("Box", {}), panelTitle("Stack", { direction: "row" }), panelTitle("Grid", {}), panelTitle("Box", { group: true })], ["Frame", "Frame", "Frame", "Group"]);
 check("heading: a shape as drawn, a component by its name", [panelTitle("Shape", { type: "ellipse" }), panelTitle("Button", {}), panelTitle("Box", { "data-zen-main-name": "Card A" })], ["Ellipse", "Button", "Card A"]);
 check("Layers keep the code name", [layerName("Box", {}), layerName("Stack", {}), layerName("Box", { group: true })], ["Box", "Stack", "Box"]);
+check("an HTML element reads as what it is (note N8), an unknown tag as itself", [layerName("div", {}), layerName("h2", {}), layerName("span", {}), layerName("img", {}), layerName("marquee", {}), panelTitle("div", {})], ["Frame", "Heading", "Text", "Image", "marquee", "Frame"]);
 
 check("instance look: Zen components that forward style; not frames or Shape", [takesInstanceLook("Button"), takesInstanceLook("Card"), takesInstanceLook("Stack"), takesInstanceLook("Shape"), takesInstanceLook("Avatar")], [true, true, false, false, false]);
 check("instance look: percent → CSS opacity, blend → mix-blend-mode", instanceLookStyle({ opacity: 40, blendMode: "multiply" }), { opacity: 0.4, mixBlendMode: "multiply" });

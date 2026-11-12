@@ -13,8 +13,10 @@ export const NARROW_QUERY = "(max-width: 1023.98px)";
 /** A phone: the toolbar keeps Panels, the tools, Modes (icon), the drafts and Inspector; the rest moves to the brand menu. */
 export const PHONE_QUERY = "(max-width: 599.98px)";
 
+/** Pages | Layers starts at 240, as Figma UI3's (polish note N11: at 272 the canvas at 1280px was narrower than at 1024px,
+ *  where it is a drawer). The Inspector keeps 320: its two field columns cut short values at 280 (panel grid rule). */
 export const PANEL_LIMITS = {
-  left: { min: 220, max: 400, initial: 272 },
+  left: { min: 220, max: 400, initial: 240 },
   right: { min: 280, max: 720, initial: 320 },
 } as const;
 /** The Inspector's width while the code view is expanded ("zen-studio:expand-code"). */

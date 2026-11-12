@@ -189,13 +189,25 @@
   min-width: 0;
 }
 
+/* "src/plat…PlatformExamples.tsx": the folder shrinks first (its end gives way), the file's name only once it is gone. */
 .studio-source__path {
+  display: flex;
+  min-width: 0;
+  white-space: nowrap;
+}
+.studio-source__dir,
+.studio-source__file {
   min-width: 0;
   overflow: hidden;
-  direction: rtl;
-  text-align: left;
-  white-space: nowrap;
   text-overflow: ellipsis;
+}
+.studio-source__dir { flex: 0 1000 auto; }
+.studio-source__file { flex: 0 1 auto; }
+/* An Inspector under 400px leaves the path no room beside the language and the actions (280px: about 40px): it takes the
+   header's first row, the language and the actions the second. */
+@container studio-right (max-width: 399.98px) {
+  .studio-source .studio-code__header { flex-wrap: wrap; row-gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+  .studio-source .studio-code__title { flex-basis: 100%; }
 }
 
 .studio-source__range { flex: none; color: var(--zen-color-content-neutral-light); }

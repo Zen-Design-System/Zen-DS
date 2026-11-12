@@ -183,9 +183,15 @@
 .studio-drafts__stale { display: block; }
 .studio-drafts__actions { display: flex; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); padding-top: var(--zen-spacing-padding-2-xsmall, 4px); }
 
-/* ── Keyboard shortcuts dialog ── */
-.studio-shortcuts__groups { display: grid; gap: var(--zen-spacing-gap-large, 24px); }
-.studio-shortcuts__group { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+/* ── Keyboard shortcuts dialog ──
+   Polish note N6: 79 rows in one 440px column, and Close (focused on open) scrolled the title away. The groups run in up
+   to four columns, and the list scrolls between the title and Close, which stay in view. */
+.zen-dialog.studio-shortcuts { width: min(1120px, 100%); }
+.studio-shortcuts .zen-dialog__custom { min-height: 0; overflow-y: auto; }
+.studio-shortcuts__groups { columns: 4 240px; column-gap: var(--zen-spacing-gap-large, 24px); }
+.studio-shortcuts__group { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin-bottom: var(--zen-spacing-gap-large, 24px); break-inside: avoid; }
+/* Four keys in a row (Union · subtract · intersect · exclude) wrap inside the column instead of running out of it. */
+.studio-shortcuts .studio-kbd { max-width: 100%; white-space: normal; }
 .studio-shortcuts__group > p { margin: 0; }
 .studio-kbd {
   display: inline-flex;

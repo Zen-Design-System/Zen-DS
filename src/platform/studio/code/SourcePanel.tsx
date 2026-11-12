@@ -88,9 +88,14 @@ export function SourcePanel({ file, highlight = null, maxHeight, className, expa
 
   const range = highlight ? (highlight.from === highlight.to ? `L${highlight.from}` : `L${highlight.from}–${highlight.to}`) : null;
   const stale = Boolean(source?.draft && source.diskHash !== undefined && source.baseHash !== undefined && source.diskHash !== source.baseHash);
+  // The folder gives way before the file's name (middle truncation, note N5: "…les.tsx" lost the name); hover shows it all.
+  const slash = file.lastIndexOf("/") + 1;
   const title = (
     <span className="studio-source__title">
-      <span className="studio-source__path"><bdi>{file}</bdi></span>
+      <span className="studio-source__path" title={file}>
+        {slash ? <span className="studio-source__dir">{file.slice(0, slash)}</span> : null}
+        <span className="studio-source__file">{file.slice(slash)}</span>
+      </span>
       {source?.draft ? (
         <Badge
           className="studio-source__draft"

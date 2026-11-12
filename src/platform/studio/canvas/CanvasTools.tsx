@@ -182,7 +182,8 @@ function PenTools({ tool, off }: { tool: StudioTool; off: boolean }) {
  * then Move again); Comment C (a page you made: comments/CommentsLayer.tsx); Assets
  * (⇧I, Quick insert: components, icons, photos); Interact.
  */
-export function CanvasTools() {
+/** `atStart`: the canvas is too narrow for the tools centred beside the corner (CanvasChrome): they start at its left edge. */
+export function CanvasTools({ atStart = false }: { atStart?: boolean }) {
   const tool = useStudio((state) => state.tool);
   const localPage = useStudio((state) => state.localPage);
   const phone = useMedia(PHONE_QUERY);
@@ -215,7 +216,7 @@ export function CanvasTools() {
   // Pictures dropped from the computer onto a frame (F8: canvas/fileDrop.ts).
   useEffect(() => installFileDrop(localPage), [localPage]);
   return (
-    <ChromeScope className="studio-canvas-tools" role="toolbar" aria-label="Tools" data-compact={phone || undefined}>
+    <ChromeScope className="studio-canvas-tools" role="toolbar" aria-label="Tools" data-compact={phone || undefined} data-at-start={atStart || undefined}>
       {phone ? <CompactTools tool={tool} localPage={localPage} /> : <FullTools tool={tool} localPage={localPage} />}
     </ChromeScope>
   );

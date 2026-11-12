@@ -127,8 +127,7 @@ function ButtonSetPlayground({ title, appearance, iconOnly, levels, sizes }: { t
   const [trailing, setTrailing] = useState(false);
   const headingId = `button-${iconOnly ? "icon-" : ""}${appearance}-heading`;
   const code = iconOnly
-    ? `import { IconButton } from "@zen-ds/react";
-import { Icon } from "@zen-ds/react";
+    ? `import { Icon, IconButton } from "@zen-ds/react";
 
 <IconButton
   appearance="${appearance}"
@@ -138,9 +137,7 @@ import { Icon } from "@zen-ds/react";
   aria-label="Add"
   icon={<Icon name="icon-plus-line" decorative />}
 />`
-    : `import { Button } from "@zen-ds/react";
-import { Icon } from "@zen-ds/react";
-
+    : `import { Button, Icon } from "@zen-ds/react";
 
 <Button
   appearance="${appearance}"
@@ -1322,8 +1319,7 @@ import { Icon } from "@zen-ds/react";` : ""}
   options={options}${popoverLabelOn ? `
   popoverLabel="${popoverSet.title}"` : ""}${popoverSearchOn ? `
   popoverSearch` : ""}
-/>` : `import { Chip } from "@zen-ds/react";
-import { Icon } from "@zen-ds/react";
+/>` : `import { Chip, Icon } from "@zen-ds/react";
 
 // Chip (Advanced) is the trigger; it composes the shared Popover.
 <Chip

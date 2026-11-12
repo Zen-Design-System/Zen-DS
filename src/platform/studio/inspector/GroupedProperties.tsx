@@ -226,9 +226,14 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
     return toggle ? { prop: name, when: [...(toggle.when ?? []), { prop: name, set: true }] } : name;
   })];
 
+  // In a playground its controls set these (Playground properties, above): Properties names them on one line instead of
+  // a read-only row each (polish note N4: the same props twice). The Code tab keeps its rows.
+  const driven = (prop: string) => view === "design" && Boolean(api.boundHint) && ["bound", "spread"].includes(api.valueFor(prop).state);
+
   /** A group's rows: its fields, the list items and objects written in place, the nested Zen instances in its props. */
   const rows = (entries: readonly PropEntry[], key: string) => {
     const shown = entries.filter((entry) => entryShown(entry, props)).map(entryProp);
+    const own = shown.filter((prop) => !driven(prop));
     const warnings = new Map(entries.map((entry) => [entryProp(entry), [...entryWarnings(entry, props), ...idleNotes(component, entryProp(entry), props)]]));
     // A Figma name for the row when the group gives one (generated from the Figma read), read as words ("Leading-Icon-Src"
     // → "Leading icon", UX review 2026-10-27 §6 row 23), else the prop's label.
@@ -236,8 +241,8 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
     // And its options by their Figma names ("Medium (Base)"), in Figma's order; the file still gets the code value.
     const optionNames = new Map(entries.map((entry) => [entryProp(entry), entryOptions(entry)]));
     const defaultIcons = new Map(entries.map((entry) => [entryProp(entry), entryDefaultIcon(entry)]));
-    const fields = shown.filter((prop) => !shapedOf.has(prop)).map(specOf).filter((spec): spec is PropSpec => Boolean(spec));
-    const objects = shown.flatMap((prop) => (shapedOf.has(prop) ? [shapedOf.get(prop)!] : []));
+    const fields = own.filter((prop) => !shapedOf.has(prop)).map(specOf).filter((spec): spec is PropSpec => Boolean(spec));
+    const objects = own.flatMap((prop) => (shapedOf.has(prop) ? [shapedOf.get(prop)!] : []));
     // Without Figma groups the Nested instances section (NestedProperties, DesignPanel) lists them, as before.
     const instances = flat ? [] : nested.items.filter((item) => shown.includes(item.prop));
     return (
@@ -287,7 +292,16 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
   };
 
   if (view === "code") return rows(codeOnly, "code");
-  const toggles = groups.toggles.filter((toggle) => holds(toggle.when, props));
+  const toggles = groups.toggles.filter((toggle) => holds(toggle.when, props) && !driven(toggle.prop));
+  // The props the playground sets, by their Figma words ("Leading icon"), once each.
+  const drivenNames = new Map<string, string>();
+  for (const toggle of groups.toggles) if (holds(toggle.when, props) && driven(toggle.prop) && !drivenNames.has(toggle.prop)) drivenNames.set(toggle.prop, layerLabel(toggle.label));
+  for (const entry of [...groups.own, ...after]) {
+    const prop = entryProp(entry);
+    if (!entryShown(entry, props) || !driven(prop) || drivenNames.has(prop)) continue;
+    const label = entryLabel(entry);
+    drivenNames.set(prop, label === undefined ? propLabel(prop, component) : layerLabel(label));
+  }
   // Content · Look · Behavior · Advanced (propCategories.ts): Figma's variants are looks, its layer booleans content.
   const categoryOf = (entry: PropEntry, hint?: PropHint): PropCategory => {
     const prop = entryProp(entry);
@@ -303,10 +317,11 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
   const afterBy = byCategory(after);
   const groupBlocks = PROP_CATEGORIES.map(({ key, label, open }) => {
     const entries = [...ownBy[key], ...afterBy[key]];
-    const shownEntries = entries.filter((entry) => entryShown(entry, props));
+    const visible = entries.filter((entry) => entryShown(entry, props));
+    const shownEntries = visible.filter((entry) => !driven(entryProp(entry)));
     const groupToggles = key === "content" ? toggles : [];
     const groupText = key === "content" ? text : null;
-    const instances = flat ? [] : nested.items.filter((item) => shownEntries.some((entry) => entryProp(entry) === item.prop));
+    const instances = flat ? [] : nested.items.filter((item) => visible.some((entry) => entryProp(entry) === item.prop));
     if (!shownEntries.length && !groupToggles.length && !groupText && !instances.length) return null;
     // What is written in the source: a folded group's header says how much it holds ("2 set"); it stays folded until
     // opened, so a template's format or sort never lengthens the panel on its own.
@@ -323,7 +338,7 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
     );
   });
   return (
-    <InspectorSection title="Properties" note={note}>
+    <InspectorSection title="Properties" note={note ?? (drivenNames.size ? `Set in Playground properties: ${[...new Set(drivenNames.values())].join(", ")}` : undefined)}>
       {groupBlocks}
       {groups.nested.filter((group) => holds(group.when, props)).map((group) => (
         <div key={group.name} role="group" aria-label={group.name} className="studio-group">
