@@ -1,9 +1,10 @@
-import { useId, useMemo, useState, type HTMLAttributes, type ReactNode } from "react";
+import { useCallback, useId, useMemo, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Chip } from "../../components/Chip";
 import { SelectField } from "../../components/Input";
 import { ToggleButton } from "../../components/Toggle";
 import { typographyStyles } from "../../tokens/typography.generated";
+import { SnippetSpecimenContext } from "../code/specimen";
 import { StudioPanelContext, useStudioBridge, useStudioPanel, useStudioPanelActive } from "../studio/bridge";
 
 /*
@@ -21,7 +22,10 @@ export function ComponentPreview({ children, className = "" }: { children: React
   const id = useId();
   const active = useStudioPanelActive(id) && Boolean(studio);
   const panel = useMemo(() => studio ? { id, active, controlsSlot: studio.controlsSlot, codeSlot: studio.codeSlot } : null, [studio, id, active]);
-  const preview = <div className={`platform-component-preview ${className}`.trim()} data-studio-panel={panel ? id : undefined} data-studio-active={active ? "true" : undefined}>{children}</div>;
+  // The playground's code reads its HTML snippet from the preview row (the specimen).
+  const ref = useRef<HTMLDivElement>(null);
+  const specimen = useCallback(() => ref.current?.querySelector(".platform-example-row") ?? null, []);
+  const preview = <div ref={ref} className={`platform-component-preview ${className}`.trim()} data-studio-panel={panel ? id : undefined} data-studio-active={active ? "true" : undefined}><SnippetSpecimenContext value={specimen}>{children}</SnippetSpecimenContext></div>;
   return panel ? <StudioPanelContext value={panel}>{preview}</StudioPanelContext> : preview;
 }
 

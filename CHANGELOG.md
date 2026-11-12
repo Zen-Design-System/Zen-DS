@@ -14,6 +14,13 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Docs and Zen Studio: the Code view's HTML shows the markup of the playground or example as rendered, ready to paste
+  into a page that loads `@zen-ds/react/dist/styles.css` (and `reset.css`), with the modes for `<html>` named at the
+  top. 26 stateless components (Button, Badge, Avatar, Divider, ListItem…) draw exactly as in React; the others are
+  "Markup only" (a note says behaviour needs JavaScript); Dialog, BottomSheet, SidePanel and Toast have no HTML yet.
+- Package: `docs/css-contract.json` lists each component's classes, `data-*` values and custom properties, the
+  markup API HTML users rely on. Removing one now needs a "Breaking (markup)" line here (`guidelines:check` fails
+  otherwise). New `npm run html:parity` compares the HTML snippets with React in a plain page.
 - Docs and Zen Studio: every code snippet has a language picker (React, HTML, Vue, Swift, Flutter, Svelte), one choice
   for every snippet, remembered per viewer and kept in the link (`?code=vue`). A language that has no code for the
   snippet yet says so ("Vue isn't available for Button yet. React is available.") instead of showing code, and links to

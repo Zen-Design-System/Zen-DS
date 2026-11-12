@@ -1,9 +1,10 @@
-import { createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { Button, IconButton } from "../components/Button";
 import { Icon } from "../components/Icon";
 import { PopoverBulkAction, PopoverBulkActionDivider, PopoverBulkActionGroup } from "../components/Popover";
 import { ZenProvider } from "../components/Provider";
 import { typographyStyles } from "../tokens/typography.generated";
+import { SnippetSpecimenContext } from "./code/specimen";
 import { PlatformCode } from "./PlatformCode";
 import type { PlatformPage } from "./PlatformExamples";
 import { PlatformTypographyContext } from "./PlatformTemplate";
@@ -38,6 +39,9 @@ export function ExampleCard({ title, description, code, wide, screen, bare, pres
   const exitRef = useRef<HTMLButtonElement>(null);
   const { fullScreen, enter, exit } = useFullScreen(openRef, exitRef, ".pe-card");
   const titleId = useId();
+  // The card's code reads its HTML snippet from the stage (the specimen).
+  const previewRef = useRef<HTMLDivElement>(null);
+  const specimen = useCallback(() => previewRef.current, []);
   return (
     <ExampleCardThemeContext.Provider value={setTheme}>
     {/* Scoped modes through the public ZenProvider (dogfood): the card's own light/dark switch, no paint, and no portal
@@ -62,8 +66,8 @@ export function ExampleCard({ title, description, code, wide, screen, bare, pres
           {onClose ? <Button ref={closeRef} appearance="main" level="tertiary" size="xs" startIcon={<Icon name="icon-x-line" decorative />} onClick={onClose}>Close</Button> : null}
         </div>}
       </header>}
-      <div className="pe-card__stage" data-typography={previewTypography}><div className="pe-card__preview">{children}</div></div>
-      {showCode && !fullScreen && !bare ? <div className="pe-card__code"><PlatformCode code={code} /></div> : null}
+      <div className="pe-card__stage" data-typography={previewTypography}><div ref={previewRef} className="pe-card__preview">{children}</div></div>
+      {showCode && !fullScreen && !bare ? <div className="pe-card__code"><SnippetSpecimenContext value={specimen}><PlatformCode code={code} /></SnippetSpecimenContext></div> : null}
       {fullScreen ? <FullScreenBar title={title} exitRef={exitRef} onExit={exit} /> : null}
     </ZenProvider>
     </ExampleCardThemeContext.Provider>

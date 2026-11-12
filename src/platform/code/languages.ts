@@ -49,10 +49,13 @@ export function componentsIn(code: string): string[] {
 
 export type SnippetLanguageStatus = { status: CodeLanguageStatus; /** The snippet's components not available in it. */ missing: string[] };
 
+/** The snippet does something when used: an event handler or a hook (state, effects, Zen's useToast…). */
+const interactive = (code: string) => /\bon[A-Z]\w*=\{|\buse[A-Z]\w*\(/.test(code);
+
 /**
  * What `language` can show for a snippet: ready when all its components are, markup when the weakest is markup,
  * else not-yet with the missing components. A snippet without library components (a setup file) follows the
- * language as a whole: ready only for React.
+ * language as a whole: ready only for React. HTML is static markup, so an interactive snippet is markup there.
  */
 export function snippetStatus(code: string, language: CodeLanguageId): SnippetLanguageStatus {
   if (language === "react") return { status: "ready", missing: [] };
@@ -60,7 +63,8 @@ export function snippetStatus(code: string, language: CodeLanguageId): SnippetLa
   if (!used.length) return { status: "not-yet", missing: [] };
   const missing = used.filter((name) => components[name][language] === "not-yet");
   if (missing.length) return { status: "not-yet", missing };
-  return { status: used.some((name) => components[name][language] === "markup") ? "markup" : "ready", missing: [] };
+  const markup = used.some((name) => components[name][language] === "markup") || (language === "html" && interactive(code));
+  return { status: markup ? "markup" : "ready", missing: [] };
 }
 
 /** How many components each language has, for the Languages table. */

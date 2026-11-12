@@ -67,7 +67,7 @@ export function CodePanel({ selection, codeSlot, properties }: { selection: Stud
       ) : null}
       {!inPlayground && example ? (
         <InspectorSection title="Example code">
-          <SnippetCode code={example.code} maxHeight={320} />
+          <SnippetCode code={example.code} maxHeight={320} specimen={() => (frameId ? document.querySelector(`[data-studio-frame="${CSS.escape(frameId)}"] .pe-card__preview`) : null)} />
         </InspectorSection>
       ) : null}
       {selection.kind === "frame" && !inPlayground && !example ? (

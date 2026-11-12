@@ -1569,7 +1569,7 @@ ${actions ? `
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-progress-preview">
           {isBar ? <ProgressBar value={progressValue} theme={barTheme} layout={barLayout} label={stackedLabel ? "Uploading files" : progressLabel ? true : undefined} aria-label={stackedLabel ? undefined : "Upload progress"} /> : <ProgressCircle value={progressValue} theme={circleTheme} label={progressLabel ? true : undefined} aria-label="Task progress" />}
-          <div className="pe-row">
+          <div className="pe-row" data-snippet-skip>
             <Button appearance="main" level="tertiary" size="sm" disabled={progressValue === 0} onClick={() => step(-10)}>−10%</Button>
             <Button appearance="main" level="tertiary" size="sm" disabled={progressValue === 100} onClick={() => step(10)}>+10%</Button>
           </div>
@@ -1781,7 +1781,7 @@ ${code}`} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-slider-field-preview">
           <SliderField label="Overlay Opacity" value={scrubValue} onValueChange={setScrubValue} min={0} max={1} step={0.01} theme={scrubTheme} size={scrubSize} disabled={scrubDisabled} />
-          <span className={`platform-color-readout ${typographyStyles["Body/Small/Regular"]}`}>{`value = ${scrubValue}`}</span>
+          <span data-snippet-skip className={`platform-color-readout ${typographyStyles["Body/Small/Regular"]}`}>{`value = ${scrubValue}`}</span>
         </div>
         <PlatformCode code={`import { SliderField } from "@zen-ds/react";
 
@@ -1829,7 +1829,7 @@ ${code}`} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-color-picker-preview">
           <ColorField key={pickerFormat} label="Brand colour" value={pickerValue} onValueChange={setPickerValue} layout={pickerLayout} size={pickerSize} pickerFormat={pickerFormat} savedColors={pickerSaved ? palette : undefined} />
-          <span className={`platform-color-readout ${typographyStyles["Body/Small/Regular"]}`}><ColorSwatch color={pickerValue} size="sm" /> {pickerValue}</span>
+          <span data-snippet-skip className={`platform-color-readout ${typographyStyles["Body/Small/Regular"]}`}><ColorSwatch color={pickerValue} size="sm" /> {pickerValue}</span>
         </div>
         <PlatformCode code={`import { ColorField } from "@zen-ds/react";
 
@@ -1853,7 +1853,7 @@ ${code}`} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-color-preview">
           <ColorSelector aria-label="Label colour" colors={colors} value={colorValue} onChange={setColorValue} />
-          <span className={`platform-color-readout ${typographyStyles["Body/Small/Regular"]}`}>{picked?.label}</span>
+          <span data-snippet-skip className={`platform-color-readout ${typographyStyles["Body/Small/Regular"]}`}>{picked?.label}</span>
         </div>
         <PlatformCode code={`import { ColorSelector } from "@zen-ds/react";
 
