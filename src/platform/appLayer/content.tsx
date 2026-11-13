@@ -366,7 +366,7 @@ function VisuallyHiddenPlayground() {
             <VisuallyHidden role="status">{copied ? "Link copied to the clipboard" : ""}</VisuallyHidden>
           </div>
         ) : null}
-        <div className="pac-vh-output" aria-hidden="true">
+        <div className="pac-vh-output" aria-hidden="true" data-snippet-skip>
           <Text as="span" textStyle="Label/Small/Medium" tone="light">What a screen reader announces</Text>
           {output.map((line) => <Text key={line} as="span" textStyle="Body/Small/Regular">{line}</Text>)}
         </div>

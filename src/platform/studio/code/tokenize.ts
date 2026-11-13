@@ -46,7 +46,7 @@ export function tokenize(code: string, language: CodeLanguage = "tsx"): CodeLine
     else if (language === "json") scanJson(code, out);
     else if (language === "bash") scanBash(code, out);
     else if (language === "markdown") scanMarkdown(code, out);
-    else scanScript(code, out, language === "tsx" || language === "html");
+    else scanScript(code, out, language === "tsx" || language === "html", language === "html");
     return toLines(out.tokens);
   } catch {
     return toLines([{ type: "plain", text: code }]);
@@ -152,7 +152,8 @@ function expressionCanStart(prev: Significant) {
   return false;
 }
 
-function scanScript(src: string, out: Output, jsx: boolean) {
+/** `html`: markup read as JSX, plus <!-- comments --> (the docs' HTML snippets). */
+function scanScript(src: string, out: Output, jsx: boolean, html = false) {
   const stack: Frame[] = [{ kind: "code", depth: 0 }];
   const top = () => stack[stack.length - 1];
   const pop = () => {
@@ -166,6 +167,14 @@ function scanScript(src: string, out: Output, jsx: boolean) {
   while (i < n) {
     const frame = top();
     const c = src[i];
+
+    if (html && (frame.kind === "code" || frame.kind === "children") && src.startsWith("<!--", i)) {
+      const end = src.indexOf("-->", i + 4);
+      const j = end < 0 ? n : end + 3;
+      out.push("comment", src.slice(i, j));
+      i = j;
+      continue;
+    }
 
     if (frame.kind === "template") {
       let j = i;

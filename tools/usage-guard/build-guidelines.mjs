@@ -9,6 +9,7 @@ import { rules, setDeprecatedProps } from "./check-usage.mjs";
 import { buildApi, compactProps } from "../../scripts/build-api.mjs";
 import { checkUnions } from "./check-unions.mjs";
 import { codeLanguagesManifest } from "../code-languages/manifest.mjs";
+import { changelogAllowsMarkupBreak, cssContract, removedEntries } from "../code-languages/css-contract.mjs";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const outDir = path.join(root, "docs/guidelines");
@@ -120,6 +121,15 @@ files.set(path.join(root, "src/platform/api.generated.json"), JSON.stringify(Obj
 files.set(path.join(outDir, "index.json"), JSON.stringify(index, null, 2) + "\n");
 // The docs Code view's language status per component (the picker's "Not yet" / "Markup only").
 files.set(path.join(root, "src/platform/code-languages.generated.json"), codeLanguagesManifest(api.bySlug, root));
+// The CSS contract of the HTML snippets: a class, data-* value or custom property that disappears breaks HTML users.
+const contractFile = path.join(root, "docs/css-contract.json");
+const contract = cssContract(root);
+const markupRemoved = removedEntries(fs.existsSync(contractFile) ? JSON.parse(fs.readFileSync(contractFile, "utf8")) : null, contract.data);
+if (markupRemoved.length && !changelogAllowsMarkupBreak(root)) {
+  console.error(`✗ The CSS contract (docs/css-contract.json) lost ${markupRemoved.length} name(s) HTML users may rely on:\n  ${markupRemoved.slice(0, 20).join("\n  ")}${markupRemoved.length > 20 ? `\n  … and ${markupRemoved.length - 20} more` : ""}\nKeep them, or add a "Breaking (markup)" line to CHANGELOG.md's Unreleased section, then npm run guidelines:build.`);
+  process.exit(1);
+}
+files.set(contractFile, contract.text);
 // Platform copy: the component pages render Do/Don't from this file (same source, no drift).
 files.set(path.join(root, "src/platform/guidelines.generated.json"), JSON.stringify(Object.fromEntries(guidelines.map((g) => [g.slug, {
   title: g.title, purpose: g.purpose, use: g.use, avoid: g.avoid, api: g.api, keyboard: keyboard[g.slug] ?? [], do: g.do, dont: g.dont, a11y: g.a11y, content: g.content, refs: g.refs,

@@ -23,7 +23,9 @@ Last updated: 2026-11-13.
   language picker (`src/platform/code/SnippetCode.tsx`): all six languages with honest states, one choice per viewer +
   `?code=`; only React has code. Status per component: `src/platform/code-languages.generated.json` (built with the
   guidelines; a language lists its components in `platforms/<language>/code-language.json`). Parser `code/snippet.ts`
-  (75/75 playground snippets). P2 = HTML + CSS next. Plan §9; session log 2026-11-13.
+  (75/75 playground snippets). P2 (HTML + CSS): HTML from the specimen's DOM (`code/html.ts`, `code/specimen.ts`),
+  26 components ready by `npm run html:parity` (34/34), the rest markup only, `docs/css-contract.json` with a
+  "Breaking (markup)" rule. Plan §9–§10; session log 2026-11-13.
 - **Studio UX polish N1–N11 (2026-11-12, BACKLOG-user-and-later P3 closed):** re-checked on main; N3 fixed earlier, N10
   moot (Caption 11px is Zen's), the rest built with B1 ("?" over the tools at 1280). Pages | Layers starts at 240, the
   Inspector keeps 320 (`shell/layout.ts`; `store.ts` reads a saved 272 as the default), tools/corner placement `canvas/CanvasChrome.tsx`,

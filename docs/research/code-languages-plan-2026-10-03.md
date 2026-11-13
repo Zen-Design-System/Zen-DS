@@ -89,7 +89,7 @@ base) is built: see §9. P2 (HTML + CSS) follows as its own PR. P2b–P9 still n
 - **Interactive components.** HTML shows the markup of the current state, plus a visible note: "Opening, closing and
   keyboard need JavaScript: use React (or the Vue/Svelte package when it is ready)."
 - **The CSS contract.** Once HTML snippets ship, class names become public API. A generated
-  `docs/api/css-contract.json` lists, for each component, the classes, `data-*` attributes and custom properties its
+  `docs/css-contract.json` lists, for each component, the classes, `data-*` attributes and custom properties its
   markup uses. A check fails when one of them disappears without a CHANGELOG `Breaking (markup)` line.
 
 ### C. Web ports: Vue 3 and Svelte 5 (`platforms/vue`, `platforms/svelte`)
@@ -284,3 +284,35 @@ with a note for the rest. Every other language says plainly what is missing.
   every playground's code at its default state: 75/75 on 68 pages (the plan's 44 were PlatformCode call sites). Three
   were not valid TSX and were fixed: ColorSelector and Table had a `…` placeholder, Calendar a comment after its tags. Example `code:` strings: 422 of 458 read; the rest are excerpts with
   `…`, pseudo-code or CSS beside the TSX, which P2b rewrites as complete components.
+
+## 10. P2 as built (2026-11-13)
+
+- **HTML snippet** (`src/platform/code/html.ts`): the specimen's live DOM, written out: only the library's `zen-*`
+  classes (the package styles nothing else), no `data-zen-src` / Studio / audit attributes, React ids renamed after the
+  element's Zen class (`aria-labelledby`, `for`, `href="#…"` follow), fields as they hold (`value`, `checked`), and
+  indentation only where whitespace cannot render (flex, grid, block-in-block, SVG), so the pasted markup draws what
+  React drew. The header links `dist/styles.css` and `dist/reset.css` and names the modes in force for `<html>`
+  (`data-breakpoint="mobile"` from a phone frame included).
+- **Where the specimen is** (`code/specimen.ts`): `ComponentPreview` gives its preview row, `ExampleCard` its stage,
+  the Studio's Code tab the example's frame on the canvas. Docs chrome inside a specimen says so:
+  `data-snippet-skip` (a playground's readout or ±10% buttons, the screen-reader panel) leaves the snippet,
+  `data-snippet-unwrap` (the `PlatformPhone` frame) leaves while its children stay.
+- **Status** (`tools/code-languages/html.json`, written by `html-parity.mjs --write`, read by the manifest): ready = a
+  stateless component (§1) that matched in every playground it appears in (26); markup only = every other component
+  except the overlay surfaces (195); not available = Dialog, BottomSheet, SidePanel, Toast (drawn in the overlay portal,
+  nothing in place). HTML is also markup only for any snippet with a handler or a hook (most examples). Markup only
+  adds a comment line: "opening, closing, typing and keyboard need JavaScript (use React)".
+- **Parity** (`npm run html:parity -- --isolated`, P2's "done"): each top-level element of each stateless playground
+  is screenshotted in React, then the snippet is pasted into a plain page that loads only `dist/styles.css` +
+  `dist/reset.css`, each element in a box at its React place and size (the docs' layout and decoration of the
+  specimen take no part), and the two are compared by visual-diff: **34/34 identical** (a channel one level off does
+  not count: AvatarStack's last avatar edge rounds differently between two documents). Informational run on all 53
+  component pages: 61/71 identical; the rest are JS-drawn (Chart, Voice, Timeline), JS-sized (Chat, Pagination), the
+  phone frame (unwrapped) or docs CSS that changes the component (Tabs' panel padding).
+- **CSS contract** (`docs/css-contract.json`, `tools/code-languages/css-contract.mjs`, built with the guidelines):
+  per component folder the `.zen-*` classes, `data-*` attributes with the values the CSS matches, and non-token
+  `--zen-*` custom properties (74 folders, 2,226 names). A name that disappears fails `guidelines:build` /
+  `guidelines:check` unless CHANGELOG's Unreleased section has a "Breaking (markup)" line. Not in `docs/api` as §3.B
+  said: six tools (usage-guard, ai-ui, the Studio's compile-api and figma-pull…) read every file there as a
+  component's props. It ships with the package (`files`).
+- **Highlighter:** `tokenize.ts` reads `<!-- comments -->` in HTML (the snippet's header, the Studio's HTML export).

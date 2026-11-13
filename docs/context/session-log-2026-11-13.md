@@ -35,3 +35,30 @@ beside TSX).
 (classic 1512/390, Installation link landing, Studio Code tab → Swift notice, `?code=swift`): no console errors.
 `npm run qa -- --isolated --only=button,installation,dialog,badge,calendar,table,color-selector`: PASS (Vitest full
 97/97, audit 1512/390/320 + dark + behaviour 0 errors, Studio E2E 461 works / 0 broken). `npm run build` ✓.
+
+**P1 CI fix (#398, 4adfc2ce):** CI's Vitest failed its dependency scan: the new test renders every component page,
+which reaches `src/templates/*` (`import … from "@zen-ds/react"`). Locally the name resolved to the package itself
+(self-reference through `exports` → `dist/`, built); CI runs the tests before the build. Fix: the `vite.config.ts`
+alias in `vitest.config.ts`. Reproduced by moving `dist/` away; 97/97 files pass without it.
+
+## Code view in other languages, P2: HTML + CSS (tier M; same session; branch zen/feat/code-view-html-20261113)
+
+**Built (plan §10):** `code/html.ts` (specimen DOM → markup: `zen-*` classes only, readable ids with their references,
+whitespace only where it cannot render, header with `dist/styles.css` + `reset.css` and the modes); `code/specimen.ts`
+(ComponentPreview row, ExampleCard stage, Studio example frame); `data-snippet-skip` / `data-snippet-unwrap` on docs
+chrome (playground readouts, Progress ±10%, VisuallyHidden's screen-reader panel, `PlatformPhone`);
+`tools/code-languages/html-parity.mjs` + `html.json` (26 ready, 195 markup, 8 not available: the overlay surfaces);
+`tools/code-languages/css-contract.mjs` → `docs/css-contract.json` with the "Breaking (markup)" rule (not in
+`docs/api`: six tools read every file there as a component's props; usage:selftest caught it);
+`tokenize.ts` HTML comments.
+
+**How parity got to 34/34:** first run 0/25 (whole rows: docs CSS sized the components). Per top-level element at its
+React place and size → 31/36; then docs chrome marked skip, docs classes stripped on the React side after pinning each
+root's measured size (stripping first made PageHeader re-lay out), the page background behind fractional edges, and the
+row's inherited text settings (the docs use `text-rendering: auto`, the package's reset `optimizeLegibility`: "Share"
+kerned differently). Last: AvatarStack's last avatar edge one channel level off between documents → tolerance 1.
+
+**Bugs met and fixed:** the specimen read ran before the parent's ref attached (child layout effects run first): it
+now looks again for a few frames; an in-page `href="#…"` kept the React id after the target was renamed.
+
+**Decided on the way:** Menu, Popover and Tooltip are markup only (their trigger is in place), not "not available".

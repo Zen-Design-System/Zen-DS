@@ -14,6 +14,9 @@ import { componentsIn, snippetStatus } from "../../src/platform/code/languages";
 import { setCodeLanguage } from "../../src/platform/code/preference";
 import { readSnippet, type SnippetElement, type SnippetNode } from "../../src/platform/code/snippet";
 import { SnippetCode } from "../../src/platform/code/SnippetCode";
+import { htmlSnippet, markupOf } from "../../src/platform/code/html";
+import { SnippetSpecimenContext } from "../../src/platform/code/specimen";
+import { Button, Checkbox, Stack } from "../../src/index";
 import { StudioBridgeContext, type StudioBridge } from "../../src/platform/studio/bridge";
 
 /** Every playground's code at its default state: PlatformCode hands it here instead of drawing it. */
@@ -125,3 +128,54 @@ describe("language picker", () => {
     expect(new URLSearchParams(window.location.search).get("code")).toBeNull();
   });
 });
+
+describe("HTML snippets", () => {
+  it("writes the specimen's markup: library classes only, readable ids, docs chrome out, wrappers unwrapped", async () => {
+    const screen = await render(
+      <ZenProvider>
+        <div data-testid="row" className="platform-example-row">
+          <div className="platform-phone" data-snippet-unwrap data-breakpoint="mobile">
+            <span data-snippet-skip>9:41</span>
+            <Stack gap="xs" className="pe-demo">
+              <span id="«r7»" className="zen-demo-label">Plan</span>
+              <input aria-labelledby="«r7»" defaultValue="Pro" data-zen-src="x.tsx:1:1" />
+              <a href="#«r7»">Back to the label</a>
+            </Stack>
+          </div>
+        </div>
+      </ZenProvider>,
+    );
+    const row = screen.getByTestId("row").element();
+    const markup = markupOf([...row.children]);
+    expect(markup).not.toMatch(/platform-|pe-demo|data-zen-src|data-snippet|9:41|«r7»/);
+    expect(markup).toContain('<span id="demo-label" class="zen-demo-label">Plan</span>');
+    expect(markup).toContain('<input aria-labelledby="demo-label" value="Pro">');
+    expect(markup).toContain('href="#demo-label"');
+    expect(markup.split("\n")[0]).toMatch(/^<div class="zen-stack[^"]*"/);
+    const snippet = htmlSnippet(row, { markupOnly: true });
+    expect(snippet).toContain('data-breakpoint="mobile"');
+    expect(snippet).toContain("Markup only");
+    expect(snippet).toContain('<link rel="stylesheet" href="/node_modules/@zen-ds/react/dist/styles.css">');
+  });
+
+  it("shows the specimen's HTML in the code view, with the markup-only note for a stateful component", async () => {
+    let row: HTMLElement | null = null;
+    const specimen = () => row;
+    const screen = await render(
+      <ZenProvider>
+        <div ref={(element) => { row = element; }}><Button level="primary">Save</Button><Checkbox label="Remember me" /></div>
+        <SnippetSpecimenContext value={specimen}>
+          <SnippetCode code={`import { Button } from "@zen-ds/react";\n\n<Button level="primary">Save</Button>`} />
+          <SnippetCode code={`import { Checkbox } from "@zen-ds/react";\n\n<Checkbox label="Remember me" />`} />
+        </SnippetSpecimenContext>
+      </ZenProvider>,
+    );
+    setCodeLanguage("html");
+    const views = screen.container.querySelectorAll(".studio-code");
+    await expect.poll(() => views[0]?.textContent ?? "").toContain('<button type="button" class="zen-button"');
+    expect(views[0].textContent).not.toContain("Markup only");
+    await expect.poll(() => views[1]?.textContent ?? "").toContain("Markup only");
+    await expect.element(screen.getByRole("button", { name: "Copy code" }).first()).toBeVisible();
+  });
+});
+
