@@ -113,7 +113,9 @@ if (WRITE) {
 /* ── 4. compile what readers copy ───────────────────────────────────────────────────────────────────────────────── */
 let compiled = 0;
 if (COMPILE && exampleFiles.length) {
-  const dir = path.join(root, "node_modules/.cache/zen-examples-fixture");
+  // One directory per run: two checks at once (the gate beside a session's own run) never write over each other.
+  const dir = path.join(root, `node_modules/.cache/zen-examples-fixture-${process.pid}`);
+  process.on("exit", () => fs.rmSync(dir, { recursive: true, force: true }));
   fs.rmSync(dir, { recursive: true, force: true });
   fs.mkdirSync(dir, { recursive: true });
   const names = new Map();
@@ -137,9 +139,9 @@ if (COMPILE && exampleFiles.length) {
   } catch (error) {
     const out = `${error.stdout ?? ""}${error.stderr ?? ""}`;
     // Errors in the library itself belong to tsc on the repo; here only the snippets and demo.ts count.
-    const lines = out.split("\n").filter((line) => line.includes("zen-examples-fixture/"));
+    const lines = out.split("\n").filter((line) => /zen-examples-fixture-\d+\//.test(line));
     for (const line of lines) {
-      const match = line.match(/zen-examples-fixture\/([^(:]+)[(:](\d+)/);
+      const match = line.match(/zen-examples-fixture-\d+\/([^(:]+)[(:](\d+)/);
       const file = match && names.get(match[1]);
       problems.push(`${file ? `${rel(file)}:${match[2]}` : match?.[1] ?? "fixture"} (as copied): ${line.replace(/^.*?error /, "error ")}`);
     }

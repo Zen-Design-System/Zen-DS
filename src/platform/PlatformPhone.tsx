@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type Ref } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ComponentProps, type ComponentType, type CSSProperties, type ReactNode, type Ref, type RefObject } from "react";
 import { ZenContext, useZen } from "../components/_shared/zen-context";
 
 /** Device presets: CSS-pixel screen size and the system safe areas the Figma frames use. */
@@ -151,6 +151,19 @@ export function PlatformPhone({ children, device = "iphone", canvas = "default",
       </div>
     </div>
   );
+}
+
+/** What a portable phone example scrolls with: "window" in the reader's app, the device's screen in the docs. */
+export type PhoneScrollRef = RefObject<HTMLElement | null> | "window";
+
+/**
+ * A portable phone example (P2b, `examples/pages/<page>/<slug>.example.tsx`) on the device. The example takes
+ * `scrollRef` for its TopNavigation (default "window", what a phone app scrolls); here the device's screen scrolls, so it
+ * gets that, and the large title folds into the bar as it does in the app.
+ */
+export function PlatformPhoneApp({ app: App, ...phone }: Omit<ComponentProps<typeof PlatformPhone>, "children" | "screenRef"> & { app: ComponentType<{ scrollRef?: PhoneScrollRef }> }) {
+  const screenRef = useRef<HTMLDivElement>(null);
+  return <PlatformPhone {...phone} screenRef={screenRef}><App scrollRef={screenRef} /></PlatformPhone>;
 }
 
 /**

@@ -1,7 +1,0 @@
-/* Visually Hidden examples (src/platform/examples/pages/visually-hidden.tsx). Tokens only; class prefix .px-visually-hidden-. */
-
-/* File names are the rows' names: on a narrow screen the table scrolls sideways before a name is cut short. */
-.px-visually-hidden-files { --zen-table-fill-min-width: 18rem; }
-
-/* A thread comment's meta line: the name and its time are pieces of one inline item (Gap/2XSmall), on one baseline. */
-.px-visually-hidden-comment-meta { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--zen-spacing-gap-2-xsmall, 4px); }

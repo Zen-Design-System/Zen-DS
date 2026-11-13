@@ -18,6 +18,12 @@ How to maintain it:
   a whole component you can paste and run, importing only `react`, `@zen-ds/react` and `./demo`, the sample data. The
   code header offers **demo.ts** to copy beside it. Phone examples are written as real screens on `AppShell`
   (`topNavigation`, `actionBar`); the docs draw only the device around them.
+- Docs and Zen Studio: the display and text pages' examples are files too (Text, Typography hierarchy, Avatar, Tag,
+  Divider, Dock Icon, Image, Progress, Skeleton, Rating, Visually Hidden, Empty State, Inline Message, Alert Banner):
+  88 of 505 examples so far. The sample photos are in `./demo` (`photos`). A phone example takes `scrollRef` for its
+  Top Navigation ("window" in your app), so its large title folds into the bar again as the screen scrolls (lost in
+  the first slice).
+- CI: the SwiftUI and Flutter token jobs run on macOS 15; GitHub no longer runs macOS 14, so they were cancelled.
 - Harness: new repo rule `examples/portable-subset` (warning) keeps example files in the React subset other languages can
   translate: useState, useId, useRef, Zen hooks, conditions, lists and handlers; no effects, context, forwardRef or
   direct DOM. New `npm run examples:check` (QA gate and CI) compiles every example as copied, and fails when an example

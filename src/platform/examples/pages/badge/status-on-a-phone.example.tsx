@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type RefObject } from "react";
 import { AppShell, BadgeStatus, BottomSheet, Chip, DescriptionList, List, ListItem, Stack, Text, TopNavigation, plural } from "@zen-ds/react";
 import { TODAY, daysFromToday, formatDate, formatDue, formatRelative, people, projectById, taskStep, tasks, type Task, type TaskStatus } from "../../data";
 
@@ -27,7 +27,8 @@ const nextStep: Record<TaskStatus, { label: string; to: TaskStatus }> = {
   Done: { label: "Reopen task", to: "To do" },
 };
 
-export default function MobileTasks() {
+// scrollRef: what scrolls the screen, so the large title folds into the bar as it scrolls. "window" in your app.
+export default function MobileTasks({ scrollRef = "window" }: { scrollRef?: RefObject<HTMLElement | null> | "window" }) {
   const [list, setList] = useState(phoneTasks);
   const [filter, setFilter] = useState<TaskStatus | "All">("All");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -40,7 +41,7 @@ export default function MobileTasks() {
     return { ...item, status: to, finished: to === "Done" ? TODAY : undefined };
   }));
   return (
-    <AppShell topNavigation={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" />}>
+    <AppShell topNavigation={<TopNavigation scrollRef={scrollRef} type="alt" title="Tasks" largeTitle="Tasks" />}>
       <Stack gap="md" align="stretch">
         <Stack direction="row" gap="xs" scroll="x" paddingY="2xs" role="group" aria-label="Filter by status">
           {(["All", ...taskStatuses] as const).map((option) => (

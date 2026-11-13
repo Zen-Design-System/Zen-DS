@@ -1,22 +1,19 @@
 import { useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
-import { Badge } from "../components/Badge";
-import { BottomSheet } from "../components/BottomSheet";
-import { Button } from "../components/Button";
-import { Card } from "../components/Card";
-import { DescriptionList } from "../components/DescriptionList";
-import { InputField } from "../components/Input";
-import { Stack } from "../components/Layout";
-import { List, ListItem } from "../components/ListItem";
-import { PageHeader } from "../components/PageHeader";
-import { Heading, Text, plural } from "../components/Text";
-import { useToast } from "../components/Toast";
-import { TopNavigation } from "../components/TopNavigation";
-import { VisuallyHidden } from "../components/VisuallyHidden";
+import { Text } from "../components/Text";
 import { typographyStyles } from "../tokens/typography.generated";
 import type { ExampleDef } from "./appLayer/types";
-import { PlatformPhone, usePhoneScreen } from "./PlatformPhone";
-import { phoneMoney, phoneOrderAddress, phoneOrderPrints, phoneOrderSubtotal, phoneOrders, phonePrints, phoneShipping } from "./phoneOrders";
-import { DemoFieldDialog } from "./PlatformDemoActions";
+import { PlatformPhoneApp } from "./PlatformPhone";
+import { exampleCode } from "./examples/exampleCode";
+import MasterPage from "./examples/pages/typography/master-page-desktop.example";
+import masterPage from "./examples/pages/typography/master-page-desktop.example.tsx?raw";
+import ChildPage from "./examples/pages/typography/child-page-desktop.example";
+import childPage from "./examples/pages/typography/child-page-desktop.example.tsx?raw";
+import MasterScreen from "./examples/pages/typography/master-screen-phone.example";
+import masterScreen from "./examples/pages/typography/master-screen-phone.example.tsx?raw";
+import ChildScreen from "./examples/pages/typography/child-screen-phone.example";
+import childScreen from "./examples/pages/typography/child-screen-phone.example.tsx?raw";
+import InboxEmphasis from "./examples/pages/typography/emphasis-inside-a-level.example";
+import inboxEmphasis from "./examples/pages/typography/emphasis-inside-a-level.example.tsx?raw";
 
 /*
  * Typography › Content hierarchy: which heading and text style each kind of content takes on each kind of page.
@@ -26,7 +23,9 @@ import { DemoFieldDialog } from "./PlatformDemoActions";
  * Toolbars (large titles), VoiceOver (titles and headings). Checked against Material 3, Primer, Polaris, Carbon, Fluent,
  * GOV.UK, the WAI headings tutorial, WCAG 1.3.1 / 2.4.2 and the HTML outline rules; the verdicts and the decisions the
  * user approved are in docs/context/typography-hierarchy-review-2026-09-29.md. Font sizes are the Figma styles as they
- * are; nothing is resized. Phone examples render in the Mobile typography mode (PlatformPhone).
+ * are; nothing is resized. Phone examples render in the Mobile typography mode (PlatformPhone). Each example is its own
+ * file in examples/pages/typography/ (P2b, plan docs/research/code-languages-plan-2026-10-03.md §11): the card renders its
+ * default export inside the outline readout and shows its text as the snippet.
  */
 
 const styleNames = Object.fromEntries(Object.entries(typographyStyles).map(([name, className]) => [className, name]));
@@ -78,201 +77,6 @@ function Demo({ children }: { children: ReactNode }) {
       <div ref={ref} className="pth-demo__ui">{children}</div>
       <OutlineReadout rootRef={ref} />
     </div>
-  );
-}
-
-/** Master page (a sidebar destination): h1 Heading/1 → h2 Heading/4 sections → h3 Heading/Subheading cards. */
-function MasterPageExample() {
-  const { toast } = useToast();
-  const [requests, setRequests] = useState(3);
-  return (
-    <Demo>
-      <div className="pth-page">
-        <PageHeader title="Workbench" description="Requests and balances for the Design team."
-          actions={<><Button level="tertiary" size="sm" onClick={() => toast({ type: "positive", title: `Exported ${plural(requests, "request")} as CSV` })}>Export</Button><Button level="primary" size="sm" onClick={() => setRequests((count) => count + 1)}>New request</Button></>} />
-        <section className="pth-section">
-          <Heading level={2} textStyle="Heading/4">Time off</Heading>
-          <div className="pth-cards">
-            {[["Annual leave", "12", "days remaining"], ["Sick leave", "4", "days remaining"]].map(([title, value, meta]) => (
-              <Card key={title} theme="default">
-                <Stack gap="2xs">
-                  <Heading level={3} textStyle="Heading/Subheading">{title}</Heading>
-                  {/* A value is big, but it is not a heading: Display/4 in a span. */}
-                  <Text as="span" textStyle="Display/4">{value}</Text>
-                  <Text as="span" textStyle="Body/Small/Regular" tone="base">{meta}</Text>
-                </Stack>
-              </Card>
-            ))}
-          </div>
-        </section>
-        <section className="pth-section">
-          <Heading level={2} textStyle="Heading/4">Recent requests</Heading>
-          {/* Rows have no side padding of their own: the page pads them (24px), so they line up with the headings. */}
-          <List aria-label="Recent requests">
-            {Array.from({ length: Math.min(requests, 4) }, (_, index) => (
-              <ListItem key={index} title={index === 0 ? "Annual leave · 3 days" : index === 1 ? "Sick leave · 1 day" : `Remote day · Oct ${index}`} caption={index === 0 ? "Ava Chen · Approved" : "Bao Nguyen · Pending"} />
-            ))}
-          </List>
-        </section>
-      </div>
-    </Demo>
-  );
-}
-
-/** Child page (an item under a master page): Back named after the parent, the item's name as h1 Heading/1, same section ladder. */
-function ChildPageExample() {
-  const [back, setBack] = useState(false);
-  // Edit changes the dates; the description and details follow.
-  const [dates, setDates] = useState("Oct 14 – Oct 16, 2026");
-  const [editing, setEditing] = useState(false);
-  return (
-    <Demo>
-      <div className="pth-page">
-        <PageHeader back={{ label: back ? "Time off (pressed)" : "Time off", onClick: () => setBack(true) }} title="Annual leave"
-          meta={<Badge size="small" theme="green" background="subtle">Approved</Badge>} description={`Ava Chen · 3 days, ${dates}.`}
-          actions={<><Button level="tertiary" size="sm" onClick={() => setEditing(true)}>Edit</Button></>} />
-        <section className="pth-section">
-          <Heading level={2} textStyle="Heading/4">Details</Heading>
-          <DescriptionList items={[{ term: "Type", description: "Annual leave" }, { term: "Dates", description: dates }, { term: "Approver", description: "Chi Tran" }]} />
-        </section>
-        <section className="pth-section">
-          <Heading level={2} textStyle="Heading/4">Activity</Heading>
-          <List aria-label="Activity">
-            <ListItem title="Chi Tran approved the request" caption="2 hours ago" />
-            <ListItem title="Ava Chen submitted the request" caption="Yesterday" />
-          </List>
-        </section>
-      </div>
-      <DemoFieldDialog open={editing} onOpenChange={setEditing} title="Edit request" description="Chi Tran approves the change again."
-        field={{ kind: "name", label: "Dates", placeholder: dates }} submitLabel="Save" confirm={(value) => `Dates changed to ${value}`} onSubmit={setDates} />
-    </Demo>
-  );
-}
-
-/** Master screen on a phone (a tab root): the TopNavigation large title is the h1 (Heading/1); once collapsed the
- *  Body/Extra/Bold bar title is the h1, so the screen has exactly one h1 before and after scrolling. */
-function MasterScreenExample() {
-  // The large title folds with the screen's scroll (scrollRef). New message opens a compose sheet; the new chat lands on
-  // top of All chats.
-  const screenRef = useRef<HTMLDivElement>(null);
-  const [composing, setComposing] = useState(false);
-  const [to, setTo] = useState("");
-  const [started, setStarted] = useState<string[]>([]);
-  const chats = [["Design team", "Chi: Standup moved to 10:30", "9:41 am"], ["Ava Chen", "Did you get the brand files?", "9:12 am"], ["Bao Nguyen", "Merged the token PR", "Yesterday"], ["Duy Le", "Can you review the icons?", "Mon"], ["Emi Sato", "Lunch at 12?", "Sun"], ["Finn Walker", "Slides are in the shared folder", "Sat"], ["Gia Pham", "Can we move the review?", "Fri"], ["Hana Kim", "Invoice sent", "Thu"], ["Ivy Tran", "See you at the launch", "Wed"], ["Khoa Vo", "The build is green", "Tue"], ["Linh Do", "Can you share the deck?", "Mon"], ["Minh Ho", "Booked the room", "Sep 12"], ["Nam Bui", "Thanks for the notes", "Sep 11"], ["Oanh Ly", "Photos from the event", "Sep 10"]];
-  return (
-    <Demo>
-      <PlatformPhone label="Master screen" headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="Chats" largeTitle="Chats" scrollRef={screenRef} trailing={[{ icon: "icon-edit-02-line", label: "New message", onClick: () => setComposing(true) }]} />}>
-        {/* Static rows (no row opens a chat in this demo) sit in the screen margin; each kicker sits xs above its list. */}
-        <Stack gap="lg" padding="lg">
-          <Stack as="section" gap="xs">
-            <Heading level={2} textStyle="Body/Small/Bold" tone="light">Pinned</Heading>
-            <List aria-label="Pinned chats">
-              <ListItem title={chats[0][0]} caption={chats[0][1]} trailing={<Text as="span" textStyle="Caption/Regular" tone="light">{chats[0][2]}</Text>} />
-            </List>
-          </Stack>
-          <Stack as="section" gap="xs">
-            <Heading level={2} textStyle="Body/Small/Bold" tone="light">All chats</Heading>
-            <List aria-label="All chats">
-              {[...started.map((name) => [name, "You: Hi!", "Now"]), ...chats.slice(1)].map(([name, preview, time]) => <ListItem key={name} title={name} caption={preview} trailing={<Text as="span" textStyle="Caption/Regular" tone="light">{time}</Text>} />)}
-            </List>
-          </Stack>
-        </Stack>
-        <BottomSheet inline open={composing} onOpenChange={setComposing} title="New message"
-          primaryAction={{ label: "Start chat", disabled: !to.trim() || started.includes(to.trim()), onClick: () => { setStarted((list) => [to.trim(), ...list]); setTo(""); setComposing(false); } }} secondaryAction={{ label: "Cancel" }}>
-          <InputField label="To" placeholder="Name or email" value={to} onValueChange={setTo} data-autofocus="" />
-        </BottomSheet>
-      </PlatformPhone>
-    </Demo>
-  );
-}
-
-/** Child screen on a phone (pushed): the compact bar title is the screen's h1 in its bar style (Body/Extra/Bold); the key
- *  status is a line of text, sections are h2 Heading/4 and the groups inside a section h3 Heading/Subheading. */
-function ChildScreenExample() {
-  // Opens on order #1042. Back goes up to a real Orders root, and every order opens its own screen; focus lands on the
-  // next screen's control. One key per screen, so each screen opens at the top.
-  const [openId, setOpenId] = useState<string | null>("#1042");
-  const screenRef = useRef<HTMLDivElement>(null);
-  const screen = usePhoneScreen();
-  const order = phoneOrders.find((item) => item.id === openId);
-  return (
-    <Demo>
-      <PlatformPhone key={openId ?? "root"} label="Child screen" headerOverlay screenRef={screenRef} header={order
-        ? <TopNavigation type="compact-alt" title={`Order ${order.id}`} scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-order="${order.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />
-        : <TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
-        {screen.anchor}
-        {order ? (
-          <div className="pth-screen">
-            {/* A key status is not a heading: Body/Extra/Bold in the strongest tone, right under the title. */}
-            <Stack gap="2xs">
-              <Text textStyle="Body/Extra/Bold">{order.status}</Text>
-              <Text tone="base">{order.note}</Text>
-            </Stack>
-            <Stack as="section" gap="xs">
-              <Heading level={2} textStyle="Heading/4">Items</Heading>
-              {/* Rows have no side padding of their own: the screen pads them, so they line up with the headings. */}
-              <List aria-label="Items">
-                {order.items.map(({ print, qty }) => <ListItem key={print} title={phonePrints[print].name} caption={`${qty} × ${phoneMoney(phonePrints[print].price)}`} />)}
-              </List>
-            </Stack>
-            {/* Sibling sections share Heading/4; the groups inside one are a level deeper (h3 Heading/Subheading), set apart by spacing:
-                heading to content 8 · group to group 16 · section to section 24. */}
-            <Stack as="section" gap="xs">
-              <Heading level={2} textStyle="Heading/4">Delivery</Heading>
-              <Stack gap="md">
-                <Stack gap="2xs">
-                  <Heading level={3} textStyle="Heading/Subheading">Address</Heading>
-                  <Text tone="base">{phoneOrderAddress}</Text>
-                </Stack>
-                <Stack gap="2xs">
-                  <Heading level={3} textStyle="Heading/Subheading">Courier</Heading>
-                  <Text tone="base">{`GHN · tracking GHN-88${order.id.slice(1)}`}</Text>
-                </Stack>
-              </Stack>
-            </Stack>
-          </div>
-        ) : (
-          // The screen margin (lg, 20) insets the rows; their fill (12px outside the content) stays 8px inside the screen.
-          <Stack padding="lg">
-            <List aria-label="Orders">
-              {phoneOrders.map((item) => (
-                <ListItem key={item.id} data-order={item.id} title={`Order ${item.id}`} caption={`${item.status} · ${plural(phoneOrderPrints(item), "print")}`}
-                  trailing={<Text as="span" textStyle="Body/Base/Medium">{phoneMoney(phoneOrderSubtotal(item) + phoneShipping)}</Text>}
-                  onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(item.id))} />
-              ))}
-            </List>
-          </Stack>
-        )}
-      </PlatformPhone>
-    </Demo>
-  );
-}
-
-/** Emphasis inside one level: every row title stays Body/Base/Bold (Figma ListItem Title); unread is a Badge plus a
- *  visually hidden “Unread”, with the caption in a heavier weight and the strongest tone — never a bigger size. */
-function EmphasisExample() {
-  const [read, setRead] = useState<string[]>(["Bao Nguyen"]);
-  // Opening a conversation selects its row and marks it read, as in an inbox.
-  const [open, setOpen] = useState<string | null>(null);
-  const rows = [["Ava Chen", "Did you get the brand files?", "2 min"], ["Design team", "Chi: Standup moved to 10:30", "12 min"], ["Bao Nguyen", "Thanks, merged!", "1 h"]];
-  return (
-    <Demo>
-      <div className="pth-page">
-        <Heading level={2} textStyle="Heading/4">Inbox</Heading>
-        <List aria-label="Inbox">
-          {rows.map(([name, preview, time]) => {
-            const unread = !read.includes(name);
-            // The state is also said in text (WCAG 1.3.1, G117), inside the row button so its name carries it.
-            return (
-              <ListItem key={name} selected={open === name} onClick={() => { setOpen(name); setRead((all) => (all.includes(name) ? all : [...all, name])); }}
-                title={<>{unread ? <VisuallyHidden>Unread</VisuallyHidden> : null}{name}</>}
-                caption={unread ? <Text as="span" textStyle="Body/Small/Medium" tone="strongest">{preview}</Text> : preview}
-                trailing={<span className="pe-inbox-meta"><Text as="span" textStyle="Caption/Regular" tone="light">{time}</Text>{unread ? <Badge size="xsmall" theme="blue" background="subtle">New</Badge> : null}</span>} />
-            );
-          })}
-        </List>
-      </div>
-    </Demo>
   );
 }
 
@@ -353,31 +157,9 @@ export function TypographyHierarchyRules() {
 }
 
 export const typographyHierarchyExamples: ExampleDef[] = [
-  { title: "Master page · desktop", screen: true, wide: true, description: "A Sidebar destination: PageHeader h1 Heading/1 with its description (document.title follows it), h2 Heading/4 sections, h3 Heading/Subheading card titles; the Display/4 values are not headings.", render: () => <MasterPageExample />, code: `document.title = "Workbench · Acme"; // the h1 text, then the app name
-<PageHeader title="Workbench" description="Requests and balances for the Design team." actions={…} />
-<Heading level={2} textStyle="Heading/4">Time off</Heading>
-<Card theme="default"><Heading level={3} textStyle="Heading/Subheading">Annual leave</Heading>
-  <Text as="span" textStyle="Display/4">12</Text></Card>
-<Heading level={2} textStyle="Heading/4">Recent requests</Heading>` },
-  { title: "Child page · desktop", screen: true, wide: true, description: "An item under a master page: Back named after the parent, the item's name as the h1 (Heading/1) and in document.title, then the same h2 Heading/4 sections.", render: () => <ChildPageExample />, code: `document.title = "Annual leave · Acme";
-<PageHeader back={{ label: "Time off", onClick: goBack }} title="Annual leave"
-  meta={<Badge theme="green">Approved</Badge>} description="Ava Chen · 3 days, Oct 14 – Oct 16, 2026." />
-<Heading level={2} textStyle="Heading/4">Details</Heading>
-<Heading level={2} textStyle="Heading/4">Activity</Heading>` },
-  { title: "Master screen · phone", wide: true, description: "A tab root: the TopNavigation large title is the h1 (Heading/1); scroll and it folds into the Body/Extra/Bold bar title, which becomes the h1 — one h1 before and after scrolling. List group headers are h2 kicker labels in Body/Small/Bold · light.", render: () => <MasterScreenExample />, code: `<TopNavigation title="Chats" largeTitle="Chats" scrollRef={screenRef} trailing={[{ icon: "icon-edit-02-line", label: "New message", onClick: compose }]} />
-<Stack gap="lg" padding="lg">
-  <Stack as="section" gap="xs">
-    <Heading level={2} textStyle="Body/Small/Bold" tone="light">Pinned</Heading>
-    <List>…</List>
-  </Stack>
-</Stack>` },
-  { title: "Child screen · phone", wide: true, description: "A pushed screen: the compact bar title is its h1, in the bar style (Body/Extra/Bold). The key status is a line of text (Body/Extra/Bold · strongest), sibling sections are h2 Heading/4, and the groups inside a section h3 Heading/Subheading.", render: () => <ChildScreenExample />, code: `<TopNavigation type="compact" title="Order #1042" scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: goBack }} />
-<Text textStyle="Body/Extra/Bold">Arriving Friday</Text>
-<Heading level={2} textStyle="Heading/4">Items</Heading>
-<Heading level={2} textStyle="Heading/4">Delivery</Heading>
-  <Heading level={3} textStyle="Heading/Subheading">Address</Heading>` },
-  { title: "Emphasis inside a level", wide: true, description: "Every row title stays Body/Base/Bold. An unread row adds a New Badge and a visually hidden “Unread” in its title, and its caption goes Body/Small/Medium in the strongest tone; read rows keep the Regular · light caption. The size never changes. Open a row to mark it read.", render: () => <EmphasisExample />, code: `<ListItem onClick={markRead}
-  title={<>{unread ? <VisuallyHidden>Unread</VisuallyHidden> : null}{name}</>}
-  caption={unread ? <Text as="span" textStyle="Body/Small/Medium" tone="strongest">{preview}</Text> : preview}
-  trailing={<>{time}{unread ? <Badge size="xsmall" theme="blue" background="subtle">New</Badge> : null}</>} />` },
+  { title: "Master page · desktop", screen: true, wide: true, description: "A Sidebar destination: PageHeader h1 Heading/1 with its description (document.title follows it), h2 Heading/4 sections, h3 Heading/Subheading card titles; the Display/4 values are not headings.", render: () => <Demo><MasterPage /></Demo>, code: exampleCode(masterPage) },
+  { title: "Child page · desktop", screen: true, wide: true, description: "An item under a master page: Back named after the parent, the item's name as the h1 (Heading/1) and in document.title, then the same h2 Heading/4 sections.", render: () => <Demo><ChildPage /></Demo>, code: exampleCode(childPage) },
+  { title: "Master screen · phone", wide: true, description: "A tab root: the TopNavigation large title is the h1 (Heading/1); scroll and it folds into the Body/Extra/Bold bar title, which becomes the h1 — one h1 before and after scrolling. List group headers are h2 kicker labels in Body/Small/Bold · light.", render: () => <Demo><PlatformPhoneApp label="Master screen" app={MasterScreen} /></Demo>, code: exampleCode(masterScreen) },
+  { title: "Child screen · phone", wide: true, description: "A pushed screen: the compact bar title is its h1, in the bar style (Body/Extra/Bold). The key status is a line of text (Body/Extra/Bold · strongest), sibling sections are h2 Heading/4, and the groups inside a section h3 Heading/Subheading.", render: () => <Demo><PlatformPhoneApp label="Child screen" app={ChildScreen} /></Demo>, code: exampleCode(childScreen) },
+  { title: "Emphasis inside a level", wide: true, description: "Every row title stays Body/Base/Bold. An unread row adds a New Badge and a visually hidden “Unread” in its title, and its caption goes Body/Small/Medium in the strongest tone; read rows keep the Regular · light caption. The size never changes. Open a row to mark it read.", render: () => <Demo><InboxEmphasis /></Demo>, code: exampleCode(inboxEmphasis) },
 ];

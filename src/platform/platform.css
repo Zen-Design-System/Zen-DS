@@ -725,8 +725,6 @@
   .pe-shell--tall > .pe-shell__main { overflow: visible; }
 }
 .pe-shell__main { gap: var(--zen-spacing-gap-large, 24px); }
-/* Inbox rows: time over the New badge, so the subject keeps the width in narrow shells. */
-.pe-inbox-meta { display: flex; flex-direction: column; align-items: flex-end; gap: var(--zen-spacing-gap-2-xsmall, 4px); white-space: nowrap; }
 @media (max-width: 620px) { .pe-shell__main { padding: var(--zen-spacing-padding-medium, 16px); } }
 .pe-shell .zen-sidebar__sub-content > .zen-button { align-self: flex-start; }
 
@@ -1227,12 +1225,9 @@
 .pth-rules__list { display: grid; margin: 0; padding-inline-start: var(--zen-spacing-padding-xlarge, 24px); gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-strongest, #111); }
 
 .pth-demo { display: grid; width: 100%; grid-template-columns: minmax(0, 1fr) 240px; gap: var(--zen-spacing-gap-large, 20px); align-items: start; }
-.pth-demo__ui { display: flex; min-width: 0; justify-content: center; }
-.pth-page { display: grid; width: 100%; box-sizing: border-box; gap: var(--zen-spacing-gap-xlarge, 24px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-canvas-default, #f7f7f7); }
-.pth-section { display: grid; min-width: 0; gap: var(--zen-spacing-gap-small, 12px); }
-.pth-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); }
-/* Phone screens (mobile breakpoint tokens) line up on the Top Navigation's 20px margin: blocks with the title. */
-.pth-screen { display: grid; align-content: start; gap: var(--zen-spacing-gap-xlarge, 24px); padding: var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-large, 20px); }
+/* The examples are pages on their own Canvas (Stack surface="canvas" reads --zen-app-shell-canvas first): the docs' own
+   AppShell (canvas alt, white) must not reach them, so the token's Canvas/Default shows as in an app. */
+.pth-demo__ui { --zen-app-shell-canvas: initial; display: flex; min-width: 0; justify-content: center; }
 .pth-outline { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); color: var(--zen-color-content-neutral-strongest, #111); }
 .pth-outline__list { display: grid; margin: 0; padding: 0; gap: var(--zen-spacing-gap-xsmall, 8px); list-style: none; }
 .pth-outline__row { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--zen-spacing-gap-xsmall, 8px); align-items: baseline; }
