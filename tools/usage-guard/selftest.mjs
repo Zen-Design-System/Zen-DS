@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Self-test for the usage harness: fixtures/bad.tsx must trigger every rule exactly where marked,
-// fixtures/good.tsx must trigger nothing, and every registered rule must be covered by bad.tsx.
+// Self-test for the usage harness: fixtures/bad.tsx (and bad.css, bad.example.tsx) must trigger every rule exactly where
+// marked, fixtures/good.* must trigger nothing, and every registered rule must be covered by a bad.* fixture.
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -13,7 +13,7 @@ const rules = JSON.parse(execFileSync("node", [checker, "--list"], { encoding: "
 const fixtures = fs.readdirSync(path.join(here, "fixtures")).map((f) => path.join(here, "fixtures", f));
 const problems = [];
 const allExpected = [];
-for (const badFile of fixtures.filter((f) => /\/bad\.\w+$/.test(f))) {
+for (const badFile of fixtures.filter((f) => /\/bad(\.example)?\.\w+$/.test(f))) {
   const name = path.basename(badFile);
   const expected = [...fs.readFileSync(badFile, "utf8").matchAll(/expect: ([\w/-]+)/g)].map((m) => m[1]);
   const reported = [...run(badFile).matchAll(/\[([\w/-]+)\]/g)].map((m) => m[1]);
@@ -22,7 +22,7 @@ for (const badFile of fixtures.filter((f) => /\/bad\.\w+$/.test(f))) {
   for (const id of new Set(expected)) if (count(reported, id) !== count(expected, id)) problems.push(`${name}: expected ${count(expected, id)} × "${id}", got ${count(reported, id)}`);
   for (const id of reported) if (!expected.includes(id)) problems.push(`${name}: unexpected "${id}"`);
 }
-for (const goodFile of fixtures.filter((f) => /\/good\.\w+$/.test(f))) {
+for (const goodFile of fixtures.filter((f) => /\/good(\.example)?\.\w+$/.test(f))) {
   const report = run(goodFile);
   if (!/Usage rules pass/.test(report) || /\[/.test(report)) problems.push(`${path.basename(goodFile)} reported findings:\n${report}`);
 }

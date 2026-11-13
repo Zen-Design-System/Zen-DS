@@ -205,8 +205,9 @@ export function pagesForEdit(root, rel, snippets = [], pages = allPages(root)) {
   // An example page file and its stylesheet (examples/pages/<page>.tsx / .css) render on that page.
   const own = rel.match(/^src\/platform\/examples\/pages\/([\w-]+)\.(?:tsx|css)$/)?.[1];
   if (own && pages.includes(own)) return { pages: [own], notes };
-  // A part file (examples/pages/<folder>/<file>.tsx, the App Shell's Figma screens) renders on the pages that import it.
-  const part = rel.match(/^src\/platform\/examples\/pages\/([\w-]+\/[\w-]+)\.tsx$/)?.[1];
+  // A part file (examples/pages/<folder>/<file>.tsx, the App Shell's Figma screens; <page>/<slug>.example.tsx, one
+  // example's source since P2b) renders on the pages that import it.
+  const part = rel.match(/^src\/platform\/examples\/pages\/([\w-]+\/[\w-]+(?:\.example)?)\.tsx$/)?.[1];
   if (part) {
     const dir = path.join(root, "src/platform/examples/pages");
     const users = fs.readdirSync(dir).filter((file) => file.endsWith(".tsx") && fs.readFileSync(path.join(dir, file), "utf8").includes(`"./${part}"`)).map((file) => file.replace(/\.tsx$/, ""));
@@ -246,7 +247,7 @@ export function primaryPages(rel, hinted, pages) {
   return kind === "platform" || kind === "template" ? hinted.filter((p) => pages.includes(p)) : [];
 }
 /** Example sources: the example lists the coverage matrix reads (examples/pages/<page>.tsx, Showcases, app layer). */
-export const isExampleSource = (rel) => /^src\/platform\/(\w*Showcases\.tsx$|appLayer\/|examples\/pages\/[\w-]+\.tsx$)/.test(rel);
+export const isExampleSource = (rel) => /^src\/platform\/(\w*Showcases\.tsx$|appLayer\/|examples\/pages\/[\w-]+\.tsx$|examples\/pages\/[\w-]+\/[\w-]+\.example\.tsx$)/.test(rel);
 
 /** Component folders whose sources import one of `folders` (one level: the components that render them). */
 export function importersOf(root, folders) {

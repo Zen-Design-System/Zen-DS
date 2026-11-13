@@ -119,6 +119,8 @@ export function createChecker(allRules, { consumer = false, css = true, packageN
   const byTag = new Map();
   for (const rule of rules) for (const c of rule.components) byTag.set(c, [...(byTag.get(c) ?? []), rule]);
   const cssRules = rules.filter((rule) => rule.css);
+  // Source rules read a whole TSX file (examples/portable-subset): check({ src, file }) → [{ index, tag, message }].
+  const sourceRules = rules.filter((rule) => rule.source);
   const repoTagRe = new RegExp(`<(${[...byTag.keys()].join("|")})\\b(?![.\\w])`, "g");
 
   function checkCss(src, file) {
@@ -178,13 +180,23 @@ export function createChecker(allRules, { consumer = false, css = true, packageN
     return findings;
   }
 
+  function checkSource(src, file) {
+    const findings = [];
+    for (const rule of sourceRules) {
+      for (const { index, tag, message } of rule.check({ src, file }) ?? []) {
+        if (!allowed(src, index, rule.allow)) findings.push({ file, ...position(src, index), index, tag, rule, message });
+      }
+    }
+    return findings;
+  }
+
   return {
-    /** Findings for one file's source text; `file` is only used for display and for CSS rules that look at the path. */
+    /** Findings for one file's source text; `file` is used for display and by the rules that look at the path. */
     checkFile(src, file = "input.tsx") {
       // Files that intentionally render wrong usage (the Don't illustrations) opt out with this marker.
       if (/^\/\/ zen-usage-guard: dont-examples/m.test(src)) return [];
       if (/\.css$/.test(file)) return css ? checkCss(src, file) : [];
-      return checkJsx(src, file);
+      return [...checkJsx(src, file), ...checkSource(src, file)].sort((a, b) => a.index - b.index);
     },
   };
 }

@@ -153,6 +153,19 @@ Quy tắc layout:
 - File `src/platform/examples/pages/<page>.tsx` export `examples` qua `keepOnHotUpdate(import.meta.hot, "examples", [ … ])` (`src/platform/hotData.ts`). Nhờ vậy một lần sửa (kể cả của Zen Studio) chỉ hot update trang đó, và các example giữ state đang có (thread đang mở, tab đang chọn). Nếu export mảng trần, mỗi lần sửa sẽ chạy lại mọi example từ đầu.
 - Code sample phản ánh đúng phần render: cùng props và cùng component, không có thuộc tính lặp lại (từng có `scale="quota" scale="quota"`).
 - Ghi chú wrapper layout bằng comment trong JSX, ví dụ `{/* display: grid; gap: 12px */}`, thay vì bỏ qua wrapper.
+- Từ P2b, code sample **chính là file render** (mục 8b). Trang nào đã chuyển thì không viết chuỗi `code:` tay nữa.
+
+## 8b. Ví dụ di động được (portable examples, P2b)
+
+Kế hoạch `docs/research/code-languages-plan-2026-10-03.md` §11 (user duyệt 2026-11-13). Mỗi ví dụ là một component hoàn chỉnh mà người đọc chép về là chạy, và sau này dịch được sang Vue, Svelte, SwiftUI, Flutter.
+
+- **Một ví dụ, một file:** `src/platform/examples/pages/<page>/<slug>.example.tsx` (slug theo tiêu đề), `export default function TenComponent()`. Trang `pages/<page>.tsx` import component và bản `?raw` của chính file đó: `render: () => <TenComponent />`, `code: exampleCode(tenRaw)` (`examples/exampleCode.ts`). Render và code không thể lệch nhau.
+- **Chỉ import những gì người đọc có:** `react`, `@zen-ds/react` và thế giới demo `../../data` (`examples/data.ts`, hiện trong snippet là `./demo`; nút **demo.ts** ở header Code view chép file này). Không import helper của docs (`PlatformPhone`, `usePhoneScreen`, `DemoFieldDialog`, `PlatformMedia`, `PreviewAppFrame`…), không file CSS của trang.
+- **Khung thuộc về trang, không thuộc ví dụ:** thiết bị điện thoại và khung desktop nằm ở `render` của trang (`<PlatformPhone label="…"><TenComponent /></PlatformPhone>`). Ví dụ điện thoại tự là một màn hình app thật: `<AppShell topNavigation={…} actionBar={…} | bottomNavigation={…}>` (quy tắc 13 của `AGENTS.consumer.md`); body của AppShell đã có lề trang, nên nội dung không thêm `padding="lg"`.
+- **Tập con React di động** (harness `examples/portable-subset`): được dùng `useState`, `useId`, `useRef` cho phần tử (`ref`, `scrollRef`, `.focus()`), hook của Zen (`useToast`, `useFormState`, `useZen`…), `&&` / ternary, `.map` / `.filter` / `.sort` / `.find` / `.slice`, handler có tên hoặc arrow, `setTimeout` trong handler. Không dùng `useEffect` / `useLayoutEffect`, context, `forwardRef`, `useMemo` / `useCallback`, hay chạm DOM trực tiếp (`document`, `window`, `querySelector`, `closest`, `ResizeObserver`, `requestAnimationFrame`).
+- **Focus sau khi đổi màn (a11y):** giữ phần tử đích bằng `useRef`, đổi state rồi `setTimeout(() => ref.current?.focus())` ngay trong handler. Màn mới: focus tiêu đề của nó (`Heading ref tabIndex={-1}`, hoặc `title={<span ref={titleRef} tabIndex={-1}>…</span>}` khi tiêu đề nằm trong TopNavigation). Quay lại: focus đúng link đã mở màn đó (`Link ref`). Phần tử vừa biến mất (nút "Mark all as read", nhãn vừa gỡ): focus phần tử đứng thay chỗ (dòng trạng thái `Text ref tabIndex={-1}`, chip "Add label").
+- **Router:** link trong ví dụ là `<Link href="/x" onClick={…}>` với handler bỏ qua Cmd/Ctrl-click; mô tả nói rằng app thật truyền router link qua `as={RouterLink}`.
+- **Gate:** `npm run examples:check` (trong `npm run qa` và CI) kiểm import, kiểm trang hiện đúng file nó render, giữ baseline số ví dụ chưa chuyển (`tools/code-languages/examples-baseline.json`, chỉ được giảm; chạy `-- --write` sau khi chuyển) và biên dịch từng snippet đúng dạng chép (cạnh `demo.ts`) trong một project tạm. Formatter của `data.ts` có test vectors chung cho mọi ngôn ngữ: `platforms/tests/demo-vectors.json` (`npm run guidelines:build` ghi lại).
 
 ## 9. Kiểm tra trước khi xong
 

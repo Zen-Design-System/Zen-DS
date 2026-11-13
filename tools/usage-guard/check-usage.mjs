@@ -1252,6 +1252,46 @@ const forcedWidth = (attrs) => {
   for (const [, , n] of (expr(attrs, "style") ?? "").matchAll(/\b(minWidth|width)\s*:\s*["'`]?(\d+(?:\.\d+)?)(?:px)?["'`]?\s*[,}]/g)) widths.push(Number(n));
   return Math.max(...widths);
 };
+/* ── examples/portable-subset (P2b, plan docs/research/code-languages-plan-2026-10-03.md §11) ───────────────────── */
+/** What an example file may import from React: the parts Vue, Svelte, SwiftUI and Flutter have an equivalent for. */
+const PORTABLE_REACT = new Set(["useState", "useId", "useRef", "Fragment"]);
+/** The DOM reached directly (one finding per line): ports without a DOM have nothing to translate it to. */
+const SUBSET_DOM = /\b(?:document|window|globalThis)\.\w|\.(?:querySelector(?:All)?|closest|getElementById|getElementsBy\w+)\s*\(|\b(?:ResizeObserver|IntersectionObserver|MutationObserver|requestAnimationFrame|cancelAnimationFrame|getComputedStyle)\b/g;
+/** Comments and quoted strings blanked to spaces (the same length), so their words are not read as code. */
+const blankProse = (src) => src.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*|"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'/g, (m) => m.replace(/[^\n]/g, " "));
+const subsetWhy = (name) => (/^use(Layout|Insertion)?Effect$/.test(name) ? `imports ${name}: effects are outside the portable example subset — do the work in the handler that causes it (a setTimeout there waits for the next render), or derive the value while rendering.`
+  : /^(createContext|useContext)$/.test(name) ? `imports ${name}: context is outside the portable example subset — an example is one component, so pass values as props or keep them in its state.`
+  : name === "forwardRef" ? "imports forwardRef: outside the portable example subset — a component in the example takes `ref` as a prop (React 19)."
+  : `imports ${name} from react: outside the portable example subset (useState, useId, useRef) — keep the logic in state, handlers and values computed while rendering.`);
+/** Findings of examples/portable-subset in an example file (*.example.tsx); other files have none. */
+function portableSubset(src, file) {
+  if (!/\.example\.tsx$/.test(file ?? "")) return [];
+  const out = [];
+  for (const m of src.matchAll(/import\s*(type\s+)?\{([^}]*)\}\s*from\s*["']react["']/g)) {
+    if (m[1]) continue;
+    let at = m.index + m[0].indexOf("{") + 1;
+    for (const spec of m[2].split(",")) {
+      const name = spec.trim();
+      const index = at + spec.indexOf(name);
+      at += spec.length + 1;
+      if (!name || /^type\s/.test(name)) continue;
+      const imported = name.split(/\s+as\s+/)[0];
+      if (!PORTABLE_REACT.has(imported)) out.push({ index, tag: imported, message: subsetWhy(imported) });
+    }
+  }
+  for (const m of src.matchAll(/import\s+(?:\*\s+as\s+)?\w+\s*(?:,\s*\{[^}]*\})?\s*from\s*["']react["']/g)) {
+    out.push({ index: m.index, tag: "React", message: "imports React as a whole: name the hooks it uses (useState, useId, useRef) instead, so the subset stays checkable." });
+  }
+  const lines = new Set();
+  for (const m of blankProse(src).matchAll(SUBSET_DOM)) {
+    const line = src.slice(0, m.index).split("\n").length;
+    if (lines.has(line)) continue;
+    lines.add(line);
+    out.push({ index: m.index, tag: m[0].match(/\w+/)[0], message: "reaches into the DOM: outside the portable example subset — hold the element in a ref (useRef) and focus or read it in a handler; let the components handle sizes." });
+  }
+  return out;
+}
+
 export const rules = [
   { id: "button/secondary-justified", components: ["Button", "IconButton"], severity: "error", allow: "secondary", guideline: "docs/guidelines/button.md",
     summary: "Secondary is a rare highlight; default to Primary (main CTA) or Tertiary. A flat IconButton is exempt: flat Secondary is Figma's quiet ⋮ trigger (Card Sub-Action).",
@@ -2773,7 +2813,9 @@ export const rules = [
         if (selectedFill && !ringed) return `shows focus on .${item} with a fill only, and its selected state is a fill too — on or beside a selected item focus can vanish; draw the 3px Focus/Accent ring (inset where a scrolling list clips).`;
       }
       return null;
-    } },
+    } },  { id: "examples/portable-subset", source: true, components: [], repoOnly: true, severity: "warn", allow: "portable", guideline: "docs/guides/example-patterns.md",
+    summary: "An example file (*.example.tsx) stays in the portable React subset the Vue, Svelte, SwiftUI and Flutter translations read: useState, useId, useRef for elements, Zen hooks, conditionals, map / filter / sort / find / slice and handlers (a setTimeout inside one). No effects, context, forwardRef or direct DOM (document, window, querySelector, ResizeObserver, requestAnimationFrame).",
+    check: ({ src, file }) => portableSubset(src, file) },
 ];
 
 // CLI only when executed directly (build-guidelines.mjs, cli.mjs, eslint.mjs and the MCP server import the registry).

@@ -19,6 +19,12 @@ Last updated: 2026-11-13.
 
 ## State in short
 
+- **Code view P2b, portable examples (2026-11-13, user):** an example is a file, `examples/pages/<page>/<slug>.example.tsx`
+  (default export rendered, its `?raw` shown via `examples/exampleCode.ts`; demo import `../../data` shows as `./demo`,
+  Code header copies demo.ts). Imports only react, `@zen-ds/react`, the demo world; phone examples on `AppShell`, the
+  page draws `PlatformPhone`. Gate `npm run examples:check` (baseline 492 still strings), harness
+  `examples/portable-subset` (warn), vectors `platforms/tests/demo-vectors.json`. PR1 = foundation + Link, Badge; six
+  family slices follow (plan §11, guide `docs/guides/example-patterns.md` §8b).
 - **Code view in other languages, P1 (2026-11-13, user 2026-11-12):** every snippet (classic + Studio Code tab) has a
   language picker (`src/platform/code/SnippetCode.tsx`): all six languages with honest states, one choice per viewer +
   `?code=`; only React has code. Status per component: `src/platform/code-languages.generated.json` (built with the

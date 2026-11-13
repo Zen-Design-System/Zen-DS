@@ -14,6 +14,18 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Docs and Zen Studio: an example's code is now the file it renders (Link and Badge so far; the other pages follow):
+  a whole component you can paste and run, importing only `react`, `@zen-ds/react` and `./demo`, the sample data. The
+  code header offers **demo.ts** to copy beside it. Phone examples are written as real screens on `AppShell`
+  (`topNavigation`, `actionBar`); the docs draw only the device around them.
+- Harness: new repo rule `examples/portable-subset` (warning) keeps example files in the React subset other languages can
+  translate: useState, useId, useRef, Zen hooks, conditions, lists and handlers; no effects, context, forwardRef or
+  direct DOM. New `npm run examples:check` (QA gate and CI) compiles every example as copied, and fails when an example
+  imports docs helpers or when the examples still written as code strings grow (baseline 492, going to 0).
+- Language ports: `platforms/tests/demo-vectors.json` holds the demo formatters' answers (dates, money, sizes,
+  initials) that every language's demo module must give; `npm run guidelines:build` writes it.
+- Tooling: `visual-diff capture` and `platform:shoot` with `--isolated` exit when done (they left their private server
+  running).
 - Docs and Zen Studio: the Code view's HTML shows the markup of the playground or example as rendered, ready to paste
   into a page that loads `@zen-ds/react/dist/styles.css` (and `reset.css`), with the modes for `<html>` named at the
   top. 26 stateless components (Button, Badge, Avatar, Divider, ListItem…) draw exactly as in React; the others are

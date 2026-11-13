@@ -154,6 +154,7 @@
     "ai-ui:check": "node tools/ai-ui/build-catalog.mjs --check",
     "ai-ui:selftest": "node tools/ai-ui/selftest.mjs",
     "html:parity": "node tools/code-languages/html-parity.mjs",
+    "examples:check": "node tools/code-languages/examples-check.mjs",
     "ai-ui:eval": "node tools/ai-ui/eval.mjs",
     "ai-kit:build": "node tools/ai-kit/build.mjs",
     "ai-kit:check": "node tools/ai-kit/build.mjs --check",
