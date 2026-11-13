@@ -24,7 +24,7 @@ import { hostPropsOf, isSlotActive, slotOf } from "../slots/registry";
 import { detachShown, rowOf, useDetachPlan } from "./detach";
 import { cellDataTarget } from "../table/tableCells";
 import { pictureCode, pictureExpression, resolveMedia } from "../builder/library/media";
-import { UPLOAD_ONLY_LOCAL } from "../edit/assets/picture";
+import { UPLOAD_ONLY_LOCAL, isLibraryPicture } from "../edit/assets/picture";
 import { repoValueFor } from "../edit/assets/repoMedia";
 import { ASSET_PREFIX } from "../builder/assets/uploads";
 import { writeAtUse } from "./callSite";
@@ -586,8 +586,8 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
       const picture = typeof value === "string" && propSpecs(element.name).find((spec) => spec.name === name)?.editor.kind === "photo";
       const pictureValue = (file: string): EditValue | null => (picture ? pictureCode(file, value as string) : toEditValue(value));
       const pictureLabel = picture ? `${element.name} ${name} → ${String(value).replace(/^zen-(media|asset):/, "")}` : null;
-      // A picture from the shared library (platformMedia): never edited in PlatformMedia.tsx, the layer takes its own.
-      const fromLibrary = picture && current.state === "bound" && current.dataSource?.file?.endsWith("/PlatformMedia.tsx");
+      // A picture from the shared library (isLibraryPicture): never edited there, the layer takes its own.
+      const fromLibrary = picture && current.state === "bound" && isLibraryPicture(current.dataSource);
       if (!fromLibrary && !allRows && dataEditable(current, selection.panelId ? "playground" : undefined)) {
         // A prop of a component of the file (PersonAvatar's `size`): written where that component is used.
         if (current.dataSource.kind === "param") {

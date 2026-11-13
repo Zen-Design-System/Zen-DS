@@ -8,6 +8,7 @@
 //   3. examples still written as a code string beside their render (not moved yet) never grow: per page file, the count
 //      stays at or under tools/code-languages/examples-baseline.json (--write records the new counts; the last P2b
 //      slice brings every page to 0);
+//   3b. the demo world's `photos` and PlatformMedia's copy of them list the same pictures and alt texts;
 //   4. every snippet, as the Code view shows it, type-checks in a generated project beside demo.ts (the copy readers get),
 //      the way it would in their app (--no-compile skips this step).
 //
@@ -109,6 +110,20 @@ if (WRITE) {
   const stale = Object.entries(baseline).filter(([file, count]) => (counts[file] ?? 0) < count).map(([file]) => file);
   if (stale.length) problems.push(`the baseline still counts examples that moved (${stale.join(", ")}) — run npm run examples:check -- --write`);
 }
+
+/* ── 3b. the photo library, twice ───────────────────────────────────────────────────────────────────────────────── */
+// The demo world's `photos` and PlatformMedia's copy (kept so the Studio's modules never import data.ts) list the same
+// pictures with the same alt text: each `{ src: <import>, alt: "…" }` as "<file>|<alt>".
+const photoEntries = (file) => {
+  const text = fs.readFileSync(path.join(root, file), "utf8");
+  const files = new Map([...text.matchAll(/^import (\w+) from "[^"]*\/([^/"]+\.(?:webp|png|jpe?g))";/gm)].map((m) => [m[1], m[2]]));
+  return [...text.matchAll(/\{ src: (\w+), alt: ("[^"]*") \}/g)].map((m) => `${files.get(m[1]) ?? m[1]}|${JSON.parse(m[2])}`).sort();
+};
+const demoPhotos = photoEntries("src/platform/examples/data.ts");
+const mediaPhotos = photoEntries("src/platform/PlatformMedia.tsx");
+const onlyIn = (a, b) => a.filter((entry) => !b.includes(entry));
+for (const entry of onlyIn(demoPhotos, mediaPhotos)) problems.push(`src/platform/PlatformMedia.tsx: lacks the demo photo ${entry} — the two photo lists stay the same`);
+for (const entry of onlyIn(mediaPhotos, demoPhotos)) problems.push(`src/platform/examples/data.ts: \`photos\` lacks ${entry} from PlatformMedia.tsx — the two photo lists stay the same`);
 
 /* ── 4. compile what readers copy ───────────────────────────────────────────────────────────────────────────────── */
 let compiled = 0;

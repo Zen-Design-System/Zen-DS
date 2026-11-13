@@ -11,7 +11,7 @@ import { pictureCode, resolveMedia } from "../../builder/library/media";
 import { PHOTO_PROPS } from "../../inspector/propSchema";
 import { repoValueFor } from "./repoMedia";
 import { rowScope } from "../../inspector/rowScope";
-import type { EditOp, EditValue, StudioPartRef } from "../../types";
+import type { DataSource, EditOp, EditValue, StudioPartRef } from "../../types";
 import type { NodeSelection } from "../arrange";
 
 /*
@@ -28,6 +28,19 @@ import type { NodeSelection } from "../arrange";
 
 /** Layers whose picture is their `src` (propSchema.ts PHOTO_PROPS). */
 export const PICTURED: ReadonlySet<string> = new Set(Object.keys(PHOTO_PROPS));
+
+/**
+ * A picture read from the shared photo library: `photos` in the demo world (examples/data.ts, which portable examples
+ * import as ./demo) or `platformMedia` (PlatformMedia.tsx, its copy). The Studio never changes it there — that
+ * would change every page's photo; the layer takes the new picture as its own value instead. The source names the
+ * example's own variable (`mascot.src`), so the demo world's photos are told by their field: every `src` there is a
+ * library photo (people have `photo`, the studio `logo`; iconSearch.selftest.mjs keeps that true).
+ */
+export const isLibraryPicture = (source: DataSource | undefined) => {
+  if (source?.file?.endsWith("/PlatformMedia.tsx")) return true;
+  const field = source?.path?.at(-1) ?? source?.source?.split(".").at(-1);
+  return Boolean(source?.file?.endsWith("/examples/data.ts") && field === "src");
+};
 
 export const UPLOAD_ONLY_LOCAL = "An uploaded photo stays in this browser: on example code pick a photo from People or the Library, or drop the file from the computer";
 
@@ -185,9 +198,8 @@ export async function writePicture(selection: NodeSelection, picked: string, lab
   const code = (file: string): EditValue | null => pictureCode(file, value);
   const shown = resolveMedia(value);
   const say = (ok: boolean, error?: string) => { if (!ok) inspectorStatus.set("negative", error || "The picture was not changed"); return ok; };
-  // A picture read from the shared library (platformMedia in PlatformMedia.tsx) is not changed there — that would change
-  // every page's photo; the layer takes the new picture as its own value instead.
-  const library = source?.file?.endsWith("/PlatformMedia.tsx") ?? false;
+  // A picture of the shared library is not changed there (isLibraryPicture): the layer takes its own.
+  const library = isLibraryPicture(source);
   if (source?.editable && !library && (source.kind === "cell" || source.kind === "row" || source.kind === "data")) {
     let row: Partial<EditOp> = {};
     if (source.kind === "cell") {
