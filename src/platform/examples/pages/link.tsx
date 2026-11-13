@@ -4,7 +4,7 @@
    visited marks articles in a reading list people scan again, and on a phone links navigate while buttons act.
    Each example is its own file in link/ (P2b, plan docs/research/code-languages-plan-2026-10-03.md §11): the card
    renders its default export and shows its text as the snippet. */
-import { PlatformPhone } from "../../PlatformPhone";
+import { PlatformPhoneApp } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { keepOnHotUpdate } from "../../hotData";
 import { exampleCode } from "../exampleCode";
@@ -51,7 +51,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {
     title: "Sign in on a phone",
     description: "Links go somewhere (Forgot password?, the terms and the privacy policy) and push a screen with Back; the button acts, so Sign in is the footer's Primary. The legal line's links take the caption colour with tone=\"inherit\" and stay underlined. On Home, each task row opens its task.",
-    render: () => <PlatformPhone label="Zen app"><PhoneSignIn /></PlatformPhone>,
+    render: () => <PlatformPhoneApp label="Zen app" app={PhoneSignIn} />,
     code: exampleCode(phoneSignIn),
   },
 ]);

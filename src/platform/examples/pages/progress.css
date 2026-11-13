@@ -1,4 +1,0 @@
-/* Progress examples. In a column of list rows the circles line up and the percentages right-align ("62%" under
-   "100%"): each Progress-Circle takes the width of the widest label and pushes its label to the end. */
-.px-progress-circle-column { min-inline-size: 7ch; justify-content: space-between; }
-

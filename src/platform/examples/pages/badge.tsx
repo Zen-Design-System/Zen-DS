@@ -3,7 +3,7 @@
    workflow step (to do → done) is a BadgeStatus; counts are a BadgeCounter; removable labels are Badges with onRemove.
    Each example is its own file in badge/ (P2b, plan docs/research/code-languages-plan-2026-10-03.md §11): the card
    renders its default export and shows its text as the snippet. */
-import { PlatformPhone } from "../../PlatformPhone";
+import { PlatformPhoneApp } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { keepOnHotUpdate } from "../../hotData";
 import { exampleCode } from "../exampleCode";
@@ -64,7 +64,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {
     title: "Status on a phone",
     description: "On a phone the step sits at the end of each row as a BadgeStatus, and the caption follows it: open tasks say when they're due, finished ones when they were done. Open a task and move it on: the badge in the sheet and in the row change together, ring and all.",
-    render: () => <PlatformPhone label="Tasks"><MobileTasks /></PlatformPhone>,
+    render: () => <PlatformPhoneApp label="Tasks" app={MobileTasks} />,
     code: exampleCode(mobileTasks),
   },
   {

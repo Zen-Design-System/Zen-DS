@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type MouseEvent } from "react";
+import { useId, useRef, useState, type MouseEvent, type RefObject } from "react";
 import {
   ActionBar, AppShell, Avatar, Badge, BadgeStatus, DescriptionList, DockIcon, Form, Heading, InputField, Link, List, ListItem, Stack, Text, TopNavigation,
   useFormState,
@@ -41,7 +41,8 @@ const inApp = (event: MouseEvent<HTMLElement>, open: () => void) => {
   open();
 };
 
-export default function PhoneSignIn() {
+// scrollRef: what scrolls the screen, so the large title folds into the bar as it scrolls. "window" in your app.
+export default function PhoneSignIn({ scrollRef = "window" }: { scrollRef?: RefObject<HTMLElement | null> | "window" }) {
   const formId = useId();
   const resetId = useId();
   const dueId = useId();
@@ -83,7 +84,7 @@ export default function PhoneSignIn() {
     const from = view === "terms" ? termsLinkRef : privacyLinkRef;
     return (
       <AppShell key={view}
-        topNavigation={<TopNavigation type="compact-alt" title={title(doc.title)} leading={{ icon: back, label: "Back", onClick: () => show("sign-in", from) }} />}>
+        topNavigation={<TopNavigation scrollRef={scrollRef} type="compact-alt" title={title(doc.title)} leading={{ icon: back, label: "Back", onClick: () => show("sign-in", from) }} />}>
         <Stack gap="md">
           {doc.paragraphs.map((text) => <Text key={text} tone="base">{text}</Text>)}
           <Text as="span" textStyle="Caption/Regular" tone="light">Last updated Jan 5, 2026</Text>
@@ -95,7 +96,7 @@ export default function PhoneSignIn() {
   if (view === "reset") {
     return (
       <AppShell key="reset"
-        topNavigation={<TopNavigation type="compact-alt" title={title("Reset password")} leading={{ icon: back, label: "Back", onClick: () => show("sign-in", resetLinkRef) }} />}
+        topNavigation={<TopNavigation scrollRef={scrollRef} type="compact-alt" title={title("Reset password")} leading={{ icon: back, label: "Back", onClick: () => show("sign-in", resetLinkRef) }} />}
         actionBar={resetSent ? undefined : <ActionBar primaryAction={{ label: "Send reset link", type: "submit", form: resetId }} />}>
         <Stack gap="lg">
           {resetSent ? (
@@ -122,7 +123,7 @@ export default function PhoneSignIn() {
     return (
       // A task row pushes the task's own screen; Back returns to Home.
       <AppShell key={`task-${openedTask.id}`}
-        topNavigation={<TopNavigation type="compact-alt" title={title(openedTask.key)} leading={{ icon: back, label: "Back", onClick: () => show("home", dueRef) }} />}>
+        topNavigation={<TopNavigation scrollRef={scrollRef} type="compact-alt" title={title(openedTask.key)} leading={{ icon: back, label: "Back", onClick: () => show("home", dueRef) }} />}>
         <Stack gap="lg">
           <Stack gap="xs">
             <Heading level={2} textStyle="Heading/Subheading">{openedTask.title}</Heading>
@@ -151,7 +152,7 @@ export default function PhoneSignIn() {
     return (
       // A tab root: the large title folds into the bar as the lists scroll under it.
       <AppShell key="home"
-        topNavigation={<TopNavigation type="alt" title="Home" largeTitle="Home" trailing={[{ icon: "icon-log-out-01-line", label: "Sign out", onClick: signOut }]} />}>
+        topNavigation={<TopNavigation scrollRef={scrollRef} type="alt" title="Home" largeTitle="Home" trailing={[{ icon: "icon-log-out-01-line", label: "Sign out", onClick: signOut }]} />}>
         <Stack as="section" gap="xs" aria-labelledby={dueId}>
           <Heading ref={dueRef} level={2} id={dueId} textStyle="Body/Small/Bold" tone="light" tabIndex={-1}>Due this week</Heading>
           <List aria-labelledby={dueId}>
@@ -182,7 +183,7 @@ export default function PhoneSignIn() {
   return (
     // The first step of signing in: a form screen with no way back, and the Primary in the footer.
     <AppShell key="sign-in"
-      topNavigation={<TopNavigation type="compact-alt" title={title("Sign in")} topBar={false} headingLevel="h1" collapsed={false} />}
+      topNavigation={<TopNavigation scrollRef={scrollRef} type="compact-alt" title={title("Sign in")} topBar={false} headingLevel="h1" collapsed={false} />}
       actionBar={<ActionBar primaryAction={{ label: "Sign in", type: "submit", form: formId }} />}>
       <Stack gap="lg">
         <Text tone="base">Sign in to the Đìzai Studio workspace with your work email.</Text>

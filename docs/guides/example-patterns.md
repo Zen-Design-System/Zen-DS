@@ -165,6 +165,15 @@ Kế hoạch `docs/research/code-languages-plan-2026-10-03.md` §11 (user duyệ
 - **Tập con React di động** (harness `examples/portable-subset`): được dùng `useState`, `useId`, `useRef` cho phần tử (`ref`, `scrollRef`, `.focus()`), hook của Zen (`useToast`, `useFormState`, `useZen`…), `&&` / ternary, `.map` / `.filter` / `.sort` / `.find` / `.slice`, handler có tên hoặc arrow, `setTimeout` trong handler. Không dùng `useEffect` / `useLayoutEffect`, context, `forwardRef`, `useMemo` / `useCallback`, hay chạm DOM trực tiếp (`document`, `window`, `querySelector`, `closest`, `ResizeObserver`, `requestAnimationFrame`).
 - **Focus sau khi đổi màn (a11y):** giữ phần tử đích bằng `useRef`, đổi state rồi `setTimeout(() => ref.current?.focus())` ngay trong handler. Màn mới: focus tiêu đề của nó (`Heading ref tabIndex={-1}`, hoặc `title={<span ref={titleRef} tabIndex={-1}>…</span>}` khi tiêu đề nằm trong TopNavigation). Quay lại: focus đúng link đã mở màn đó (`Link ref`). Phần tử vừa biến mất (nút "Mark all as read", nhãn vừa gỡ): focus phần tử đứng thay chỗ (dòng trạng thái `Text ref tabIndex={-1}`, chip "Add label").
 - **Router:** link trong ví dụ là `<Link href="/x" onClick={…}>` với handler bỏ qua Cmd/Ctrl-click; mô tả nói rằng app thật truyền router link qua `as={RouterLink}`.
+- **Thay helper của docs (PR2):**
+  - `PlatformPhone`, `PreviewAppFrame`: đặt ở `render` của trang, bao quanh ví dụ.
+  - `usePhoneScreen`: dùng `useState` cho màn đang mở, mỗi màn một `AppShell` có `key` (xem `link/sign-in-on-a-phone`).
+  - `StudioLogo`: viết thẳng trong ví dụ là `<Stack direction="row" gap="xs" align="center"><Thumbnail src={studio.logo} alt="" size="2xs" /><Text as="span" textStyle="Body/Base/Bold">{studio.name}</Text></Stack>` (2xs: vừa ô logo 24px của Sidebar ở mọi mật độ; xs cao 28px ở Comfortable).
+  - `StudioMark`: `<Thumbnail src={studio.logo} alt={studio.name} size="2xs" />`.
+  - `DemoFieldDialog`: viết thẳng `ModalForm` + `InputField` + `useFormState` + `useToast` trong ví dụ, giữ nguyên cách kiểm tra, câu báo lỗi và toast.
+  - `platformMedia.x`: dùng `photos.x` từ `../../data`.
+  - CSS `px-*` của trang: trước hết dùng prop của Zen (`width`, `minWidth`, `hideOn`, `stackBelow`, `columns` của Stack/Grid/Text…). Không có prop thì dùng `style` inline, giá trị bằng `var(--zen-…)`. Container query hay selector `:focus-visible` không viết inline được: chọn prop gần nhất và ghi lại khác biệt cho người review.
+  - `window.matchMedia` hay độ rộng cửa sổ: dùng `useZen()?.breakpoint`.
 - **Gate:** `npm run examples:check` (trong `npm run qa` và CI) kiểm import, kiểm trang hiện đúng file nó render, giữ baseline số ví dụ chưa chuyển (`tools/code-languages/examples-baseline.json`, chỉ được giảm; chạy `-- --write` sau khi chuyển) và biên dịch từng snippet đúng dạng chép (cạnh `demo.ts`) trong một project tạm. Formatter của `data.ts` có test vectors chung cho mọi ngôn ngữ: `platforms/tests/demo-vectors.json` (`npm run guidelines:build` ghi lại).
 
 ## 9. Kiểm tra trước khi xong

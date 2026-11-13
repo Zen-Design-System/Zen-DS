@@ -361,3 +361,13 @@ its values there), the snippet shows it as `./demo` (`examples/exampleCode.ts`) 
 `source` rule of the usage harness; vectors in `platforms/tests/demo-vectors.json`. Link and Badge moved: desktop renders
 identical, the two phone examples follow AppShell's spacing (A/B to the user). Patterns for the next slices:
 `docs/guides/example-patterns.md` §8b.
+
+**PR2 as built (2026-11-14):** the 75 examples of Text, Typography hierarchy, Avatar, Tag, Divider, Dock Icon, Image,
+Progress, Skeleton, Rating, Visually Hidden, Empty State, Inline Message and Alert Banner, ported by five agents (three
+pages each) and reviewed in one pass. Helper replacements are in §8b of the guide: `StudioLogo` → Thumbnail 2xs + Text,
+`DemoFieldDialog` → an inline ModalForm, `platformMedia` → `photos` in the demo world (PlatformMedia spreads it), page
+CSS → Zen props or inline token styles (all eight page CSS files went), container queries → the breakpoint. A phone
+example takes `scrollRef` ("window" in an app); `PlatformPhoneApp` passes the device screen, so large titles fold again
+(lost in PR1 too). What the subset costs: loads that started in an effect now start from a button, and focus lands on
+the nearest element a ref can reach where a component gives none to its inner control (ListItem's row, Tag's Remove,
+EmptyState and InlineMessage actions, TopNavigation's actions) — BACKLOG-user-and-later, waiting for approval.
