@@ -43,3 +43,21 @@ Fold check (scratch script): every phone example with room to scroll folds its l
 **Not done (BACKLOG-user-and-later, needs approval):** refs to components' inner controls (ListItem's row, Tag's Remove,
 EmptyState / InlineMessage / AlertBanner / ActionBar actions, TopNavigation's actions, AutocompleteField's Add; Rating
 `error`). Until then focus goes to the nearest target a ref reaches (a group heading, the new screen's title).
+
+## After #401: the photo library moved, two readers followed the old file (tier S; same session)
+
+Giám sát merged #401 (main 6d92377b; all CI green, SwiftUI and Flutter on macos-15) and found `npm run studio:selftest`
+red on main: `iconSearch.selftest.mjs` read the photo alts from `PlatformMedia.tsx`, which #401 moved to
+`examples/data.ts` (CI does not run studio:selftest). Branch `zen/fix/icon-search-selftest-alts-20261114`.
+
+- The selftest reads the alts from both files.
+- Bug met: the Studio keeps a picture of the shared library (it never writes a new picture into the library, the layer
+  takes its own) only when the source file was `PlatformMedia.tsx`; an example reading `photos.food.mascot` now resolves
+  to `examples/data.ts` (source `mascot.src`, editable), so changing it would have changed every page's photo. New
+  `isLibraryPicture` (`edit/assets/picture.ts`, used by DesignPanel too): PlatformMedia.tsx, or a `src` field in the demo
+  world (people have `photo`, the studio `logo`); the selftest checks that no other value there is called `src`.
+- Gate: Studio E2E 460 works, 1 broken: AP-07, broken twice alone too (not flaky). Cause, from #401: PlatformMedia
+  imported `photos` from data.ts, and the Studio's own modules import PlatformMedia (library media, preview, Main
+  component frame), so every data.ts edit the Studio makes hot-reloaded them and the session (a hidden effect) was lost.
+  Proved by restoring PlatformMedia's own photo imports: AP-07 works. Kept that way; `examples:check` (CI) now fails
+  when the two photo lists differ (46 = 46; a changed alt is caught).

@@ -23,6 +23,9 @@ How to maintain it:
   88 of 505 examples so far. The sample photos are in `./demo` (`photos`). A phone example takes `scrollRef` for its
   Top Navigation ("window" in your app), so its large title folds into the bar again as the screen scrolls (lost in
   the first slice).
+- Zen Studio: a picture read from the shared photo library (`photos` in `./demo`) is never changed there; a new picture
+  on that layer is the layer's own, as before the photos moved (it would have changed every page's photo). A data edit
+  in the Studio no longer reloads its panels and loses the session (since the photos moved).
 - CI: the SwiftUI and Flutter token jobs run on macOS 15; GitHub no longer runs macOS 14, so they were cancelled.
 - Harness: new repo rule `examples/portable-subset` (warning) keeps example files in the React subset other languages can
   translate: useState, useId, useRef, Zen hooks, conditions, lists and handlers; no effects, context, forwardRef or

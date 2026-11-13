@@ -27,10 +27,15 @@ const glyphs = iconGlyphs(iconNames);
 const synonyms = iconSynonymMap(ICON_SYNONYM_ROWS);
 check("every glyph names real icons", glyphs.every((glyph) => [glyph.line, glyph.solid].filter(Boolean).every((name) => iconNames.includes(name))) && glyphs.length > 900, true);
 
-// Every synonym word exists in an icon name or a photo's alt text (read from PlatformMedia.tsx).
+// Every synonym word exists in an icon name or a photo's alt text (the photo library: `photos` in examples/data.ts, which
+// PlatformMedia.tsx spreads, and anything PlatformMedia.tsx still adds).
 const here = path.dirname(fileURLToPath(import.meta.url));
-const media = fs.readFileSync(path.join(here, "../../../PlatformMedia.tsx"), "utf8");
+const media = ["../../../examples/data.ts", "../../../PlatformMedia.tsx"].map((file) => fs.readFileSync(path.join(here, file), "utf8")).join("\n");
 const fold = (text) => text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, " ").trim();
+// The Studio tells a library photo in the demo world by its `src` field (edit/assets/picture.ts isLibraryPicture): no
+// other value there may be called src.
+const demo = fs.readFileSync(path.join(here, "../../../examples/data.ts"), "utf8");
+check("every src in the demo world is a library photo", [...demo.slice(0, demo.indexOf("export const photos = {")).matchAll(/\bsrc:(?!\s*string\b)[^,}]+/g)].map((m) => m[0]), []);
 const photoWords = new Set([...media.matchAll(/alt: "([^"]+)"/g)].flatMap((match) => fold(match[1]).split(" ")));
 const iconWords = new Set(glyphs.flatMap((glyph) => glyph.words));
 check("synonym words exist", ICON_SYNONYM_ROWS.flatMap(([, words]) => words).filter((word) => !iconWords.has(word) && !photoWords.has(word)), []);

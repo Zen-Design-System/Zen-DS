@@ -365,7 +365,8 @@ identical, the two phone examples follow AppShell's spacing (A/B to the user). P
 **PR2 as built (2026-11-14):** the 75 examples of Text, Typography hierarchy, Avatar, Tag, Divider, Dock Icon, Image,
 Progress, Skeleton, Rating, Visually Hidden, Empty State, Inline Message and Alert Banner, ported by five agents (three
 pages each) and reviewed in one pass. Helper replacements are in §8b of the guide: `StudioLogo` → Thumbnail 2xs + Text,
-`DemoFieldDialog` → an inline ModalForm, `platformMedia` → `photos` in the demo world (PlatformMedia spreads it), page
+`DemoFieldDialog` → an inline ModalForm, `platformMedia` → `photos` in the demo world (PlatformMedia keeps its own copy so the Studio's modules never import
+data.ts; `examples:check` keeps the two equal — after #401, AP-07), page
 CSS → Zen props or inline token styles (all eight page CSS files went), container queries → the breakpoint. A phone
 example takes `scrollRef` ("window" in an app); `PlatformPhoneApp` passes the device screen, so large titles fold again
 (lost in PR1 too). What the subset costs: loads that started in an effect now start from a button, and focus lands on
