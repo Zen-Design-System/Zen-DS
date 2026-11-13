@@ -1,12 +1,15 @@
 /* The shared world of the platform examples (brief: docs/research/example-rebuild-brief-2026-09-30.md §1).
    Đìzai Studio is a 48-person product studio in Ho Chi Minh City and Hanoi, the same company the HR templates show.
    Today is Wednesday, Sep 30, 2026, 10:30 am. Examples copy what they need into local state so their demos work;
-   this module is read-only. A page that needs another domain (a shop checkout, a bank) keeps that data in its own file. */
-import type { AvatarTheme } from "../../components/Avatar";
-import type { BadgeTheme } from "../../components/Badge";
-import type { BadgeStatusValue } from "../../components/BadgeStatus";
-import type { DockIconTheme } from "../../components/DockIcon";
-import type { IconName } from "../../components/Icon";
+   this module is read-only. A page that needs another domain (a shop checkout, a bank) keeps that data in its own file.
+
+   It is also the `./demo` file every example snippet imports (plan docs/research/code-languages-plan-2026-10-03.md §11):
+   an *.example.tsx imports "../../data", which the docs show as "./demo", and they offer this file as demo.ts to copy
+   (examples/source.ts). So it stays framework-free: no React, no DOM, types only from "@zen-ds/react", photos as plain
+   imports (shown as ./media/…). Its formatters have test vectors every language port shares
+   (platforms/tests/demo-vectors.json, written by npm run guidelines:build). Zen Studio edits its values in place
+   (data-source.mjs), so it keeps this path. */
+import type { AvatarTheme, BadgeStatusValue, BadgeTheme, DockIconTheme, IconName } from "@zen-ds/react";
 import photoAlex from "../../templates/hr/assets/account-photo.jpg";
 import workspaceLogo from "../../templates/hr/assets/workspace-logo.png";
 import photoAva from "../../assets/media/avatar-ava.webp";

@@ -10,6 +10,7 @@ import { buildApi, compactProps } from "../../scripts/build-api.mjs";
 import { checkUnions } from "./check-unions.mjs";
 import { codeLanguagesManifest } from "../code-languages/manifest.mjs";
 import { changelogAllowsMarkupBreak, cssContract, removedEntries } from "../code-languages/css-contract.mjs";
+import { demoVectors } from "../code-languages/demo-vectors.mjs";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const outDir = path.join(root, "docs/guidelines");
@@ -130,6 +131,8 @@ if (markupRemoved.length && !changelogAllowsMarkupBreak(root)) {
   process.exit(1);
 }
 files.set(contractFile, contract.text);
+// The examples' demo formatters (examples/data.ts, shown as ./demo): the answers every language's demo module must give.
+files.set(path.join(root, "platforms/tests/demo-vectors.json"), await demoVectors(root));
 // Platform copy: the component pages render Do/Don't from this file (same source, no drift).
 files.set(path.join(root, "src/platform/guidelines.generated.json"), JSON.stringify(Object.fromEntries(guidelines.map((g) => [g.slug, {
   title: g.title, purpose: g.purpose, use: g.use, avoid: g.avoid, api: g.api, keyboard: keyboard[g.slug] ?? [], do: g.do, dont: g.dont, a11y: g.a11y, content: g.content, refs: g.refs,
@@ -180,8 +183,9 @@ files.set(path.join(root, "llms.txt"), [
   "",
 ].join("\n"));
 
-// Every rule must point at an existing guideline.
-const orphans = rules.filter((r) => !files.has(path.join(root, r.guideline)));
+// Every rule must point at an existing guideline; a repo-only rule may point at a repo guide instead (docs/guides/*.md:
+// examples/portable-subset judges the docs' own example files, not apps).
+const orphans = rules.filter((r) => !files.has(path.join(root, r.guideline)) && !(r.repoOnly && /^docs\/guides\/[\w-]+\.md$/.test(r.guideline) && fs.existsSync(path.join(root, r.guideline))));
 if (orphans.length) { console.error(`✗ Rules without a guideline file: ${orphans.map((r) => `${r.id} → ${r.guideline}`).join(", ")}`); process.exit(1); }
 
 if (process.argv.includes("--check")) {

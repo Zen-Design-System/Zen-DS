@@ -48,7 +48,9 @@ const FREEZE_CSS = `*, *::before, *::after { animation-duration: 0s !important; 
 async function capture(dir) {
   // --isolated: a private dev server (as the gate); the shared :5173 by default, with a warning.
   const { toolServer } = await import(new URL("../qa/isolated-server.mjs", import.meta.url).href);
-  const base = (await toolServer(root, { url: opt("url"), isolated: flag("isolated"), tool: "visual-diff" })).base;
+  // The private server (--isolated) is a child process: close it, or capture never exits.
+  const server = await toolServer(root, { url: opt("url"), isolated: flag("isolated"), tool: "visual-diff" });
+  const base = server.base;
   const pages = opt("pages") ? String(opt("pages")).split(",") : allPages();
   const widths = String(opt("widths", "1512,390")).split(",").map(Number);
   const dark = flag("dark");
@@ -107,6 +109,7 @@ async function capture(dir) {
     }
   } finally {
     await browser.close();
+    await server.close();
   }
   fs.writeFileSync(path.join(dir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
   console.log(`\nCaptured ${total} panels into ${dir}`);

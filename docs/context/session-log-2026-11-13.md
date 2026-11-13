@@ -62,3 +62,39 @@ kerned differently). Last: AvatarStack's last avatar edge one channel level off 
 now looks again for a few frames; an in-page `href="#…"` kept the React id after the target was renamed.
 
 **Decided on the way:** Menu, Popover and Tooltip are markup only (their trigger is in place), not "not available".
+
+## Code view in other languages, P2b PR1: portable examples, foundation + Link and Badge (tier L; session "Code view P2b")
+
+User: approved P2b's start (session opened 2026-11-13); §8.3 was already answered (2026-11-12: the snippet is the
+render's source, `*.example.tsx` + `?raw`). Three choices asked and answered as recommended (plan §11): harness rule
+`examples/portable-subset`, demo data as a `./demo` file to copy, phone examples on the AppShell phone pattern.
+
+**Survey:** 500 examples in 85 files (+5 Typography), not 310. Snippets 17 lines median; the components the renders run
+60 median, 165 p90, 535 max. Docs helpers in renders: phone frame 135, desktop frame 74, DemoFieldDialog 35, media 47.
+
+**Built:**
+- `examples/pages/link/*.example.tsx` (5) and `badge/*.example.tsx` (8): default export rendered, `?raw` shown through
+  `examples/exampleCode.ts` (`../../data` → `./demo`, pure, Node runs it); the pages draw `PlatformPhone` around phone
+  examples, which are `AppShell` screens. Focus after a screen change: a ref + `setTimeout` in the handler (title span,
+  the link it came from, the status line, Add label), no DOM queries.
+- `examples/data.ts` stays the demo world (Studio's data-source writes there and E2E reads it; a rename to demo.ts was
+  undone): framework-free, type imports from `@zen-ds/react`. `examples/demoFile.ts` + SnippetCode's **demo.ts** button.
+- `tools/code-languages/demo-vectors.mjs` → `platforms/tests/demo-vectors.json` (46 vectors; esbuild loads data.ts with
+  photos left out), written by `guidelines:build`.
+- `tools/code-languages/examples-check.mjs` (`npm run examples:check`, QA static step, CI): imports, page shows the file
+  it renders, baseline `examples-baseline.json` (492 not moved), fixture compile of every snippet as copied beside
+  demo.ts with noUnusedLocals (~1 s with tsc 7). Negative test: a docs import, unused imports and a typo all caught.
+- Harness: engine `source: true` rules; `examples/portable-subset` (repoOnly, warn, `docs/guides/example-patterns.md`;
+  repo-only rules may point at a guide, build-guidelines); fixtures `bad.example.tsx` (4) / `good.example.tsx`.
+- Studio `isSlotFile` takes `pages/<page>/<slug>.example.tsx` (+ selftest cases); QA maps example files to their page,
+  counts them as example sources and reads their text in the coverage matrix.
+
+**Bugs met and fixed:** `visual-diff capture` and `platform:shoot` never closed the `--isolated` server, so they did not
+exit (a 1-minute capture held its shell for 10+ minutes). In the gate, examples:check failed with an empty message: the
+gate sets `FORCE_COLOR=0`, which tsc 7 took as a reason for its coloured multi-line output, so no line matched; the
+check now runs tsc with `--pretty false`. The gate also saw "0 UI files" in this worktree (known: pass `--files=`).
+
+**Visual diff (link + badge, 1512/390):** desktop examples identical to before; Link's first description reworded
+(same length, so no card below moves: a longer one shifted the 390 cards by 32 px and changed antialiasing). The two
+phone examples change: AppShell's body starts 8 px under the bar (was 20) and the filter chips scroll inside the page
+margin instead of running to the screen edge — A/B sent to the user before merging.

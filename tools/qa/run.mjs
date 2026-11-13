@@ -315,6 +315,18 @@ else {
   const r = run("npm", ["run", "-s", "studio:selftest"]);
   step("static", "Studio self-tests", r.code === 0 ? "pass" : "fail", r.code === 0 ? "" : "npm run studio:selftest fails", r.code === 0 ? [] : tail(r.out, /✗|fail/i).slice(0, 20));
 }
+// Example snippets (P2b, npm run examples:check): an example file imports only what a reader has, its page shows the
+// file it renders, the not-yet-moved count never grows, and every snippet compiles as copied (beside demo.ts). Only when
+// the examples, their demo world or the check itself are in scope.
+{
+  const name = "Example snippets (portable, compiled as copied)";
+  const feeds = (f) => /^src\/platform\/(examples\/|PlatformTypographyHierarchy\.tsx$)/.test(f) || /^tools\/code-languages\/examples-/.test(f);
+  if (!ALL && ![...files, ...aux].some(feeds)) step("static", name, "skip", "no example, demo-data or examples:check edits since the last pass");
+  else {
+    const r = run(process.execPath, ["tools/code-languages/examples-check.mjs"]);
+    step("static", name, r.code === 0 ? "pass" : "fail", r.code === 0 ? "" : "npm run examples:check fails", r.code === 0 ? [] : tail(r.out, /✗/).slice(0, 20));
+  }
+}
 // Guidelines + props docs (S5b): stale docs of components this session edited are regenerated; another session's stale
 // docs are a warning, not a failure.
 {
@@ -599,11 +611,14 @@ const MATRIX = [
 // mobile example (user, 2026-10-07).
 const NOT_APPLICABLE = { "side-panel": ["mobile"] };
 const coverage = [];
-const titledEntries = (body, entries) => {
+/** `raws`: an example file's text by the name its page imports it under (`import x from "./p/x.example.tsx?raw"`, P2b):
+ *  an entry whose code is that file reads as the file. */
+const titledEntries = (body, entries, raws = new Map()) => {
   for (const t of body.matchAll(/\btitle:\s*(["'`])((?:\\.|(?!\1).)*)\1/g)) {
     const from = t.index; const next = body.slice(from + 1).search(/\btitle:\s*["'`]/);
     const chunk = body.slice(from, next < 0 ? undefined : from + 1 + next);
-    entries.push({ title: t[2], text: chunk });
+    const files = [...raws].filter(([name]) => new RegExp(`\\b${name}\\b`).test(chunk)).map(([, text]) => text);
+    entries.push({ title: t[2], text: [chunk, ...files].join("\n") });
   }
 };
 /** The examples array of a page file, following its spreads (`...grid` of a part file's `examples`, or a local list such
@@ -614,7 +629,8 @@ function ownEntries(file, entries, name = "examples", depth = 0) {
   const m = new RegExp(`\\n(?:export )?const ${name}\\b[^=]*=\\s*(?:keepOnHotUpdate\\([^,]+,\\s*"examples",\\s*)?(\\[|(\\w+);)`).exec(src);
   if (!m) return;
   const list = m[1] === "[" ? arrayAt(src, m.index + m[0].length - 1) : `[...${m[2]}]`;
-  titledEntries(list, entries);
+  const raws = new Map([...src.matchAll(/\nimport (\w+) from "(\.[^"]+)\?raw";/g)].map((r) => [r[1], fs.existsSync(path.join(path.dirname(file), r[2])) ? fs.readFileSync(path.join(path.dirname(file), r[2]), "utf8") : ""]));
+  titledEntries(list, entries, raws);
   for (const spread of list.matchAll(/\.\.\.(\w+)\b/g)) {
     const from = new RegExp(`import \\{[^}]*\\bexamples as ${spread[1]}\\b[^}]*\\} from "(\\.[^"]+)"`).exec(src)?.[1];
     if (from) ownEntries(path.join(path.dirname(file), `${from}.tsx`), entries, "examples", depth + 1);

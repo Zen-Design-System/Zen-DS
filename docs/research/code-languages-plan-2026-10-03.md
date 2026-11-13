@@ -1,7 +1,8 @@
 # Code view in other languages: Vue, Svelte, HTML, Swift, Flutter (plan, 2026-10-03)
 
 Status: **P1 and P2 approved (user, 2026-11-12: "Code view: HTML/CSS"); §8 answered the same day.** P1 (the Code view
-base) is built: see §9. P2 (HTML + CSS) follows as its own PR. P2b–P9 still need their own approval (Scope lock).
+base) and P2 (HTML + CSS) are built: see §9–§10. **P2b started 2026-11-13** (session opened by the user, its three
+choices in §11). P3–P9 still need their own approval (Scope lock).
 
 ## 1. Where we are
 
@@ -316,3 +317,47 @@ with a note for the rest. Every other language says plainly what is missing.
   said: six tools (usage-guard, ai-ui, the Studio's compile-api and figma-pull…) read every file there as a
   component's props. It ships with the package (`files`).
 - **Highlighter:** `tokenize.ts` reads `<!-- comments -->` in HTML (the snippet's header, the Studio's HTML export).
+
+## 11. P2b decisions and slices (2026-11-13)
+
+**Survey (Babel over `examples/pages`, 2026-11-13):** 500 examples in 85 files (+5 Typography hierarchy); the 310 above
+was 2026-10-03. Today's snippets: 17 lines median, 34 p90. The component each render runs: 60 median, 165 p90, 535 max
+(Chat, AI UI), so with `?raw` the Code view shows about 3–4× more code. Docs helpers inside renders: the phone frame
+135 examples, the desktop frame + logo 74, `DemoFieldDialog` 35, demo media 47. Outside the subset: `useRef` 217, DOM
+queries 186, `useEffect` 126, local hooks 110, `requestAnimationFrame` 66; 263/500 already clean.
+
+**Decided by the user (2026-11-13, AskUserQuestion; all three as recommended):**
+1. **Harness rule `examples/portable-subset`** on `*.example.tsx`: allowed `useState`, `useId`, `useRef` for elements
+   (`ref`, `scrollRef`, `.focus()`), Zen hooks (`useToast`, `useFormState`…), `&&` / ternary, `.map` / `.filter` /
+   `.sort` / `.find` / `.slice`, named and arrow handlers, `setTimeout` in a handler. Not allowed: `useEffect` /
+   `useLayoutEffect`, context, `forwardRef`, `document` / `window` / `querySelector` / `ResizeObserver` /
+   `requestAnimationFrame`. A warning while examples move, an error from the last slice.
+2. **Demo data + formatters are a file to copy:** a snippet imports `from "./demo"`; the docs offer `demo.ts` (data and
+   formatters, no framework); it is not in the package. The compile gate builds the displayed form.
+3. **Phone examples use the AppShell phone pattern** (`<AppShell topNavigation actionBar|bottomNavigation>`, consumer rule
+   13); the docs draw only the device around it. Where AppShell lays out differently from `PlatformPhone`'s slots, fix
+   AppShell, or show the user A/B shots before merging.
+
+**Shape:** each example is `examples/pages/<page>/<slug>.example.tsx` with a default export, importing only `react`,
+`@zen-ds/react` and the demo module; the page file renders it (inside a docs frame when it has one) and shows its
+`?raw` (the demo import written as `./demo`). `examples:check` keeps a baseline of examples not moved yet that only
+shrinks, and compiles every displayed snippet in a generated fixture project.
+
+**Slices (one PR each; 2–7 touch separate files and can run in parallel once 1 is merged):**
+
+| PR | Content | Examples |
+| --- | --- | --- |
+| 1 | Foundation (demo core + vectors, `?raw` plumbing, `examples:check`, the subset rule, Studio takes `*.example.tsx`) + pilot Link, Badge | 13 |
+| 2 | Display and text: Text, Avatar, Tag, Divider, DockIcon, Image, Progress, Skeleton, Rating, VisuallyHidden, EmptyState, InlineMessage, AlertBanner, Typography | 75 |
+| 3 | Controls and forms: Button, Input, Checkbox, RadioButton, Toggle, Slider, SliderField, Segmented, Search, ColorPicker, ColorSelector, Uploader, Form, DatePicker, Calendar | 92 |
+| 4 | Navigation and structure: Tabs, Breadcrumbs, Pagination, Stepper, TopNavigation, BottomNavigation, Sidebar, PageHeader, DashboardHeader, ActionBar, Accordion, Layout, ListItem, DescriptionList, Card | 104 |
+| 5 | Overlays and feedback: Dialog, BottomSheet, SidePanel, Popover, Menu, Tooltip, Toast, Chip | 50 |
+| 6 | Data: Table, SheetTable, Chart, Metric, Schedule, Timeline, Shape, CurvePreview, Voice | 97 |
+| 7 | Heavy + close the gate: Chat, AI Chat, AI UI, widgets, App Shell layouts; baseline 0, the rule an error | 74 |
+
+**PR1 as built (2026-11-13):** the shape above, plus: the demo world keeps its path `examples/data.ts` (Zen Studio edits
+its values there), the snippet shows it as `./demo` (`examples/exampleCode.ts`) and the Code view copies it as demo.ts;
+`npm run examples:check` (QA + CI) compiles every snippet as copied in a fixture project; `examples/portable-subset` is a
+`source` rule of the usage harness; vectors in `platforms/tests/demo-vectors.json`. Link and Badge moved: desktop renders
+identical, the two phone examples follow AppShell's spacing (A/B to the user). Patterns for the next slices:
+`docs/guides/example-patterns.md` §8b.

@@ -13,6 +13,7 @@ import { PlatformComponentPage } from "../../src/platform/PlatformExamples";
 import { componentsIn, snippetStatus } from "../../src/platform/code/languages";
 import { setCodeLanguage } from "../../src/platform/code/preference";
 import { readSnippet, type SnippetElement, type SnippetNode } from "../../src/platform/code/snippet";
+import { exampleCode } from "../../src/platform/examples/exampleCode";
 import { SnippetCode } from "../../src/platform/code/SnippetCode";
 import { htmlSnippet, markupOf } from "../../src/platform/code/html";
 import { SnippetSpecimenContext } from "../../src/platform/code/specimen";
@@ -98,6 +99,16 @@ const [count, setCount] = useState(0);
   it("fails with the parser's message instead of half a tree", () => {
     const result = readSnippet(parse, "<Button level=\"primary\">Save</Button");
     expect(result.ok).toBe(false);
+  });
+
+  it("reads every example file as its snippet: a module that imports the package and the demo world (P2b)", () => {
+    const files = import.meta.glob<string>("../../src/platform/examples/pages/*/*.example.tsx", { query: "?raw", import: "default", eager: true });
+    const read = Object.entries(files).map(([file, raw]) => ({ file, code: exampleCode(raw), result: readSnippet(parse, exampleCode(raw)) }));
+    expect(read.filter(({ result }) => !result.ok).map(({ file, result }) => `${file}: ${result.ok ? "" : result.error}`)).toEqual([]);
+    // The package by name, the demo world as the reader's own ./demo: nothing from the docs.
+    const sources = new Set(read.flatMap(({ result }) => (result.ok ? result.tree.imports.map((entry) => entry.source) : [])));
+    expect([...sources].filter((source) => !["react", "@zen-ds/react", "./demo"].includes(source))).toEqual([]);
+    expect(read.length).toBeGreaterThanOrEqual(13);
   });
 });
 

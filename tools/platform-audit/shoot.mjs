@@ -26,7 +26,9 @@ const flag = (name) => argv.includes(`--${name}`);
 const positional = argv.filter((a) => !a.startsWith("--"));
 // --isolated: a private dev server (as the gate); the shared :5173 by default, with a warning.
 const { toolServer } = await import(new URL("../qa/isolated-server.mjs", import.meta.url).href);
-const BASE = (await toolServer(root, { url: opt("url")[0], isolated: flag("isolated"), tool: "platform:shoot" })).base;
+// The private server (--isolated) is a child process: closed at the end, or the shoot never exits.
+const server = await toolServer(root, { url: opt("url")[0], isolated: flag("isolated"), tool: "platform:shoot" });
+const BASE = server.base;
 const WIDTH = Number(opt("width")[0] ?? 1512);
 const OUT = path.resolve(opt("out")[0] ?? path.join(root, ".platform-shots"));
 const TIMEOUT = Number(opt("timeout")[0] ?? 30000);
@@ -92,4 +94,5 @@ try {
   }
 } finally {
   await browser.close();
+  await server.close();
 }

@@ -1,6 +1,11 @@
-import { useLayoutEffect, useState, type MouseEvent } from "react";
+import { useLayoutEffect, useRef, useState, type MouseEvent } from "react";
+import { Button } from "../../components/Button";
+import { Icon } from "../../components/Icon";
 import { SelectField } from "../../components/Input";
 import { Link } from "../../components/Link";
+import { VisuallyHidden } from "../../components/VisuallyHidden";
+import { demoFile } from "../examples/demoFile";
+import { usesDemo } from "../examples/exampleCode";
 import { useStudioBridge } from "../studio/bridge";
 import { CodeView, type CodeLanguage } from "../studio/code/CodeView";
 import { htmlSnippet } from "./html";
@@ -88,6 +93,32 @@ function followDocsLink(event: MouseEvent<HTMLAnchorElement>, scroll: boolean) {
 }
 
 /**
+ * An example imports the demo world from "./demo" (examples/source.ts): the header offers that file, demo.ts, to copy
+ * beside the snippet, so the copied example runs as it is.
+ */
+function DemoFileButton() {
+  const [copied, setCopied] = useState(false);
+  const timer = useRef(0);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(demoFile);
+      setCopied(true);
+      window.clearTimeout(timer.current);
+      timer.current = window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard blocked (insecure context or permission): the label stays as it was.
+    }
+  };
+  return (
+    <>
+      {/* zen-allow-compact-button: platform chrome — a file action in the code view's header, beside Wrap and Copy. */}
+      <Button level="tertiary" size="xs" startIcon={<Icon name={copied ? "icon-check-line" : "icon-copy-line"} decorative />} aria-label={copied ? "Copied demo.ts" : "Copy demo.ts, the sample data this example imports"} onClick={copy}>demo.ts</Button>
+      <VisuallyHidden role="status">{copied ? "demo.ts copied to the clipboard" : ""}</VisuallyHidden>
+    </>
+  );
+}
+
+/**
  * `specimen`: where the snippet's specimen renders, when no ComponentPreview or ExampleCard around the snippet says so
  * (the Studio's Code tab, beside the example's frame on the canvas).
  */
@@ -117,7 +148,7 @@ export function SnippetCode({ code, maxHeight, specimen }: { code: string; maxHe
     />
   );
 
-  if (shown) return <CodeView key="code" code={shown.code} language={shown.highlight} languageControl={picker} maxHeight={maxHeight} />;
+  if (shown) return <CodeView key="code" code={shown.code} language={shown.highlight} languageControl={picker} maxHeight={maxHeight} actions={picked === "react" && usesDemo(code) ? <DemoFileButton /> : undefined} />;
   // HTML not read yet (the first frames): the code view waits empty rather than saying "not available".
   if (picked === "html" && current.status !== "not-yet" && html === undefined) return <CodeView key="code" code="" language="html" languageControl={picker} maxHeight={maxHeight} toolbar={false} />;
 

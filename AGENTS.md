@@ -84,6 +84,7 @@ edit at once and block finishing a turn until the gate passed (not while your ow
 | AI kit for Figma | `npm run ai-kit:check` · `npm run ai-kit:build` (zip in dist-pack/; the platform's Installation page builds the same) |
 | Visual regression | `node tools/platform-audit/visual-diff.mjs capture <dir> --url=…` before and after, then `… compare <before> <after> --sheets=<dir>`: refactors that must not change the UI need 0 changed panels |
 | Guidelines + props docs | `npm run guidelines:build` then `npm run guidelines:check` |
+| Example snippets | `npm run examples:check` (each example is `examples/pages/<page>/<slug>.example.tsx`, shown as copied; `-- --write` after moving examples) |
 | Tokens / styles / icons | `npm run tokens:check` · `npm run styles:check` · `npm run icons:check` |
 | Figma parity | `node tools/figma-contract/run-all.mjs` (the gate runs only the suites of the components you edited) · re-capture: `tools/figma-contract/README.md` |
 | Platform (dev server on :5173) | `npm run platform:audit` (`:full`, `--dark`, `--quality`, `--density`) · `npm run platform:behaviour` · `npm run platform:shoot -- <page>`, and look at the images (`--isolated` on audit, shoot and visual-diff: a private server, as the gate) |

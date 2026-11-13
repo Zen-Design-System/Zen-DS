@@ -114,9 +114,10 @@ export const SLOT_OPS = new Set(["insertChild", "removeElement", "duplicateEleme
 /** Ops sent on the slot's host (the parent), not on an element inside the slot. */
 const HOST_OPS = new Set(["insertChild", "pasteCode", "clearSlot", "resetSlot", ...ITEM_OPS]);
 
-/** Files whose slot content the Studio may restructure: example pages and templates (case-exact). */
+/** Files whose slot content the Studio may restructure: example pages, example files (pages/<page>/<slug>.example.tsx,
+ *  the source of one example since P2b) and templates (case-exact). */
 export function isSlotFile(rel) {
-  return typeof rel === "string" && !rel.includes("?") && (/^src\/platform\/examples\/pages\/[^/]+\.tsx$/.test(rel) || /^src\/templates\/.+\.tsx$/.test(rel) || LOCAL_PAGE.test(rel));
+  return typeof rel === "string" && !rel.includes("?") && (/^src\/platform\/examples\/pages\/[^/]+\.tsx$/.test(rel) || /^src\/platform\/examples\/pages\/[^/]+\/[^/]+\.example\.tsx$/.test(rel) || /^src\/templates\/.+\.tsx$/.test(rel) || LOCAL_PAGE.test(rel));
 }
 
 /** A builder page kept in the browser (Studio builder GĐ2): "local:<id>.zen.tsx". */
