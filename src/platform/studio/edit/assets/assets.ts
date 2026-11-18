@@ -18,7 +18,7 @@ import { placeOf, type DropTarget, type NodeSelection } from "../arrange";
 import { insertCode, notRecommended } from "../clipboard";
 import { dropTargetAt, kidsOf, publishDragView, type DropContext } from "../drag";
 import { floatingCode } from "../autoLayoutPlan";
-import { freeBlock, layerBoxesIn, localTo, screenOfBlock } from "../freeBlock";
+import { barBoxesIn, freeBlock, layerBoxesIn, localTo, screenOfBlock } from "../freeBlock";
 import { fitFreeBox } from "../freeFit";
 import { needsWidth, widgetWidthIn } from "../insertPlace";
 import { snapBox, SNAP_PX, type FrameBox } from "../../builder/render/framePlace";
@@ -429,7 +429,7 @@ function freeDropAt<T extends DropTarget & { into: { x: number; y: number; w: nu
   const block = freeBlock(host);
   if (!block) return null;
   const point = localTo(block, pointer.x, pointer.y);
-  const others: FrameBox[] = [{ x: 0, y: 0, width: block.clientWidth, height: block.clientHeight }, ...layerBoxesIn(block)];
+  const others: FrameBox[] = [{ x: 0, y: 0, width: block.clientWidth, height: block.clientHeight }, ...layerBoxesIn(block), ...barBoxesIn(block)];
   const snapped = noSnap ? { dx: 0, dy: 0, guides: [] } : snapBox({ x: point.x, y: point.y, width: 0, height: 0 }, others, SNAP_PX / (getViewport().zoom || 1));
   const x = Math.max(0, Math.round(point.x + snapped.dx));
   const y = Math.max(0, Math.round(point.y + snapped.dy));

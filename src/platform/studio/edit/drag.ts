@@ -16,6 +16,7 @@ import type { EditOp } from "../types";
 import { textEditSession } from "./textEdit";
 import { srcAttr } from "../select/srcIds";
 import { snapBox, SNAP_PX, type FrameBox, type SnapGuide } from "../builder/render/framePlace";
+import { barBoxesIn, layerHolderOf, layerKidsOf } from "./freeBlock";
 
 /*
  * Drag a layer in auto layout, Figma-like (docs/research/studio-figma-editing-plan-2026-10-03.md, Phase 2).
@@ -409,18 +410,21 @@ type GroupMove = { items: FloatingItem[]; block: HTMLElement | null; scale: numb
 const FREE_FRAME = ".studio-builder-screen, .studio-builder-screen__content, .zen-box";
 
 /**
- * The frame itself and its other layers, in the px of `block` (the layers' containing block, `scale` screen px each):
- * what layers moved or resized in a free frame snap to (select/ResizeLayer.tsx too).
+ * The frame itself, its other layers and a Screen's bars (status bar, Top / Bottom Navigation), in the px of `block`
+ * (the layers' containing block, `scale` screen px each): what layers moved or resized in a free frame snap to
+ * (select/ResizeLayer.tsx too). The canvas's chrome beside the layers (the home indicator, "Add Navigation") is no layer.
  */
 export function freeFrameBoxes(layers: readonly HTMLElement[], block: HTMLElement, scale: number): FrameBox[] {
   const outer = block.getBoundingClientRect();
-  const siblings = Array.from(layers[0]?.parentElement?.children ?? []).filter((child): child is HTMLElement => child instanceof HTMLElement && !layers.includes(child));
+  const parent = layers[0]?.parentElement;
+  const siblings = parent ? layerKidsOf(parent).filter((child) => !layers.includes(child)) : [];
   return [
     { x: 0, y: 0, width: block.clientWidth, height: block.clientHeight },
     ...siblings.map((child) => {
       const box = child.getBoundingClientRect();
       return { x: (box.left - outer.left) / scale - block.clientLeft, y: (box.top - outer.top) / scale - block.clientTop, width: box.width / scale, height: box.height / scale };
     }).filter((box) => box.width > 0 || box.height > 0),
+    ...(parent && layerHolderOf(block) === parent ? barBoxesIn(block) : []),
   ];
 }
 

@@ -71,9 +71,31 @@ export function boxIn(block: HTMLElement, rect: DOMRect): PlaceBox {
   return { x: at.x, y: at.y, width: rect.width / at.scale, height: rect.height / at.scale };
 }
 
+/**
+ * The element that holds `block`'s layers: a Screen's content box when it draws bars (a Top / Bottom Navigation, a
+ * desktop header or sidebar: runtime.tsx puts its layers in __main > __content), else the block itself.
+ */
+export function layerHolderOf(block: HTMLElement): HTMLElement {
+  if (!block.matches(".studio-builder-screen")) return block;
+  return block.querySelector<HTMLElement>(":scope > .studio-builder-screen__main > .studio-builder-screen__content") ?? block;
+}
+
 /** The floating layers of `block`, as boxes in its own px, in document order. */
 export function layerBoxesIn(block: HTMLElement): PlaceBox[] {
-  return layerKidsOf(block).filter(floats).map((kid) => boxIn(block, kid.getBoundingClientRect()));
+  return layerKidsOf(layerHolderOf(block)).filter(floats).map((kid) => boxIn(block, kid.getBoundingClientRect()));
+}
+
+/** A Screen's bars: the phone's status bar, its Top / Bottom Navigation, a desktop Screen's header and sidebar. */
+const SCREEN_BARS = ":scope > .studio-device-status, :scope > .studio-builder-screen__side, :scope > .studio-builder-screen__main > :is(.studio-builder-screen__top, .studio-builder-screen__bottom, .studio-builder-screen__header)";
+
+/**
+ * The bars of the Screen that is `block`, as boxes in its own px (none for any other block): its layers snap to their
+ * edges and centres and space from them like from each other (Figma's smart guides; there a Top Navigation is an
+ * instance beside the frame's layers). The canvas's "Add Navigation" placeholders and the home indicator are left out.
+ */
+export function barBoxesIn(block: HTMLElement): PlaceBox[] {
+  if (!block.matches(".studio-builder-screen")) return [];
+  return Array.from(block.querySelectorAll<HTMLElement>(SCREEN_BARS)).map((bar) => boxIn(block, bar.getBoundingClientRect())).filter((box) => box.width > 0 && box.height > 0);
 }
 
 /** The Screen `block` belongs to, for its device (the page margin differs on a phone), or null outside a Screen. */
