@@ -14,6 +14,8 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a Top Navigation's Type is labelled **Theme** in the Inspector (it picks the bar's look: Default, Alt,
+  Blurring, Liquid glass, Overlay). The code prop stays `type`, the Figma property "Type".
 - Zen Studio: in a phone Screen with a Top or Bottom Navigation, smart guides now take the status bar and both
   navigation bars: a layer moved, resized, drawn or dropped there snaps to their edges with a red guide, and equal
   spacing counts them. Drops and Assets inserts in such a Screen also see its other layers (they landed on top of them).

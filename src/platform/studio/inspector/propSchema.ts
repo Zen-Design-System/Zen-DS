@@ -134,7 +134,9 @@ const propLabels: Record<string, string> = {
  * bottom but TopNavigation to the top). */
 const componentPropLabels: Record<string, Record<string, string>> = {
   FormActions: { sticky: "Pin to bottom", inset: "Side inset" },
-  TopNavigation: { sticky: "Pin to top" },
+  // Its `type` (Figma's Type) picks the bar's fill: Default, Alt, Blurring, Liquid glass, Overlay (user 2026-11-18: "Đổi
+  // type thành theme", read as the bar's look).
+  TopNavigation: { sticky: "Pin to top", type: "Theme" },
   // Figma's layers (◇ Master-Layout AppShell patterns, user 2026-10-16; rebuilt 2026-10-19), as a designer reads them on
   // a label (the UX review 2026-10-27 §6 row 23: no hyphenated layer names on the Design tab; the Figma name stays the
   // slot's key, slots/registry.ts, and the push's).
