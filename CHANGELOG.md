@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: in a phone Screen with a Top or Bottom Navigation, smart guides now take the status bar and both
+  navigation bars: a layer moved, resized, drawn or dropped there snaps to their edges with a red guide, and equal
+  spacing counts them. Drops and Assets inserts in such a Screen also see its other layers (they landed on top of them).
 - Docs and Zen Studio: an example's code is now the file it renders (Link and Badge so far; the other pages follow):
   a whole component you can paste and run, importing only `react`, `@zen-ds/react` and `./demo`, the sample data. The
   code header offers **demo.ts** to copy beside it. Phone examples are written as real screens on `AppShell`

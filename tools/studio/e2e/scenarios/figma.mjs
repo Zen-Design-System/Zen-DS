@@ -5747,6 +5747,100 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       return `the bars end at ${bars} → <Box position="absolute" insetLeft={20} insetTop={${y}}> · no page flow · one ⌘Z`;
     },
   },
+  {
+    id: "FW-267", feature: "A phone Screen with a Top and a Bottom Navigation (user 2026-11-18: no smart guides beside a phone's navigation): a layer moved up snaps its top to the Top Navigation's bottom edge, one moved down its bottom to the Bottom Navigation's top edge, each with a red guide on that edge; a Rectangle drawn with R snaps its bottom there too; one ⌘Z each", wp: "screen bar guides 2026-11-18", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await barsPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const bars = await barEdges(page);
+      const shape = async (index) => shapesIn((await pageText(page, id)) ?? "")[index];
+      // Drags from `from` by `dy` (and `dx`) Screen px in small steps; the red guide's box just before the release.
+      const moveBy = async (from, dy, guide, dx = 0) => {
+        await clearAt(page, from);
+        await clearAt(page, { x: from.x + dx * bars.zoom, y: from.y + dy * bars.zoom });
+        await page.mouse.move(from.x, from.y);
+        await page.mouse.down();
+        let seen = null;
+        try {
+          for (let step = 1; step <= 6; step++) { await page.mouse.move(from.x + (dx * bars.zoom * step) / 6, from.y + (dy * bars.zoom * step) / 6); await sleep(40); }
+          seen = await until(async () => ((await page.locator(guide).count()) ? page.locator(guide).first().boundingBox() : null), { timeout: 3000, message: "a red guide while dragging" }).catch(() => null);
+        } finally {
+          await page.mouse.up();
+        }
+        if (!seen) {
+          await sleep(500);
+          throw new Error(`no ${guide} while dragging ${dy} px (bars ${bars.topEnd} · ${bars.bottomStart}, zoom ${bars.zoom.toFixed(2)}); after the release: ${JSON.stringify(shapesIn((await pageText(page, id)) ?? ""))}, status "${(await statusText(page)).slice(0, 80)}"`);
+        }
+        return seen;
+      };
+      // The Rectangle (top 160) up to 3 px under the Top Navigation: it snaps onto its bottom edge.
+      await selectShape(page, id, 0);
+      const rect = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(0).boundingBox();
+      const up = await moveBy({ x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }, Math.round(bars.topEnd) + 3 - 160, ".studio-drag__guide");
+      if (Math.abs(up.y - bars.topEndClient) > 1.5 || up.height > 2) throw new Error(`the guide is at y ${Math.round(up.y)} (${Math.round(up.width)} × ${Math.round(up.height)}), not on the Top Navigation's bottom edge (${Math.round(bars.topEndClient)})`);
+      await until(async () => (await shape(0))?.y !== 160, { message: "the move written" });
+      const moved = await shape(0);
+      if (Math.abs(moved.y - bars.topEnd) > 1) throw new Error(`the Rectangle's top is at ${moved.y}, not on the Top Navigation's bottom edge (${bars.topEnd})`);
+      await undoTo(page, id, before, 1);
+      // The square (bottom 500; a Rectangle: an Ellipse's centre is its Ratio handle) down to 3 px above the Bottom
+      // Navigation: its bottom edge snaps onto the bar's top.
+      await deselect(page);
+      await selectShape(page, id, 1);
+      const square = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(1).boundingBox();
+      const down = await moveBy({ x: square.x + square.width / 2, y: square.y + square.height / 2 }, Math.round(bars.bottomStart) - 3 - 500, ".studio-drag__guide");
+      if (Math.abs(down.y - bars.bottomStartClient) > 1.5 || down.height > 2) throw new Error(`the guide is at y ${Math.round(down.y)}, not on the Bottom Navigation's top edge (${Math.round(bars.bottomStartClient)})`);
+      await until(async () => (await shape(1))?.y !== 420, { message: "the move written" });
+      const dropped = await shape(1);
+      if (Math.abs(dropped.y + 80 - bars.bottomStart) > 1) throw new Error(`the square's bottom is at ${dropped.y + 80}, not on the Bottom Navigation's top edge (${bars.bottomStart})`);
+      await undoTo(page, id, before, 1);
+      // R: a Rectangle drawn down to 3 px above the Bottom Navigation ends on its top edge.
+      await deselect(page);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("r");
+      await sleep(150);
+      const start = { x: bars.screen.x + 40 * bars.zoom, y: bars.screen.y + (Math.round(bars.bottomStart) - 100) * bars.zoom };
+      const drawn = await moveBy(start, 97, ".studio-draw__guide", 120);
+      if (Math.abs(drawn.y - bars.bottomStartClient) > 1.5) throw new Error(`the draw guide is at y ${Math.round(drawn.y)}, not on the Bottom Navigation's top edge (${Math.round(bars.bottomStartClient)})`);
+      await until(async () => shapesIn((await pageText(page, id)) ?? "").length === 3, { message: "the drawn Rectangle" });
+      const text = (await pageText(page, id)) ?? "";
+      const place = shapesIn(text)[2];
+      const size = sizesIn(text)[2];
+      if (Math.abs(place.y + size.height - bars.bottomStart) > 1) throw new Error(`the drawn Rectangle ends at ${place.y + size.height}, not on the Bottom Navigation's top edge (${bars.bottomStart})`);
+      await undoTo(page, id, before, 1);
+      return `Top Navigation ends at ${bars.topEnd}: Rectangle Y 160 → ${moved.y} · Bottom Navigation starts at ${bars.bottomStart}: square Y 420 → ${dropped.y} · drawn ${size.width} × ${size.height} at Y ${place.y} · red guides on both edges · one ⌘Z each`;
+    },
+  },
+  {
+    id: "FW-268", feature: "In a phone Screen with a Top and a Bottom Navigation (its layers sit in its content box), Assets › Text field dropped 3 px right of a layer's left edge snaps onto that edge; clicked in Assets, it lands clear of the Screen's layers and under the Top Navigation, never on top of them; one ⌘Z each", wp: "screen bar guides 2026-11-18", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await barsPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const bars = await barEdges(page);
+      const to = { x: bars.screen.x + 23 * bars.zoom, y: bars.screen.y + 330 * bars.zoom };
+      await clearAt(page, to);
+      await dragAssetTo(page, "Text field", to);
+      const floated = /<Box position="absolute" insetLeft=\{(\d+)\} insetTop=\{(\d+)\}[^>]*>\s*<InputField/;
+      await until(async () => floated.test((await pageText(page, id)) ?? ""), { timeout: 8000, message: "the field placed freely" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const [, left, top] = ((await pageText(page, id)) ?? "").match(floated);
+      if (Number(left) !== 20) throw new Error(`dropped at X 23, placed at X ${left}: not snapped to the Rectangle's left edge (20)`);
+      await undoTo(page, id, before, 1);
+      const text = await insertFromAssets(page, id, "Text field", "InputField");
+      if (!floated.test(text)) throw new Error(`the field is not placed freely: ${text.match(/<Screen[\s\S]*<\/Screen>/)?.[0].replace(/\s+/g, " ").slice(0, 300)}`);
+      const boxes = await page.evaluate((page) => {
+        const screen = document.querySelector('[data-studio-frame^="screen:"] .studio-builder-screen');
+        const sr = screen.getBoundingClientRect();
+        const zoom = sr.width / screen.offsetWidth || 1;
+        const boxOf = (el) => { const r = el.getBoundingClientRect(); return { x: (r.left - sr.left) / zoom, y: (r.top - sr.top) / zoom, width: r.width / zoom, height: r.height / zoom }; };
+        return { field: boxOf(document.querySelector(`[data-zen-src^="local:${page}.zen.tsx:"][data-zen-name="InputField"]`)), shapes: [...document.querySelectorAll(`[data-zen-src^="local:${page}.zen.tsx:"][data-zen-name="Shape"]`)].map(boxOf) };
+      }, id);
+      const overlaps = (a, b) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+      const hit = boxes.shapes.findIndex((box) => overlaps(boxes.field, box));
+      if (hit >= 0) throw new Error(`the field (${Math.round(boxes.field.x)}, ${Math.round(boxes.field.y)}) lands on the ${hit ? "square" : "Rectangle"}`);
+      if (boxes.field.y < bars.topEnd) throw new Error(`the field starts at Y ${Math.round(boxes.field.y)}, under the Top Navigation (ends ${bars.topEnd})`);
+      await undoTo(page, id, before, 1);
+      return `dropped at X 23 → insetLeft={20} (the Rectangle's edge), Y ${top} · Assets click → ${Math.round(boxes.field.x)}, ${Math.round(boxes.field.y)}, clear of both shapes · one ⌘Z each`;
+    },
+  },
   ...pictureRows,
 ];
 
@@ -6110,6 +6204,48 @@ const topBarsEnd = (page) => page.evaluate(() => {
   const ends = [...screen.querySelectorAll(".studio-device-status, [data-studio-placeholder][data-edge='top']")].map((bar) => (bar.getBoundingClientRect().bottom - rect.top) / zoom);
   return Math.round(Math.max(0, ...ends));
 });
+/* ── A phone Screen with a Top and a Bottom Navigation and two shapes placed freely (smart guides beside its bars) ── */
+const barsText = (title) => newPageText({ title, device: "phone" })
+  .replace("import { BottomNavigation, Stack, TopNavigation }", "import { BottomNavigation, Shape, TopNavigation }")
+  .replace('<Stack gap="md" padding="lg" />', '<Shape type="rectangle" position="absolute" insetLeft={20} insetTop={160} width={160} height={120} />\n        <Shape type="rectangle" position="absolute" insetLeft={260} insetTop={420} width={80} height={80} />');
+let barsMade = null;
+async function barsPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!barsMade) {
+    const seeded = await seededPage(ctx, barsText, /insetTop=\{420\}/);
+    barsMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${barsMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${barsMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  // The whole Screen in view (the Bottom Navigation too), clear of the canvas's tool bar: ⇧1, then one step out.
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Shift+Digit1");
+  await page.keyboard.press("Minus");
+  await sleep(400);
+  await deselect(page);
+  return { page, id: barsMade };
+}
+/** The first Screen's Top Navigation end and Bottom Navigation start, in its own px and on the screen, and the zoom. */
+const barEdges = (page) => page.evaluate(() => {
+  const screen = document.querySelector('[data-studio-frame^="screen:"] .studio-builder-screen');
+  const rect = screen.getBoundingClientRect();
+  const zoom = rect.width / screen.offsetWidth || 1;
+  const top = screen.querySelector(".studio-builder-screen__top").getBoundingClientRect();
+  const bottom = screen.querySelector(".studio-builder-screen__bottom").getBoundingClientRect();
+  const own = (y) => Math.round((y - rect.top) / zoom - screen.clientTop);
+  return { zoom, screen: { x: rect.left, y: rect.top }, topEnd: own(top.bottom), bottomStart: own(bottom.top), topEndClient: top.bottom, bottomStartClient: bottom.top };
+});
+/** Fails when a panel or a tool bar (the canvas's at its foot) covers the client point `at` of the canvas. */
+async function clearAt(page, at) {
+  const over = await page.evaluate(({ x, y }) => {
+    const el = document.elementFromPoint(x, y);
+    return el?.closest(".studio-viewport") && !el.closest('[role="toolbar"], .studio-canvas-tools') ? null : el?.className?.toString() || el?.tagName || "nothing";
+  }, at);
+  if (over) throw new Error(`"${over}" covers ${Math.round(at.x)}, ${Math.round(at.y)} on the Screen`);
+}
 /** Drags the Assets › Components result `label` to the client point `to` and drops it there. */
 async function dragAssetTo(page, label, to) {
   await openAssetLibrary(page, "Components");

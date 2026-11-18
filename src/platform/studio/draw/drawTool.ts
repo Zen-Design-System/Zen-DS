@@ -6,6 +6,7 @@ import { canvasApi, getViewport, getViewportBox, getSafeBox, panBy } from "../ca
 import type { DropTarget } from "../edit/arrange";
 import { refusalFor } from "../edit/assets/assets";
 import { dropTargetAt, isDropContainer, type DropContext } from "../edit/drag";
+import { barBoxesIn, layerHolderOf, layerKidsOf } from "../edit/freeBlock";
 import { multiSelection } from "../select/multiSelection";
 import { annotatedAt, childHits, frameOf, panelOf, parentHit, type FiberHit } from "../select/picker";
 import { expectRender, renderedNow } from "../select/remap";
@@ -101,16 +102,19 @@ export function screenOf(host: HTMLElement, local: Point): Point {
   return { x: rect.left - view.left + (local.x + host.clientLeft - host.scrollLeft) * zoom, y: rect.top - view.top + (local.y + host.clientTop - host.scrollTop) * zoom };
 }
 
-/** The frame's box and its layers' boxes in its own px: what a drawn corner snaps to (Figma's smart guides). */
+/**
+ * The frame's box, its layers' boxes and a Screen's bars (status bar, Top / Bottom Navigation) in its own px: what a
+ * drawn corner snaps to (Figma's smart guides). A Screen with bars holds its layers in its content box.
+ */
 export function snapTargets(host: HTMLElement): FrameBox[] {
   const own: FrameBox = { x: 0, y: 0, width: host.clientWidth, height: host.clientHeight };
   const { zoom } = getViewport();
   const origin = host.getBoundingClientRect();
-  const children = Array.from(host.children).filter((child): child is HTMLElement => child instanceof HTMLElement).map((child) => {
+  const children = layerKidsOf(layerHolderOf(host)).map((child) => {
     const rect = child.getBoundingClientRect();
     return { x: (rect.left - origin.left) / zoom - host.clientLeft, y: (rect.top - origin.top) / zoom - host.clientTop, width: rect.width / zoom, height: rect.height / zoom };
   });
-  return [own, ...children.filter((box) => box.width > 0 || box.height > 0)];
+  return [own, ...children.filter((box) => box.width > 0 || box.height > 0), ...barBoxesIn(host)];
 }
 
 /** The live shape in screen space: its outline as Figma draws the node while you drag, its size under it, guides. */
