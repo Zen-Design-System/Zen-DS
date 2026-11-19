@@ -1,31 +1,8 @@
-/* AI UI examples (examples/pages/ai-ui.tsx). */
+/* AI UI playground (examples/pages/ai-ui.tsx). The examples are files in ai-ui/ and style nothing by hand: their bubbles
+   wait on AiChatBubble's own thinking state. */
 
-/* The assistant screen (AppShell top-bar) and the phone screen keep their Canvas (the user, 2026-10-15: no page
-   gradient); the AI shows itself in the Liquid Glass field and the working-state ring below. */
-
-/* Desktop: the Body pads the page and scrolls under the header; the thread grows to push the dock down when the
-   conversation is short, and the field docks at the bottom of the window (Box sticky="bottom"), so the bubbles pass
-   under the glass. The dock keeps the page margin below the field in place of the Body's (AppShell). */
-.px-ai-ui-desk__thread { flex: 1 0 auto; padding-block-end: var(--zen-spacing-padding-xlarge, 24px); }
-/* The field lines up with the conversation column (AiChatThread: max 800, centred). */
-.px-ai-ui-column { width: 100%; max-width: 800px; margin-inline: auto; }
-
-/* A new bubble, and the answer replacing its thinking dots, fade in (opacity only). */
+/* A new bubble, and the answer replacing its thinking sphere, fade in (opacity only). */
 .px-ai-ui-enter, .px-ai-ui-enter .zen-ai-bubble__content { animation: px-ai-ui-fade var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; }
-
-/* Phone (AppShell mobile): the Body pads the thread (Margin-Comfortable at the sides); the docked field is a strip at the
-   bottom of the shell whose bottom clears the home indicator, as the AI Chat page's phone. */
-.px-ai-ui-phone-dock { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
-/* The composer phone: the greeting fills the free screen, the composer ends the Body in flow (the card above the field
-   pushes the greeting up and the screen follows). With the Body's bottom padding, its field ends Padding/XSmall above the
-   home indicator, as the docked field does. */
-.px-ai-ui-phone-home { display: flex; min-height: 0; flex: 1 1 auto; align-items: center; }
-.px-ai-ui-phone-composer { padding-block-end: max(0px, calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px) - var(--zen-spacing-padding-large, 20px))); }
-
-/* The composer card (docs/research/ai-ui-live-composer-ux-2026-10-15.md §4): the guess card and each new guess fade
-   in (opacity only, so reduced motion needs no fallback). A height transition would need a settled state before the
-   DatePicker popover may overflow; left for the pattern's own CSS. */
-.px-ai-ui-composer, .px-ai-ui-composer__guess { animation: px-ai-ui-fade var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease) both; }
 @keyframes px-ai-ui-fade { from { opacity: 0; } to { opacity: 1; } }
 
 /* The AI at work, a sphere after the Dribbble shot "Sphere AI Assistant" (the user, 2026-10-15): frosted glass, light,
@@ -33,8 +10,8 @@
    cyan sweeping across the middle — a faint cyan rim and a highlight top-left. Three blurred layers (blur = a share of
    the size) move slowly: the pools drift, the band slides and tilts; every distance and the tilt's swing are multiplied
    by --zen-motion-movement (still under reduced motion), nothing turns. Loops are exempt from the duration tokens.
-   Element-Size/Popular/3-XLarge (56) in the bubble that waits for the answer, Popular/Medium (20) on the composer
-   card's type row. Tokens: Support Pink Solid/Soft, Violet Soft, Cyan Solid/Subtle, Surface/Default. */
+   Element-Size/Popular/3-XLarge (56) in the bubble that waits for the answer, Popular/Medium (20) for a small one.
+   Tokens: Support Pink Solid/Soft, Violet Soft, Cyan Solid/Subtle, Surface/Default. */
 .px-ai-ui-orb { --px-ai-ui-orb: var(--zen-element-size-popular-3-xlarge, 56px); position: relative; display: inline-block; overflow: hidden; width: var(--px-ai-ui-orb); height: var(--px-ai-ui-orb); flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); vertical-align: middle; background: radial-gradient(circle at 50% 45%, var(--zen-color-background-surface-default, #fff) 55%, var(--zen-color-background-support-cyan-soft, #c9f0f7) 100%); }
 .px-ai-ui-orb--sm { --px-ai-ui-orb: var(--zen-element-size-popular-medium, 20px); }
 .px-ai-ui-orb > i { position: absolute; inset: 0; display: block; border-radius: inherit; }

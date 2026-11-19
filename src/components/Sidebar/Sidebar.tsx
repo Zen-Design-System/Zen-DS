@@ -148,7 +148,7 @@ export interface SidebarProps {
    * takes Shadow/Bottom/Level-1 (a Canvas/Default page whose cards are shadowed). `shadow={false}` is Shadow=No:
    * Surface/Default with no shadow (◇ Master-Layout · Example A2 · Tiles, 15904:2813, beside flat tiles). Unlike
    * `background="flat"` (Surface/Flat, which is the page colour in dark mode), the Sidebar stays a Surface in both
-   * modes. Alt, Flat, the small density and the workspace panel carry no shadow either way.
+   * modes. Alt, Flat, the Small-Density variant and the workspace panel carry no shadow either way.
    */
   shadow?: boolean;
   /**

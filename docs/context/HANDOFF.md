@@ -27,8 +27,10 @@ Last updated: 2026-11-13.
   PR2 = display and text (14 pages, 88/505 moved, baseline 417; photos in `./demo`; phone examples take `scrollRef`,
   drawn by `PlatformPhoneApp`); PR3 = controls and forms (15 pages, 180/505 moved, baseline 325; `videos` and
   `calendarEvents` in `./demo`); PR5 = overlays and feedback (8 pages, 230/505 moved, baseline 275; `leaveHistory` in
-  `./demo`); PR4 = navigation and structure (15 pages, 334/505 moved, baseline 171; `videos.canyonPortrait`). PR6 (data)
-  and PR7 (heavy pages, rule to error) follow (plan §11, guide `docs/guides/example-patterns.md` §8b).
+  `./demo`); PR4 = navigation and structure (15 pages, 334/505 moved, baseline 171; `videos.canyonPortrait`); PR7 =
+  Chat, AI Chat, AI UI, Widgets, App Shell + its five layout pages (408/505 moved, baseline 97 = PR6's pages; examples
+  may import `@zen-ds/react/ai-ui`, the catalog is a prop). PR6 (data) follows; the last of the two closes the gate
+  (baseline 0, rule to error) (plan §11, guide `docs/guides/example-patterns.md` §8b).
 - **Code view in other languages, P1 (2026-11-13, user 2026-11-12):** every snippet (classic + Studio Code tab) has a
   language picker (`src/platform/code/SnippetCode.tsx`): all six languages with honest states, one choice per viewer +
   `?code=`; only React has code. Status per component: `src/platform/code-languages.generated.json` (built with the

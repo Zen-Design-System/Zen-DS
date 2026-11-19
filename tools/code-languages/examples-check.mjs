@@ -2,8 +2,8 @@
 // Portable example snippets (P2b, plan docs/research/code-languages-plan-2026-10-03.md §11). Each example is a file,
 // src/platform/examples/pages/<page>/<slug>.example.tsx: its page renders the default export and shows the file's text
 // (`?raw`, through exampleCode). This check keeps that true and compiles what readers copy:
-//   1. an example file imports only react, @zen-ds/react and the demo world (../../data, shown as ./demo), and has a
-//      default export component;
+//   1. an example file imports only react, @zen-ds/react (and its AI UI entry) and the demo world (../../data, shown as
+//      ./demo), and has a default export component;
 //   2. a page that shows an example file's text renders that same file, and every example file is shown;
 //   3. examples still written as a code string beside their render (not moved yet) never grow: per page file, the count
 //      stays at or under tools/code-languages/examples-baseline.json (--write records the new counts; the last P2b
@@ -50,14 +50,16 @@ const problems = [];
 
 /* ── 1. example files ───────────────────────────────────────────────────────────────────────────────────────────── */
 const exampleFiles = walk(PAGES).filter((file) => file.endsWith(".example.tsx")).sort();
-const allowed = (file, source) => source === "react" || source === "@zen-ds/react" || (/^(\.\.\/)+data$/.test(source) && path.resolve(path.dirname(file), `${source}.ts`) === DATA);
+/** The package entries an example may import: the components, and the AI UI runtime the AI UI page teaches. */
+const PACKAGE_ENTRIES = new Set(["@zen-ds/react", "@zen-ds/react/ai-ui"]);
+const allowed = (file, source) => source === "react" || PACKAGE_ENTRIES.has(source) || (/^(\.\.\/)+data$/.test(source) && path.resolve(path.dirname(file), `${source}.ts`) === DATA);
 for (const file of exampleFiles) {
   if (!/^src\/platform\/examples\/pages\/[\w-]+\/[\w-]+\.example\.tsx$/.test(rel(file))) problems.push(`${rel(file)}: an example file sits in examples/pages/<page>/<slug>.example.tsx`);
   const ast = parseFile(file);
   let component = false;
   for (const statement of ast.program.body) {
     if (statement.type === "ImportDeclaration" && !allowed(file, statement.source.value)) {
-      problems.push(`${rel(file)}: imports "${statement.source.value}" — an example imports only react, @zen-ds/react and the demo world ("../../data", shown as "./demo"), so the copied code runs as it is`);
+      problems.push(`${rel(file)}: imports "${statement.source.value}" — an example imports only react, @zen-ds/react (or @zen-ds/react/ai-ui) and the demo world ("../../data", shown as "./demo"), so the copied code runs as it is`);
     }
     if ((statement.type === "ExportNamedDeclaration" || statement.type === "ExportAllDeclaration") && statement.source) problems.push(`${rel(file)}: re-exports "${statement.source.value}" — an example file holds one example`);
     if (statement.type === "ExportDefaultDeclaration") component = statement.declaration.type === "FunctionDeclaration" && /^[A-Z]/.test(statement.declaration.id?.name ?? "");
@@ -143,7 +145,7 @@ if (COMPILE && exampleFiles.length) {
   fs.writeFileSync(path.join(dir, "env.d.ts"), '/// <reference types="vite/client" />\n');
   fs.writeFileSync(path.join(dir, "tsconfig.json"), `${JSON.stringify({
     extends: path.join(root, "tsconfig.json"),
-    compilerOptions: { paths: { "@zen-ds/react": [path.join(root, "src/index.ts")] }, noUnusedLocals: true },
+    compilerOptions: { paths: { "@zen-ds/react": [path.join(root, "src/index.ts")], "@zen-ds/react/ai-ui": [path.join(root, "src/ai-ui/index.ts")] }, noUnusedLocals: true },
     include: ["./*.ts", "./*.tsx"],
   }, null, 2)}\n`);
   try {

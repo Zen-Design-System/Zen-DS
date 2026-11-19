@@ -294,8 +294,9 @@ const sidebarLook = (attrs, host) => {
   const theme = literal(own, "theme") ?? (host && /\bpattern=(?:"|\{\s*")grid"/.test(host.tag) ? "border" : "default");
   const background = literal(own, "background") ?? "default";
   const flush = theme !== "default";
-  // The workspace panel and the small density never cast one (Sidebar `shadow`); `shadow={false}` is Figma Shadow=No.
-  const shadowless = literal(own, "variant") === "workspace" || literal(own, "density") === "small" || /(^|\s)shadow=\{\s*false\s*\}/.test(attrs);
+  // The workspace panel and the Small-Density variant never cast one (Sidebar `shadow`; `density="small"` alone keeps the
+  // Basic panel's shadow since 2026-10-21); `shadow={false}` is Figma Shadow=No.
+  const shadowless = ["workspace", "small-density"].includes(literal(own, "variant")) || /(^|\s)shadow=\{\s*false\s*\}/.test(attrs);
   return { background, flush, shadow: flush || background !== "default" ? null : !shadowless };
 };
 /** Block comments in a source (JSDoc and `{/* … *\/}` notes): tags quoted there are not usage (as the engine skips them). */

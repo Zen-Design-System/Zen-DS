@@ -1,8 +1,6 @@
 {
-  "generated": "2026-10-03T08:20:12.423Z",
+  "generated": "2026-11-19T15:43:51.235Z",
   "note": "Pre-existing style-guard debt. New findings fail; one met while working on its file is fixed in the same change (AGENTS.md, fix at once), then run --baseline-update.",
-  "total": 1,
-  "keys": {
-    "src/platform/examples/pages/chat.css|position/token|.px-chat-emoji { bottom: calc(100% + var(--zen-spacing-padding-xsmall, 8px)) }": 1
-  }
+  "total": 0,
+  "keys": {}
 }

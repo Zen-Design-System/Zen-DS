@@ -1,36 +1,44 @@
-/* AI UI examples (docs/ai-ui/README.md): the runtime layer for UI a model composes, at work inside Zen AI. A small
-   deterministic "composer" stands in for the model: it answers a prompt with a UI spec built from Đìzai Studio's data
+/* AI UI (docs/ai-ui/README.md): the runtime layer for UI a model composes, at work inside Zen AI. Each example is its own
+   file in ai-ui/ (P2b, plan docs/research/code-languages-plan-2026-10-03.md §11): the card renders its default export (in
+   a window frame or on the device) and shows its text as the snippet. A small deterministic "composer" stands in for the
+   model there and in the playground below: it answers a prompt with a UI spec built from Đìzai Studio's data
    (examples/data.ts), the spec is validated against the catalog and rendered in the AI bubble with the real components,
    what Alex picks lands in a shared state the conversation reads, and a follow-up edits the UI in place (ops) instead of
    rebuilding it. Nothing here is styled by hand: every look is a component prop. */
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
-import { AiChatBlock, AiChatBubble, AiChatField, AiChatThread, type AiChatFieldStyle } from "../../../components/AiChat";
-import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
-import { Avatar } from "../../../components/Avatar";
-import { Chip } from "../../../components/Chip";
-import { Tag } from "../../../components/Tag";
+import { useEffect, useLayoutEffect, useRef, useState, type ComponentType, type ReactNode, type RefObject } from "react";
+import { AiChatBubble, AiChatThread } from "../../../components/AiChat";
 import { InlineMessage } from "../../../components/InlineMessage";
-import { Button } from "../../../components/Button";
 import { DescriptionItem, DescriptionList } from "../../../components/DescriptionList";
 import { Card } from "../../../components/Card";
-import { Icon, type IconName } from "../../../components/Icon";
-import { Box, Grid, Stack } from "../../../components/Layout";
+import { Grid, Stack } from "../../../components/Layout";
 import { List, ListItem } from "../../../components/ListItem";
-import { Menu } from "../../../components/Menu";
-import { SidePanel } from "../../../components/SidePanel";
 import { SkeletonText } from "../../../components/Skeleton";
 import { Heading, Text } from "../../../components/Text";
-import { useToast } from "../../../components/Toast";
-import { TopNavigation } from "../../../components/TopNavigation";
-import { VisuallyHidden } from "../../../components/VisuallyHidden";
-import { AiUi, applyOps, createLiveComposer, extractSlots, keywordClassifier, markdownToSpec, primaryActionOf, resolveArgs, walkNodes, toJsx, validateSpec, type ActionCall, type Catalog, type LiveComposer, type LiveState, type Slots as LiveSlots, type UiNode, type SpecOp, type StateChange, type UiSpec } from "../../../ai-ui/index";
+import { AiUi, applyOps, markdownToSpec, walkNodes, toJsx, validateSpec, type ActionCall, type Catalog, type SpecOp, type StateChange, type UiSpec } from "../../../ai-ui/index";
 import { PreviewAppFrame } from "../../PlatformFrames";
-import { PlatformPhone } from "../../PlatformPhone";
+import { PlatformPhone, type PhoneScrollRef } from "../../PlatformPhone";
 import { Panel, PlaygroundFilterChip, option } from "../../appLayer/shared";
-import { formatMoney, invoices, me, projectById, projects, studio, studioMonths } from "../data";
+import { formatMoney, invoices, projectById, projects, studioMonths } from "../data";
+import { exampleCode } from "../exampleCode";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
 import { keepOnHotUpdate } from "../../hotData";
+import ComposeFromAPrompt from "./ai-ui/compose-from-a-prompt.example";
+import composeFromAPrompt from "./ai-ui/compose-from-a-prompt.example.tsx?raw";
+import SkeletonFirstDataAfter from "./ai-ui/skeleton-first-data-after.example";
+import skeletonFirstDataAfter from "./ai-ui/skeleton-first-data-after.example.tsx?raw";
+import FollowUpsEditNotRebuild from "./ai-ui/follow-ups-edit-not-rebuild.example";
+import followUpsEditNotRebuild from "./ai-ui/follow-ups-edit-not-rebuild.example.tsx?raw";
+import ComposedWhileTyping from "./ai-ui/composed-while-typing.example";
+import composedWhileTyping from "./ai-ui/composed-while-typing.example.tsx?raw";
+import ComposedWhileTypingOnAPhone from "./ai-ui/composed-while-typing-on-a-phone.example";
+import composedWhileTypingOnAPhone from "./ai-ui/composed-while-typing-on-a-phone.example.tsx?raw";
+import ASpecTheCatalogRejects from "./ai-ui/a-spec-the-catalog-rejects.example";
+import aSpecTheCatalogRejects from "./ai-ui/a-spec-the-catalog-rejects.example.tsx?raw";
+import AProseAnswer from "./ai-ui/a-prose-answer.example";
+import aProseAnswer from "./ai-ui/a-prose-answer.example.tsx?raw";
+import OnAPhone from "./ai-ui/on-a-phone.example";
+import onAPhone from "./ai-ui/on-a-phone.example.tsx?raw";
 import "./ai-ui.css";
 
 export const page: PlatformPage = "ai-ui";
@@ -85,7 +93,6 @@ function Framed({ spec, catalog, children }: { spec: UiSpec; catalog: Catalog; c
 
 /* ───────────── What the composer answers with (specs from the studio's data) ───────────── */
 
-const firstName = me.name.split(" ")[0];
 const slots = ["09:00", "10:00", "14:00", "16:00"];
 const nearestSlot = (hour: number) => slots.find((s) => Number(s.slice(0, 2)) === hour) ?? slots.reduce((best, s) => (Math.abs(Number(s.slice(0, 2)) - hour) < Math.abs(Number(best.slice(0, 2)) - hour) ? s : best), slots[0]);
 const lumen = projectById("lumen-banking");
@@ -206,7 +213,7 @@ const brokenSpec = (): UiSpec => ({
 
 type Reply = { text: string; spec?: UiSpec; /** The spec's data arrives later (a Skeleton first). */ later?: UiSpec; ops?: SpecOp[]; state?: [string, unknown] };
 
-function compose(prompt: string, lastSpec: UiSpec | undefined, slots?: LiveSlots | null): Reply {
+function compose(prompt: string, lastSpec: UiSpec | undefined): Reply {
   const text = prompt.trim();
   const hasSubmit = lastSpec && JSON.stringify(lastSpec).includes('"id":"submit"');
   const level = /\b(accent|primary|tertiary|secondary|danger)\b/i.exec(text)?.[1].toLowerCase();
@@ -218,7 +225,7 @@ function compose(prompt: string, lastSpec: UiSpec | undefined, slots?: LiveSlots
     const slot = nearestSlot(hour);
     return { text: `Set the time to ${slot}.`, state: ["review.slot", slot] };
   }
-  if (/\b(schedule|book|meeting|review|appointment|call)\b|đặt lịch|hẹn|họp/i.test(text)) return { text: "Here is the form. Pick the project, a date and a time, and I'll schedule it.", spec: bookingSpec(slots?.title ?? undefined) };
+  if (/\b(schedule|book|meeting|review|appointment|call)\b|đặt lịch|hẹn|họp/i.test(text)) return { text: "Here is the form. Pick the project, a date and a time, and I'll schedule it.", spec: bookingSpec() };
   if (/\binvoice|overdue|unpaid|bill|hoá đơn|hóa đơn/i.test(text)) return { text: "Checking the studio's invoices…", spec: invoicesSpec(true), later: invoicesSpec(false) };
   if (/\brevenue|invoiced|chart|month|quarter|doanh thu/i.test(text)) return { text: "Here is what the studio invoiced over the last six months.", spec: revenueSpec() };
   if (/\bdelete|remove|archive|xoá|xóa/i.test(text)) return { text: "That is a destructive change.", spec: confirmSpec() };
@@ -343,8 +350,8 @@ function Answer({ turn, demo }: { turn: Turn; demo: Demo }) {
 }
 
 /** The AI at work (the user, 2026-10-15: a sphere after the Dribbble shot "Sphere AI Assistant"): frosted glass with soft
-    colour drifting inside (three blurred layers, ai-ui.css), in the bubble that waits for the answer and on the composer
-    card while it composes. */
+    colour drifting inside (three blurred layers, ai-ui.css), in the playground's bubble that waits for the answer. The
+    examples use AiChatBubble's own thinking state instead (page CSS cannot travel with a copied example). */
 function Orb({ label, size, beat = 0 }: { label: string; size?: "sm"; /** Bumps on each keystroke: the sphere beats once (listening). */ beat?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
@@ -376,288 +383,6 @@ const suggestions = [
   { label: "Delete a project", prompt: "Delete the online banking project" },
 ];
 
-/** Suggested prompts after the last answer: they scroll with the conversation, so only bubbles pass under the glass field. */
-function Suggestions({ demo }: { demo: Demo }) {
-  return (
-    <Stack direction="row" gap="xs" wrap>
-      {suggestions.map((item) => <Chip key={item.label} variant="normal" size="sm" onClick={() => demo.ask(item.prompt)}>{item.label}</Chip>)}
-    </Stack>
-  );
-}
-
-/** Who answers typed prompts: the model behind /ai-ui when one is configured (ANTHROPIC_API_KEY before npm run dev), the
-    demo composer otherwise. */
-function ModelTag({ demo }: { demo: Demo }) {
-  // In the header's top row it steps aside on a phone (.pf-wide-only), where the row keeps the panel and the account.
-  return <Tag className="pf-wide-only">{demo.server?.enabled ? demo.server.model : "Demo composer"}</Tag>;
-}
-
-/* ───────────── Composing while typing (the user's decision, 2026-10-15: the UI appears as the sentence forms) ───────────── */
-
-const skeletonOf = (kind: "form" | "list" | "chart" | "text"): UiSpec => ({
-  version: 1,
-  root: { type: "Stack", id: `skeleton-${kind}`, props: { gap: "md" }, children: kind === "form" ? [{ $pending: "heading" }, { $pending: "shape" }, { $pending: "shape" }, { $pending: "text" }] : kind === "chart" ? [{ $pending: "heading" }, { $pending: "shape" }] : [{ $pending: "text" }] },
-});
-/** The on-device classifier: trigger words per intent and the Skeleton to show at once. Nothing leaves the device until an intent is likely. */
-/** What the demo's classifier knows: trigger words, and for the booking intent a tier-1 template: the real form, pre-filled from the slots the sentence carries. */
-const liveIntents = [
-  { intent: "booking", words: ["schedule", "book", "meeting", "review", "appointment", "đặt lịch", "hẹn", "họp"], skeleton: (slots: Record<string, unknown> | null) => bookingSpec(typeof slots?.title === "string" ? slots.title : undefined) },
-  { intent: "invoices", words: ["invoice", "overdue", "unpaid", "bill", "hoá đơn", "hóa đơn"], skeleton: skeletonOf("list") },
-  { intent: "revenue", words: ["revenue", "invoiced", "chart", "quarter", "doanh thu"], skeleton: skeletonOf("chart") },
-  { intent: "confirm", words: ["delete", "remove", "archive", "xoá", "xóa"], skeleton: skeletonOf("text") },
-];
-
-/** The slots the sentence carries, written into the form's shared state (`review.*`): only a slot that changed since the last reading, so a pick made in the form survives further typing. */
-function withSlots(prev: Record<string, unknown>, slots: LiveSlots | null, last: LiveSlots | null): Record<string, unknown> {
-  const review = { ...((prev.review as Record<string, unknown> | undefined) ?? {}) };
-  const changed = (key: "date" | "time" | "people") => JSON.stringify(slots?.[key] ?? null) !== JSON.stringify(last?.[key] ?? null);
-  // DateField's value is the text it shows (MM/DD/YYYY, what a pick writes back), so the ISO slot is written in that form.
-  if (changed("date")) { if (slots?.date) review.date = fieldDate(slots.date); else delete review.date; }
-  if (changed("time")) { if (slots?.time) review.slot = nearestSlot(Number(slots.time.slice(0, 2))); else delete review.slot; }
-  if (changed("people")) { if (slots?.people?.length) review.people = slots.people; else delete review.people; }
-  return { ...prev, review };
-}
-
-const fieldDate = (iso: string) => { const [y, m, d] = iso.split("-"); return `${m}/${d}/${y}`; };
-
-/** The label of the Button a primary action lives on (its first text child), for the Enter hint. */
-function buttonLabel(node: UiNode | undefined, id: string | null): string | null {
-  if (!node || typeof node !== "object" || !id) return null;
-  if (node.id === id) { const first = node.children?.[0]; return typeof first === "string" ? first : null; }
-  for (const child of node.children ?? []) { const found = buttonLabel(child as UiNode, id); if (found) return found; }
-  return null;
-}
-
-/** Keyboard hint: the key as a Tag (no keycap component yet), then what it does. */
-function KeyHint({ keys, children }: { keys: string; children: ReactNode }) {
-  return <Stack direction="row" gap="xs" align="center"><Tag>{keys}</Tag><Text textStyle="Body/Small/Regular" tone="base">{children}</Text></Stack>;
-}
-
-/* ── The composer card (docs/research/ai-ui-live-composer-ux-2026-10-15.md §4): the field is the header; the guess is the
-   body (type row · title · slot chips, then the form once the intent is sure or a chip is opened); the keys and the primary
-   action are the footer. The host draws the card and the slots; the form stays a spec the renderer draws. ── */
-const intentMeta = {
-  booking: { label: "Booking", icon: "icon-calendar-line", keep: "keep as booking" },
-  invoices: { label: "Invoices", icon: "icon-receipt-line", keep: "keep as invoices" },
-  revenue: { label: "Revenue", icon: "icon-bar-chart-01-line", keep: "keep as revenue" },
-  confirm: { label: "Confirmation", icon: "icon-trash-line", keep: "keep as confirmation" },
-  /** Anything the keyword classifier does not know: the sentence goes to the composer as it is. */
-  free: { label: "Zen AI", icon: "icon-zen", keep: "keep this" },
-} as const satisfies Record<string, { label: string; icon: IconName; keep: string }>;
-const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
-
-/** Anything the keyword classifier does not know becomes "free" once there are a few words, at the lowest confidence the
-    live composer accepts, so a known intent replaces it the moment its words appear; the composer gets the sentence as it
-    is (the model when one is configured). */
-type Classifier = ReturnType<typeof keywordClassifier>;
-const keywordOrFree = (classify: Classifier): Classifier => (text: string) => {
-  const known = classify(text);
-  if (known?.intent || text.trim().split(/\s+/).length < 3) return known;
-  return { intent: "free", confidence: 0.6, slots: extractSlots(text), skeleton: skeletonOf("text") };
-};
-type SlotKey = "date" | "time" | "people" | "place";
-
-/** The slots as chips: a heard value opens its control in the form; an empty slot says what was not heard ("Add date"). */
-/** The slots as chips. While guessing every chip opens the form (an empty one reads "Add date"); once the form is shown
-    (`interactive` false) only the heard values stay, as plain chips: the form has no field to add the others to. */
-function SlotChips({ slots, keys, onOpen, interactive = true }: { slots: LiveSlots | null; keys: SlotKey[]; onOpen: (slot: SlotKey) => void; interactive?: boolean }) {
-  const items: { key: SlotKey; icon: IconName; value: string | null; add: string }[] = [
-    { key: "date", icon: "icon-calendar-line", value: slots?.date ? fieldDate(slots.date) : null, add: "Add date" },
-    { key: "time", icon: "icon-clock-line", value: slots?.time ?? null, add: "Add time" },
-    { key: "people", icon: "icon-users-line", value: slots?.people?.length ? slots.people.join(", ") : null, add: "Add people" },
-    { key: "place", icon: "icon-marker-pin-01-line", value: slots?.place ?? null, add: "Add place" },
-  ];
-  return (
-    <Stack direction="row" gap="xs" wrap>
-      {items.filter((item) => keys.includes(item.key) && (interactive || item.value)).map((item) => item.value
-        ? (interactive
-          ? <Chip key={item.key} variant="normal" size="sm" leading={item.icon} dropdown onClick={() => onOpen(item.key)}>{item.value}</Chip>
-          // Read-only once the form shows: a Tag (a Chip always does something; the gate's dead-click probe caught one).
-          : <Tag key={item.key} leading={item.icon}>{item.value}</Tag>)
-        : <Chip key={item.key} variant="normal" size="sm" leading="icon-plus-line" state="placeholder" onClick={() => onOpen(item.key)}>{item.add}</Chip>)}
-    </Stack>
-  );
-}
-
-/** The template without its heading and its action row: the composer's type row and footer carry those. */
-function composerBody(spec: UiSpec): UiSpec {
-  const isNode = (child: unknown): child is UiNode => Boolean(child) && typeof child === "object" && "type" in (child as object);
-  const children = (spec.root.children ?? []).filter((child) => {
-    if (!isNode(child)) return true;
-    if (child.type === "Heading") return false;
-    const kids = child.children ?? [];
-    if (child.type === "Stack" && kids.length > 0 && kids.every((kid) => isNode(kid) && kid.type === "Button")) return false;
-    return true;
-  });
-  return { ...spec, root: { ...spec.root, children } };
-}
-
-/** The live composer: the field and the guess card. `placement="above"` puts the card over the field (a phone: the keyboard
-    covers nothing, the preview pushes the thread; study F9). */
-function LiveTypingExample({ initial = "", placement = "below", fieldStyle = "default", placeholder = "Type, don't send: schedule a review tomorrow at 4 pm, overdue invoices…" }: { initial?: string; placement?: "below" | "above"; fieldStyle?: AiChatFieldStyle; placeholder?: string }) {
-  const catalog = useCatalog();
-  const server = useServer();
-  const [text, setText] = useState(initial);
-  const [live, setLive] = useState<LiveState | null>(null);
-  const [shared, setShared] = useState<Record<string, unknown>>({});
-  const [done, setDone] = useState<string | null>(null);
-  const [serverError, setServerError] = useState<string | null>(null);
-  const [opened, setOpened] = useState(false);
-  // Listening: each keystroke beats the sphere, and it stays on the type row for a moment after the last one.
-  const [beat, setBeat] = useState(0);
-  const [hearing, setHearing] = useState(false);
-  const hearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const heard = () => {
-    setBeat((count) => count + 1);
-    setHearing(true);
-    if (hearTimer.current) clearTimeout(hearTimer.current);
-    hearTimer.current = setTimeout(() => { hearTimer.current = null; setHearing(false); }, 900);
-  };
-  useEffect(() => () => { if (hearTimer.current) clearTimeout(hearTimer.current); }, []);
-  const composerRef = useRef<LiveComposer | null>(null);
-  const lastSlots = useRef<LiveSlots | null>(null);
-  useEffect(() => {
-    if (!server) return undefined;
-    const composer = createLiveComposer({
-      classify: keywordOrFree(keywordClassifier(liveIntents, { slots: extractSlots })),
-      compose: async (prompt, { intent, slots, signal }) => {
-        const known = (slots as LiveSlots | null) ?? null;
-        if (intent === "free" && !server.enabled) {
-          // Without a model the demo composer cannot build this: say so, and what it can build.
-          await new Promise((resolve) => setTimeout(resolve, 400));
-          if (signal.aborted) throw Object.assign(new Error("aborted"), { name: "AbortError" });
-          return { text: "", spec: markdownToSpec("The demo composer knows bookings, invoices, revenue and confirmations. With `ANTHROPIC_API_KEY` set before `npm run dev`, Zen AI composes this request too.") };
-        }
-        if (server.enabled) {
-          const remote = await postJson<{ ok: true; text: string; spec: UiSpec | null }>("/ai-ui/compose", { prompt, data: studioData(), state: known ? withSlots({}, known, null) : undefined }, signal);
-          if (remote.ok) { setServerError(null); return { text: remote.text, spec: remote.spec }; }
-          setServerError(remote.error);
-        }
-        // The demo composer, after the moment a model would take.
-        await new Promise((resolve) => setTimeout(resolve, 400));
-        if (signal.aborted) throw Object.assign(new Error("aborted"), { name: "AbortError" });
-        const reply = compose(prompt, undefined, known);
-        return { text: reply.text, spec: reply.spec ?? null };
-      },
-      onChange: (state) => {
-        setLive(state);
-        // The slots land in the shared state as they change, so the template and the composed form read them.
-        const slots = (state.slots as LiveSlots | null) ?? null;
-        if (state.phase === "idle") { lastSlots.current = null; return; }
-        const last = lastSlots.current;
-        if (JSON.stringify(slots) !== JSON.stringify(last)) { lastSlots.current = slots; setShared((prev) => withSlots(prev, slots, last)); }
-      },
-    });
-    composerRef.current = composer;
-    if (initial) void composer.submit(initial);
-    return () => { composer.dispose(); composerRef.current = null; };
-  }, [server]); // eslint-disable-line react-hooks/exhaustive-deps
-  const preview = live && live.phase !== "idle" ? live.spec ?? live.skeleton : null;
-  const intent = live?.intent ?? null;
-  const meta = intent && intent in intentMeta ? intentMeta[intent as keyof typeof intentMeta] : null;
-  // Sure: kept with Tab or answered by the composer; until then the body is a guess (the keyword classifier's confidence is not calibrated enough to decide it).
-  const sure = Boolean(live && (live.pinned || (live.phase === "ready" && live.spec)));
-  const working = live?.phase === "skeleton" || live?.phase === "composing"; // a template shown and the answer on its way, or an edit of a kept spec
-  const showForm = Boolean(preview && (sure || opened || intent !== "booking"));
-  const action = preview ? primaryActionOf(preview) : null;
-  const actionLabel = action ? buttonLabel(preview?.root, action.id) ?? action.action : null;
-  const slots = (live?.slots as LiveSlots | null) ?? null;
-  const clear = () => { setDone(null); setOpened(false); setShared({}); lastSlots.current = null; composerRef.current?.reset(); };
-  const runAction = () => {
-    if (!action || !preview || !showForm) return false;
-    // Enter and the footer's button run the UI's primary action, as a click on it would: the args read the shared state.
-    const args = resolveArgs(action.args, { state: shared, data: preview.data ?? studioData() });
-    setDone(`${actionLabel}: ${action.action} ${JSON.stringify(args)}`);
-    setText("");
-    clear();
-    return true;
-  };
-  const submit = (prompt: string) => { if (runAction()) return; setDone(null); void composerRef.current?.submit(prompt); };
-  // The field keeps its pill on the canvas; the guess card sits right under it, or over it on a phone (nested corners stay concentric, usage rules §13 / rhythm).
-  const field = (
-    <AiChatField fieldStyle={fieldStyle} placeholder={placeholder} value={text}
-      onValueChange={(next) => { setText(next); heard(); composerRef.current?.input(next); }}
-      onSubmit={submit}
-      onAccept={intent && !live?.pinned ? () => { composerRef.current?.accept(); } : undefined}
-      onClear={text || preview ? clear : undefined} />
-  );
-  const listening = !preview && text.trim().length > 0;
-  const card = listening ? (
-    <Card theme="default" width="fill" className="px-ai-ui-composer">
-      <Stack direction="row" gap="xs" align="center">
-        <Orb label="Listening" size="sm" beat={beat} />
-        <Text textStyle="Body/Small/Medium">Zen AI</Text>
-        <Text textStyle="Body/Small/Regular" tone="base">listening</Text>
-      </Stack>
-    </Card>
-  ) : preview && meta ? (
-          <Card theme="default" width="fill" className="px-ai-ui-composer">
-            <Stack gap="md">
-              <div className="px-ai-ui-composer__guess" key={intent ?? "none"}>
-                <Stack gap="sm">
-                  <Stack direction="row" gap="xs" align="center">
-                    {working || hearing ? <Orb label={working ? "Composing" : "Listening"} size="sm" beat={beat} /> : <Icon name={meta.icon} size={16} />}
-                    <Text textStyle="Body/Small/Medium">{meta.label}</Text>
-                    {live?.pinned ? <Text textStyle="Body/Small/Regular" tone="base">kept</Text> : sure ? null : <Text textStyle="Body/Small/Regular" tone="base">likely</Text>}
-                  </Stack>
-                  {intent === "booking" && slots?.title ? <Heading level={3} textStyle="Heading/4">{slots.title}</Heading> : null}
-                  {/* The chips are the guess; once the form shows it carries the date and the time, so those two step aside and the slots it has no field for (people, place) stay. */}
-                  {intent === "booking" ? <SlotChips slots={slots} keys={showForm ? ["people", "place"] : ["date", "time", "people", "place"]} onOpen={() => setOpened(true)} interactive={!showForm} /> : null}
-                  {showForm ? (catalog ? <AiUi spec={composerBody(preview)} catalog={catalog} state={shared} onStateChange={(next) => setShared(next)} onAction={(call) => { setDone(`${call.name} ${JSON.stringify(call.args)}`); clear(); }} /> : <SkeletonText lines={3} />) : null}
-                  {serverError ? <Text textStyle="Body/Small/Regular" tone="base">{`The model failed (${serverError}); the demo composer answered.`}</Text> : null}
-                </Stack>
-              </div>
-              {/* The footer: the keys on a desktop; on a phone (no Tab, no Esc) a "Keep as …" button in their place. */}
-              <Stack direction="row" gap="md" justify="between" align="center" wrap>
-                {placement === "above"
-                  ? <Stack direction="row" gap="xs" wrap>{!live?.pinned ? <Button level="tertiary" size="sm" onClick={() => composerRef.current?.accept()}>{capitalise(meta.keep)}</Button> : null}</Stack>
-                  : <Stack direction="row" gap="sm" wrap>
-                      {!live?.pinned ? <KeyHint keys="Tab">to {meta.keep}</KeyHint> : null}
-                      <KeyHint keys="Esc">to clear</KeyHint>
-                      <KeyHint keys="Enter">{action && showForm && actionLabel ? `to ${actionLabel.toLowerCase()}` : "to compose now"}</KeyHint>
-                    </Stack>}
-                {action && showForm ? (
-                  <Stack direction="row" gap="xs">
-                    <Button level="tertiary" size="sm" onClick={clear}>Cancel</Button>
-                    <Button level="primary" size="sm" onClick={runAction}>{actionLabel}</Button>
-                  </Stack>
-                ) : null}
-              </Stack>
-            </Stack>
-          </Card>
-        ) : null;
-  return (
-    <Stack gap="md">
-      <Stack gap="xs">
-        {placement === "above" ? card : field}
-        {placement === "above" ? field : card}
-      </Stack>
-      {done ? <Text textStyle="Body/Small/Regular">{done}</Text> : null}
-    </Stack>
-  );
-}
-
-/** The composer on a phone: the greeting fills the screen and the composer sits at the end of the shell's Body, in flow;
-    the card rises above the field as the sentence forms and pushes the greeting up, and the screen follows the field
-    (useScrollToEnd), so the keyboard would cover nothing. */
-function LiveTypingPhone({ initial = "" }: { initial?: string }) {
-  const screenRef = useRef<HTMLDivElement>(null);
-  useScrollToEnd(screenRef, null, null);
-  return (
-    <PlatformPhone label="Zen AI" screenRef={screenRef}>
-      <AppShell topNavigation={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} />}>
-        <Box className="px-ai-ui-phone-home">
-          <AiChatBlock greeting={`What do you need, ${firstName}?`}>
-            <Text textStyle="Body/Base/Regular" tone="base">Type it: the form takes shape above the field as you go.</Text>
-          </AiChatBlock>
-        </Box>
-        {/* In flow at the end of the Body, not pinned: a card taller than the screen scrolls, and the screen follows it. */}
-        <Box className="px-ai-ui-phone-composer"><LiveTypingExample initial={initial} placement="above" fieldStyle="liquid-glass" placeholder="Ask Zen AI" /></Box>
-      </AppShell>
-    </PlatformPhone>
-  );
-}
-
 /** What the conversation sees: the shared state and the last events (picks and actions), beside the thread. */
 /** The shared state as rows (path → value), the way the conversation reads it. */
 const flatten = (value: unknown, prefix = ""): Array<[string, string]> =>
@@ -684,98 +409,6 @@ function Aside({ demo, titled = true }: { demo: Demo; /** The playground's colum
           : <Text textStyle="Body/Small/Regular" tone="base">Schedule, or pick a row: actions and edits land here.</Text>}
       </Stack>
     </Stack>
-  );
-}
-
-/* ───────────── The screens ───────────── */
-
-/** Keeps the end of the conversation in view: on a new turn, once the catalog lets an answer render its UI, and while
-    that UI still grows (lazy icons, fonts) as long as the reader was at the end; a reader who scrolled up stays put. */
-function useScrollToEnd(ref: RefObject<HTMLDivElement | null>, turns: unknown, catalog: unknown) {
-  useEffect(() => { ref.current?.scrollTo({ top: ref.current.scrollHeight }); }, [ref, turns, catalog]);
-  useEffect(() => {
-    const el = ref.current;
-    const flow = el?.firstElementChild;
-    if (!el || !flow || typeof ResizeObserver === "undefined") return undefined;
-    let height = el.scrollHeight;
-    const observer = new ResizeObserver(() => {
-      const wasAtEnd = el.scrollTop + el.clientHeight >= height - 80;
-      height = el.scrollHeight;
-      if (wasAtEnd) el.scrollTo({ top: height });
-    });
-    observer.observe(flow);
-    return () => observer.disconnect();
-  }, [ref]);
-}
-
-/** Zen AI on the desktop, one product without navigation (AppShell pattern top-bar): the header's one row holds the
-    product, who answers, the panel's button and the account; the conversation with its composed UIs scrolls under a
-    Liquid Glass field (Figma AI/Chat-Field, Style=Liquid Glass) docked at the bottom of the window, on the Canvas; what
-    the conversation sees opens as the shell's Side Panel, docked beside the conversation where the window has room. */
-function ComposerScreen({ initial, aside = true }: { initial: string[]; aside?: boolean }) {
-  const { toast } = useToast();
-  const demo = useComposerDemo(initial);
-  const frameRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  // The window's scroller (PreviewAppFrame) is what follows the end of the conversation.
-  useLayoutEffect(() => { scrollRef.current = frameRef.current?.querySelector<HTMLDivElement>(".pf-app-frame__scroll") ?? null; }, []);
-  useScrollToEnd(scrollRef, demo.turns, demo.catalog);
-  const [open, setOpen] = useState(false);
-  return (
-    <PreviewAppFrame frameRef={frameRef} height={{ min: 560, max: 720 }}>
-      <AppShell pattern="top-bar"
-        header={(
-          <AppShellHeader
-            leading={(
-              <Stack direction="row" gap="xs" align="center">
-                <Avatar size="sm" shape="square" theme="photo" src={studio.logo} alt="" />
-                {/* zen-allow-visual-heading: the product's name in the bar repeats the visually hidden h1 of the Body (aria-hidden), so the outline has one h1 and the bar no oversized title. */}
-                <Text as="span" textStyle="Heading/4" aria-hidden="true">Zen AI</Text>
-              </Stack>
-            )}
-            actions={<>
-              <ModelTag demo={demo} />
-              {/* A header utility (AppShellAction): its name is the tooltip, so the row fits a narrow window too. */}
-              {aside ? <AppShellAction icon="icon-code-01-line" aria-label="What Zen AI sees" aria-expanded={open} onClick={() => setOpen((value) => !value)} /> : null}
-              <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
-                { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.location}` }) },
-                { id: "history", label: "Chat history", icon: "icon-clock-line", onSelect: () => toast({ title: "Chat history", children: "Zen AI keeps your chats for 30 days." }) },
-                { type: "separator" },
-                { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
-              ]} />
-            </>}
-          />
-        )}
-        sidePanel={aside ? (
-          <SidePanel type="standard" size="small" open={open} onOpenChange={setOpen} title="What Zen AI sees" description="The shared state and the events, as the conversation reads them.">
-            <Aside demo={demo} titled={false} />
-          </SidePanel>
-        ) : undefined}
-      >
-        {/* The screen's title for the outline; the bar shows it at bar size (a content h1 would be Heading/1). */}
-        <VisuallyHidden as="h1">Zen AI</VisuallyHidden>
-        <Stack gap="lg" className="px-ai-ui-column px-ai-ui-desk__thread"><Thread demo={demo} /><Suggestions demo={demo} /></Stack>
-        <Box sticky="bottom"><AiChatField fieldStyle="liquid-glass" placeholder={`Ask Zen AI, ${firstName}`} busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} className="px-ai-ui-column" /></Box>
-      </AppShell>
-    </PreviewAppFrame>
-  );
-}
-
-/** Zen AI on a phone: the same composer, the same specs, in Comfortable density and Mobile typography. The field docks at
-    the bottom of the shell, where a task's Action bar goes, and the conversation scrolls under its glass. */
-function ComposerPhone({ initial }: { initial: string[] }) {
-  const demo = useComposerDemo(initial);
-  const screenRef = useRef<HTMLDivElement>(null);
-  useScrollToEnd(screenRef, demo.turns, demo.catalog); // the phone's screen is the scroller; the shell is its first child
-  return (
-    <PlatformPhone label="Zen AI" screenRef={screenRef}>
-      <AppShell
-        topNavigation={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} />}
-        actionBar={<Box className="px-ai-ui-phone-dock"><AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} /></Box>}
-      >
-        <Thread demo={demo} />
-      </AppShell>
-    </PlatformPhone>
   );
 }
 
@@ -816,109 +449,124 @@ export function AiUiPlayground() {
   );
 }
 
+/* ───────────── The examples' docs frames ───────────── */
+
+/** An example takes the catalog as a prop (an app imports it); the page loads it once, lazily, and passes it in. */
+type CatalogProps = { catalog: Catalog | null };
+
+/** Docs chrome: the frame's scroller (the window frame's scroll area, the phone's screen) opens at the end of the seeded
+    conversation and stays there while an answer's UI grows (the catalog arriving, fonts, icons), as long as the reader is
+    at the end; a reader who scrolled up stays put. The examples scroll it themselves on each new turn. */
+function useFollowEnd(scroller: RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const el = scroller.current;
+    const flow = el?.firstElementChild;
+    if (!el || !flow || typeof ResizeObserver === "undefined") return undefined;
+    el.scrollTo({ top: el.scrollHeight });
+    let height = el.scrollHeight;
+    const observer = new ResizeObserver(() => {
+      const wasAtEnd = el.scrollTop + el.clientHeight >= height - 80;
+      height = el.scrollHeight;
+      if (wasAtEnd) el.scrollTo({ top: height });
+    });
+    observer.observe(flow);
+    return () => observer.disconnect();
+  }, [scroller]);
+}
+
+/** Under this width AppShell's header lays out its top row for a phone (the drawer layout under a tablet's 744 px). */
+const PHONE_BAR_MAX_WIDTH = 744;
+
+/** A desktop example in its window frame: the frame's scroll area is what the conversation scrolls (`scrollRef`), and
+    the frame's own width says whether the bar's top row is a phone's (`narrow`): a card in the page is narrower than the
+    window the breakpoint reads. Until measured, the example follows the breakpoint. */
+function AiUiWindow({ app: App }: { app: ComponentType<CatalogProps & { scrollRef?: PhoneScrollRef; narrow?: boolean }> }) {
+  const catalog = useCatalog();
+  const frameRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLElement | null>(null);
+  const [narrow, setNarrow] = useState<boolean | undefined>(undefined);
+  useLayoutEffect(() => {
+    const scroller = frameRef.current?.querySelector<HTMLElement>(".pf-app-frame__scroll") ?? null;
+    scrollRef.current = scroller;
+    if (!scroller) return undefined;
+    const measure = () => setNarrow(scroller.clientWidth < PHONE_BAR_MAX_WIDTH);
+    measure();
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(measure);
+    observer.observe(scroller);
+    return () => observer.disconnect();
+  }, []);
+  useFollowEnd(scrollRef);
+  return <PreviewAppFrame frameRef={frameRef} height={{ min: 560, max: 720 }}><App catalog={catalog} scrollRef={scrollRef} narrow={narrow} /></PreviewAppFrame>;
+}
+
+/** A phone example on the device: its screen is what scrolls (`scrollRef`). */
+function AiUiPhone({ app: App }: { app: ComponentType<CatalogProps & { scrollRef?: PhoneScrollRef }> }) {
+  const catalog = useCatalog();
+  const screenRef = useRef<HTMLDivElement>(null);
+  useFollowEnd(screenRef);
+  return <PlatformPhone label="Zen AI" screenRef={screenRef}><App catalog={catalog} scrollRef={screenRef} /></PlatformPhone>;
+}
+
+/** An example on the card itself: the catalog only. */
+function CatalogFor({ app: App }: { app: ComponentType<CatalogProps> }) {
+  const catalog = useCatalog();
+  return <App catalog={catalog} />;
+}
+
 /* ───────────── Examples ───────────── */
-
-const renderCode = `const check = validateSpec(spec, catalog);            // the model's JSON against docs/ai-ui/catalog.json
-
-<AiChatBubble side="ai">
-  <Stack gap="md">
-    <span>{answer.text}</span>
-    {check.ok
-      ? <Card theme="default" width="fill"><AiUi spec={spec} catalog={catalog} state={shared} onStateChange={setShared} onAction={run} /></Card>   // a form reads as one object on a Card; the host frames it
-      : <InlineMessage theme="negative" title="This answer's UI did not pass the catalog check">{check.errors[0].message}</InlineMessage>}
-  </Stack>
-</AiChatBubble>`;
 
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Compose from a prompt",
     description: "Alex asks for a design review; the assistant answers with a booking form composed from the catalog (SelectField, DateField, ChipGroup, Buttons) and rendered inside its bubble. Every pick lands in the shared state (open “What Zen AI sees”, the code icon in the header, to watch it in the Side Panel), and Schedule sends it back as an action. The bar's Tag says who answers typed prompts: the model behind /ai-ui when ANTHROPIC_API_KEY is set before npm run dev, the demo composer otherwise.",
     screen: true,
-    render: () => <ComposerScreen initial={[suggestions[0].prompt]} />,
-    code: renderCode,
+    render: () => <AiUiWindow app={ComposeFromAPrompt} />,
+    code: exampleCode(composeFromAPrompt),
   },
   {
     title: "Skeleton first, data after",
-    description: "The invoices answer renders at once with a Skeleton where the table goes ({ \"$pending\": \"text\" }); when the rows arrive the same spec is re-rendered with the data, so nothing jumps. A row click reaches the app as an action with the row.",
+    description: "The invoices answer renders at once with a Skeleton where the table goes ({ \"$pending\": \"text\" }); when the rows arrive the same spec is re-rendered with the data, so nothing jumps. A row click reaches the app as an action with the row. The example opens with the rows: pick Overdue invoices to watch the Skeleton.",
     wide: true,
-    render: () => <ComposerScreen initial={[suggestions[1].prompt]} aside={false} />,
-    code: `// Frame 1: the structure, no data yet                       // Frame 2: the same spec with the rows
-{ type: "Table", pending: true } or { "$pending": "text" }      { type: "Table", props: { columns, rows: { "$ref": "invoices" }, onRowClick: { "$action": "openInvoice" } } }`,
+    render: () => <AiUiWindow app={SkeletonFirstDataAfter} />,
+    code: exampleCode(skeletonFirstDataAfter),
   },
   {
     title: "Follow-ups edit, not rebuild",
     description: "“Make the button accent” becomes one op on the spec already on screen (setProp on the node with id submit); “at 4 pm” writes the shared state the ChipGroup is bound to. The form stays, with what Alex had already picked.",
     wide: true,
-    render: () => <ComposerScreen initial={[suggestions[0].prompt, "Make the button accent", "Let's do it at 4 pm"]} />,
-    code: `const next = applyOps(spec, [{ op: "setProp", id: "submit", name: "level", value: "accent" }]);   // "make it accent"
-setShared((state) => writePath(state, "review.slot", "16:00"));                                        // "at 4 pm"`,
+    render: () => <AiUiWindow app={FollowUpsEditNotRebuild} />,
+    code: exampleCode(followUpsEditNotRebuild),
   },
   {
     title: "Composed while typing",
     description: "The composer card: the field is the header, the guess is the body, the keys and the primary action are the footer. As the sentence forms, a keyword classifier on the device names the intent and pulls the slots out of it (title, date, time, people, place), and anything it does not know goes to the composer as it is once a few words are in (the model, when one is configured; the demo composer says what it can build); the card shows the type row, the title and the slots as chips at once (an empty slot reads 'Add date'), then the form once the intent is sure (Tab, the composer's answer, or a clear match) or a chip is opened; the composer (a model through /ai-ui when one is configured) fills in the real UI. A keystroke during composing drops the stale answer; an unsure guess never clears what is shown. Tab keeps the guessed intent and moves into the card, Escape clears, Enter runs the form's primary action when one is on screen (Schedule) and composes otherwise.",
     wide: true,
-    render: () => <LiveTypingExample initial="Schedule a design review with the banking team tomorrow at 4 pm" />,
-    code: `const live = createLiveComposer({
-  classify: keywordClassifier(intents, { slots: extractSlots }),                  // on-device: the intent, and title / date / time / people from the sentence
-  compose: (prompt, { slots, signal }) => post("/ai-ui/compose", { prompt, data, state: fromSlots(slots) }, signal),
-  onChange: setLive,
-});
-const sure = live.pinned || Boolean(live.spec);                                 // Tab, or the composer's answer; a guess looks like a guess until then
-const action = primaryActionOf(live.spec ?? live.skeleton);                       // Enter and the footer button run it
-<Card theme="default" width="fill">                                     {/* one object: field · guess · footer */}
-  <AiChatField fieldStyle="surface" value={text} onValueChange={(next) => { setText(next); live.input(next); }}
-    onAccept={live.intent && !live.pinned ? () => live.accept() : undefined}       // Tab keeps the guess, then moves into the card
-    onClear={text ? () => live.reset() : undefined}                                // Escape clears
-    onSubmit={(prompt) => (action && sure ? run(action) : live.submit(prompt))} />
-  <TypeRow intent={live.intent} sure={sure} />                                     {/* icon · Booking · "likely" */}
-  <SlotChips slots={live.slots} onOpen={showForm} />                               {/* [Tomorrow ▾] [16:00 ▾] [+ Add people] */}
-  {sure || opened ? <AiUi spec={composerBody(live.spec ?? live.skeleton)} catalog={catalog} state={shared} onStateChange={setShared} /> : null}
-  <Footer hints={[["Tab", "keep as booking"], ["Esc", "clear"], ["Enter", "schedule"]]} primary={action} />
-</Card>`,
+    render: () => <CatalogFor app={ComposedWhileTyping} />,
+    code: exampleCode(composedWhileTyping),
   },
   {
     title: "Composed while typing, on a phone",
     description: "The same composer on a phone: the card rises above the docked field, so a keyboard would cover nothing and the preview pushes the greeting up (study F9); the slots become chips, the form shows once the intent is sure, and the footer's keys and buttons wrap in the 390 px column.",
-    render: () => <LiveTypingPhone initial="Schedule a design review with Gia tomorrow at 4 pm" />,
-    code: `<PlatformPhone label="Zen AI" screenRef={screenRef}>
-  <AppShell topNavigation={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} />}>
-    <AiChatBlock greeting="What do you need, Alex?">…</AiChatBlock>
-    <Stack gap="xs">                                                    {/* at the end of the Body, in flow: the card, then the field */}
-      <Card theme="default" width="fill">…the guess…</Card>
-      <AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" value={text} onValueChange={…} onAccept={…} onClear={…} onSubmit={…} />
-    </Stack>
-  </AppShell>
-</PlatformPhone>`,
+    render: () => <AiUiPhone app={ComposedWhileTypingOnAPhone} />,
+    code: exampleCode(composedWhileTypingOnAPhone),
   },
   {
     title: "A spec the catalog rejects",
     description: "The model named a component Zen does not have, a Button level outside the enum and a className. validateSpec reports each with its path and a hint; the answer shows the text and the problems instead of a broken UI, and the app sends the errors back for the model to fix.",
-    render: () => <ComposerScreen initial={["Show me something broken"]} aside={false} />,
-    code: `validateSpec(spec, catalog).errors
-// → [{ code: "unknown-component", path: "root.children.1.type", message: '"Calendar" is not in the catalog.' },
-//    { code: "enum", path: "root.children.2.props.level", hint: 'Did you mean "primary"?' },
-//    { code: "excluded-prop", path: "root.children.2.props.className", … }]`,
+    render: () => <AiUiWindow app={ASpecTheCatalogRejects} />,
+    code: exampleCode(aSpecTheCatalogRejects),
   },
   {
     title: "A prose answer",
     description: "When no UI is called for, the Markdown answer still renders with Zen's text styles: Heading, Text with bold and links, List. The same catalog check applies.",
-    render: () => <ComposerScreen initial={["What can you do?"]} aside={false} />,
-    code: `const spec = markdownToSpec(answer.markdown);   // Heading, Text, List + ListItem, Link, Table
-<AiUi spec={spec} catalog={catalog} />`,
+    render: () => <AiUiWindow app={AProseAnswer} />,
+    code: exampleCode(aProseAnswer),
   },
   {
     title: "On a phone",
     description: "The same composer and specs in a phone frame: Comfortable density and Mobile typography come from the frame, the form stacks in one column on its Card, in the narrow bubble the time chips and the actions wrap onto another row instead of overflowing, the Liquid Glass field docks above the home indicator and the conversation scrolls under it.",
-    render: () => <ComposerPhone initial={[suggestions[0].prompt]} />,
-    code: `<PlatformPhone label="Zen AI" screenRef={screenRef}>
-  <AppShell
-    topNavigation={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} />}
-    actionBar={<AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" onSubmit={ask} />}
-  >
-    <AiChatThread aria-label="Conversation with Zen AI">
-      <AiChatBubble side="ai"><AiUi spec={spec} catalog={catalog} state={shared} onStateChange={setShared} onAction={run} /></AiChatBubble>
-    </AiChatThread>
-  </AppShell>
-</PlatformPhone>`,
+    render: () => <AiUiPhone app={OnAPhone} />,
+    code: exampleCode(onAPhone),
   },
 ]);

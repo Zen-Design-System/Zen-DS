@@ -1,25 +1,8 @@
 {
   "$comment": "Examples still written as a code string beside their render, per page file: P2b moves them to *.example.tsx files (plan docs/research/code-languages-plan-2026-10-03.md §11). A count may only go down. Written by npm run examples:check -- --write.",
-  "total": 171,
+  "total": 97,
   "pages": {
-    "src/platform/examples/pages/ai-chat.tsx": 6,
-    "src/platform/examples/pages/ai-ui.tsx": 8,
-    "src/platform/examples/pages/app-shell.tsx": 6,
-    "src/platform/examples/pages/app-shell/a-compositions.tsx": 4,
-    "src/platform/examples/pages/app-shell/b-desktop-1.tsx": 3,
-    "src/platform/examples/pages/app-shell/b-desktop-2.tsx": 3,
-    "src/platform/examples/pages/app-shell/c-mobile-1.tsx": 4,
-    "src/platform/examples/pages/app-shell/c-mobile-2.tsx": 3,
-    "src/platform/examples/pages/app-shell/d-expressive-1.tsx": 3,
-    "src/platform/examples/pages/app-shell/d-expressive-2.tsx": 2,
-    "src/platform/examples/pages/app-shell/e-consumer-1.tsx": 4,
-    "src/platform/examples/pages/app-shell/e-consumer-2.tsx": 3,
-    "src/platform/examples/pages/app-shell/f-smart-home-1.tsx": 4,
-    "src/platform/examples/pages/app-shell/f-smart-home-2.tsx": 4,
-    "src/platform/examples/pages/app-shell/f-smart-home-3.tsx": 4,
-    "src/platform/examples/pages/app-shell/g-grid.tsx": 2,
     "src/platform/examples/pages/chart.tsx": 30,
-    "src/platform/examples/pages/chat.tsx": 9,
     "src/platform/examples/pages/curve-preview.tsx": 6,
     "src/platform/examples/pages/metric.tsx": 16,
     "src/platform/examples/pages/schedule.tsx": 6,
@@ -27,7 +10,6 @@
     "src/platform/examples/pages/sheet-table.tsx": 5,
     "src/platform/examples/pages/table.tsx": 8,
     "src/platform/examples/pages/timeline.tsx": 7,
-    "src/platform/examples/pages/voice.tsx": 7,
-    "src/platform/examples/pages/widgets.tsx": 2
+    "src/platform/examples/pages/voice.tsx": 7
   }
 }

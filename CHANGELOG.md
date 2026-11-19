@@ -43,6 +43,12 @@ How to maintain it:
   Badge and Segmented phone examples run to the screen edge again, so a cut chip shows the row scrolls.
 - Sidebar: closing the flyout (`subMenu`) with Escape or a pick inside it gives focus back to the rail item that opened
   it, instead of dropping it on the page.
+- Docs and Zen Studio: the Chat, AI Chat, AI UI, Widgets and App Shell pages' examples are files too, with the five
+  App Shell layout pages (desktop, mobile, expressive, consumer, smart home): 408 of 505 so far. AI UI examples import
+  the runtime from `@zen-ds/react/ai-ui` and take the catalog as a `catalog` prop (in an app,
+  `import catalog from "@zen-ds/react/ai-ui/catalog.json"`).
+- Harness: `theme/mixed-elevation` and `theme/mixed-boxes` read a Sidebar with `density="small"` as shadowed, as it
+  draws (only `variant="small-density"` drops the shadow); it took every Small-density Sidebar for a flat one.
 - Zen Studio: a picture read from the shared photo library (`photos` in `./demo`) is never changed there; a new picture
   on that layer is the layer's own, as before the photos moved (it would have changed every page's photo). A data edit
   in the Studio no longer reloads its panels and loses the session (since the photos moved).

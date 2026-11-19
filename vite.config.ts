@@ -12,7 +12,8 @@ export default defineConfig({
   // aiUiDevServer(): dev only, /ai-ui/* (docs/ai-ui): the compose loop with a model when ANTHROPIC_API_KEY is set.
   plugins: [zenStudio(), react(), loopbackBothFamilies(), aiUiDevServer()],
   // Page templates (src/templates) import the public package name so they can be copied into apps unchanged.
-  resolve: { alias: { "@zen-ds/react": fileURLToPath(new URL("./src/index.ts", import.meta.url)) } },
+  // The AI UI entry first: an alias also matches the paths under its name.
+  resolve: { alias: { "@zen-ds/react/ai-ui": fileURLToPath(new URL("./src/ai-ui/index.ts", import.meta.url)), "@zen-ds/react": fileURLToPath(new URL("./src/index.ts", import.meta.url)) } },
   // The docs platform app. The installable library is built by vite.lib.config.ts into dist/.
   build: { outDir: "dist-platform" },
 });
