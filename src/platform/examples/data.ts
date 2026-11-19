@@ -9,7 +9,7 @@
    imports (shown as ./media/…). Its formatters have test vectors every language port shares
    (platforms/tests/demo-vectors.json, written by npm run guidelines:build). Zen Studio edits its values in place
    (data-source.mjs), so it keeps this path. */
-import type { AvatarTheme, BadgeStatusValue, BadgeTheme, CalendarEventData, DockIconTheme, IconName } from "@zen-ds/react";
+import type { AvatarTheme, BadgeStatusValue, BadgeTheme, CalendarEventData, ChartPoint, ChartSlice, DockIconTheme, IconName, ScheduleResourceData, ScheduleSlotData, TimelineEntryData, TimelineGroupData } from "@zen-ds/react";
 import photoAlex from "../../templates/hr/assets/account-photo.jpg";
 import workspaceLogo from "../../templates/hr/assets/workspace-logo.png";
 import photoAva from "../../assets/media/avatar-ava.webp";
@@ -429,4 +429,79 @@ export const calendarEvents: CalendarEventData[] = [
   { id: "1-1-bao", title: "1:1 Bao Nguyen", start: eventAt(-8, 14), end: eventAt(-8, 14, 30), color: "teal" },
   { id: "showcase", title: "Friday showcase", start: eventAt(-8, 16), end: eventAt(-8, 17), color: "green" },
   { id: "quiz", title: "Team quiz night", start: eventAt(-8, 18), end: eventAt(-8, 20), color: "green" },
+];
+
+/** Q3 2026 revenue by client, ranked largest first; the five add up to the quarter ($296,800). */
+export const clientShares: ChartSlice[] = [
+  { id: "lumen", label: "Lumen Bank", value: 89000 },
+  { id: "phin", label: "Phin & Co", value: 68300 },
+  { id: "mekong", label: "Mekong Freight", value: 53400 },
+  { id: "bookfair", label: "Hanoi Book Fair", value: 50500 },
+  { id: "other", label: "Other clients", value: 35600 },
+];
+
+/** Jan – Sep 2026 by the same clients; adds up to the year's invoiced revenue on the Revenue card ($798,300). */
+export const clientSharesYtd: ChartSlice[] = [239400, 183700, 143600, 135800, 95800].map((value, i) => ({ ...clientShares[i], value }));
+
+/** Billable hours per team in September against the hours each team can bill (its capacity). */
+export const teamCapacity: ChartPoint[] = [
+  { label: "Design", value: 2650, target: 2800 },
+  { label: "Engineering", value: 1990, target: 2240 },
+  { label: "Delivery", value: 750, target: 960 },
+  { label: "Client Services", value: 510, target: 640 },
+];
+
+/** Alex's time entries this week so far (Mon Sep 28 – today), newest first: part of September's 164 h. */
+export const hoursThisWeek = [
+  { id: "w1", note: "Account overview audit", project: "lumen-banking", day: "Today", value: 2 },
+  { id: "w2", note: "Transfer sessions debrief", project: "lumen-banking", day: "Yesterday", value: 5 },
+  { id: "w3", note: "Metric card guidelines", project: "zen-ds", day: "Yesterday", value: 3 },
+  { id: "w4", note: "Usability plan for transfers", project: "lumen-banking", day: "Monday", value: 4 },
+  { id: "w5", note: "Design critique", project: "phin-loyalty", day: "Monday", value: 2 },
+  { id: "w6", note: "Zen office hours", project: "zen-ds", day: "Monday", value: 2 },
+].map((entry) => ({ ...entry, project: projectById(entry.project) }));
+
+/** The people and rooms on the studio's schedule (the Schedule examples). */
+export const scheduleResources: ScheduleResourceData[] = [
+  { id: "alex", name: "Alex Duong", meta: "Design Lead", avatarSrc: people.alex.photo },
+  { id: "maya", name: "Maya Chen", meta: "Product lead" },
+  { id: "linh", name: "Linh Tran", meta: "Engineer" },
+  { id: "lotus", name: "Room 2 · Lotus", shortName: "Lotus", meta: "8 seats", kind: "room" },
+  { id: "bamboo", name: "Room 3 · Bamboo", shortName: "Bamboo", meta: "4 seats", kind: "room" },
+];
+
+const slotTimes = ["09:00", "09:30", "10:00", "10:30", "11:00", "13:00", "14:00", "15:00", "16:00"];
+// Taken, or already past on today (13:15).
+const takenSlots = new Set(["2026-09-30T13:00", "2026-09-30T09:00", "2026-09-30T09:30", "2026-09-30T10:00", "2026-09-30T10:30", "2026-09-30T11:00", "2026-10-02T09:00", "2026-10-02T14:00", "2026-10-05T10:00"]);
+/** Review times to book over the next five working days (Sep 30 – Oct 6); taken or past ones are disabled. */
+export const bookingSlots: ScheduleSlotData[] = ["2026-09-30", "2026-10-01", "2026-10-02", "2026-10-05", "2026-10-06"]
+  .flatMap((day) => slotTimes.map((hour) => `${day}T${hour}`))
+  .map((id) => ({ id, start: id, disabled: takenSlots.has(id) }));
+
+/** The Lotus banking redesign: three phases with their tasks and milestones, Aug 31 – Oct 24, 2026 (the Timeline examples). */
+export const roadmapGroups: TimelineGroupData[] = [
+  { id: "research", name: "Research", tasks: [
+    { id: "interviews", name: "User interviews", start: "2026-08-31", end: "2026-09-12", color: "violet", assignee: { alt: "Chi Tran" } },
+    { id: "audit", name: "Competitor audit", start: "2026-09-07", end: "2026-09-19", color: "violet", assignee: { alt: "Bao Nguyen" } },
+  ] },
+  { id: "design", name: "Design", tasks: [
+    { id: "wireframes", name: "Wireframes", start: "2026-09-14", end: "2026-09-26", assignee: { alt: "Alex Duong", src: people.alex.photo } },
+    { id: "ui", name: "UI design", start: "2026-09-21", end: "2026-10-10", assignee: { alt: "Alex Duong", src: people.alex.photo } },
+    { id: "signoff", name: "Design sign-off", start: "2026-10-09", kind: "milestone" },
+  ] },
+  { id: "build", name: "Build", tasks: [
+    { id: "frontend", name: "Frontend", start: "2026-09-28", end: "2026-10-17", color: "teal", assignee: { alt: "Linh Tran" } },
+    { id: "qa", name: "QA & fixes", start: "2026-10-12", end: "2026-10-24", color: "orange", assignee: { alt: "Minh Vo" } },
+    { id: "beta", name: "Beta launch", start: "2026-10-23", kind: "milestone" },
+  ] },
+];
+
+/** What happened on the studio's projects lately, newest first (the Timeline examples). */
+export const activityLog: TimelineEntryData[] = [
+  { id: "approve", at: "2026-09-30T10:42", actor: "Maya Chen", title: "approved your leave request", description: "Annual leave · Oct 12 – Oct 16", marker: { kind: "avatar", avatarName: "Maya Chen", tone: "positive" } },
+  { id: "comment", at: "2026-09-30T09:15", actor: "Linh Tran", title: "commented on Q4 roadmap", attachment: "Can we move the review to Thursday? The client asked for one more day.", marker: { kind: "icon", tone: "accent" } },
+  { id: "moved", at: "2026-09-30T08:50", actor: "Alex Duong", title: "moved Public launch to Nov 16", description: "Moved the launch one week after the beta feedback.", marker: { kind: "avatar", avatarName: "Alex Duong", avatarSrc: people.alex.photo } },
+  { id: "shared", at: "2026-09-29T17:30", actor: "Zen Studio", title: "shared the design file", description: "Shared with 12 people at Lotus Bank", marker: { kind: "icon", tone: "neutral" } },
+  { id: "created", at: "2026-09-29T09:00", actor: "Bao Nguyen", title: "created the project", marker: { kind: "avatar", avatarName: "Bao Nguyen" } },
+  { id: "rejected", at: "2026-09-25T14:10", actor: "Finance", title: "rejected the invoice draft", description: "Missing purchase order number", marker: { kind: "icon", tone: "negative" } },
 ];

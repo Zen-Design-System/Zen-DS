@@ -41,6 +41,10 @@ How to maintain it:
   Stepper, Top Navigation, Bottom Navigation, Sidebar, Page Header, Dashboard Header, Action Bar, Accordion, Layout,
   List Item, Description List, Card): 334 of 505 so far. `./demo` adds `videos.canyonPortrait`. The chip rows of the
   Badge and Segmented phone examples run to the screen edge again, so a cut chip shows the row scrolls.
+- Docs and Zen Studio: the data pages' examples are files too (Table, Sheet Table, Chart, Metric, Schedule, Timeline,
+  Shape, Curve Preview, Voice): 431 of 505 so far. `./demo` adds `clientShares`, `teamCapacity`, `hoursThisWeek`,
+  `scheduleResources`, `bookingSlots`, `roadmapGroups` and `activityLog`. Simulated loads, recordings and Zen AI's
+  voice turns run from the press that starts them.
 - Sidebar: closing the flyout (`subMenu`) with Escape or a pick inside it gives focus back to the rail item that opened
   it, instead of dropping it on the page.
 - Zen Studio: a picture read from the shared photo library (`photos` in `./demo`) is never changed there; a new picture
