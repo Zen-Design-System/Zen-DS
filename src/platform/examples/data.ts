@@ -9,7 +9,7 @@
    imports (shown as ./media/…). Its formatters have test vectors every language port shares
    (platforms/tests/demo-vectors.json, written by npm run guidelines:build). Zen Studio edits its values in place
    (data-source.mjs), so it keeps this path. */
-import type { AvatarTheme, BadgeStatusValue, BadgeTheme, DockIconTheme, IconName } from "@zen-ds/react";
+import type { AvatarTheme, BadgeStatusValue, BadgeTheme, CalendarEventData, DockIconTheme, IconName } from "@zen-ds/react";
 import photoAlex from "../../templates/hr/assets/account-photo.jpg";
 import workspaceLogo from "../../templates/hr/assets/workspace-logo.png";
 import photoAva from "../../assets/media/avatar-ava.webp";
@@ -61,6 +61,8 @@ import deviceRobotVacuum from "../../assets/media/device-robot-vacuum.webp";
 import deviceRobotVacuumF4 from "../../assets/media/device-robot-vacuum-f4.webp";
 import roomRollerBlind from "../../assets/media/room-roller-blind.webp";
 import porchLiveView from "../../assets/media/porch-live-view.webp";
+import canyonLandscapeVideo from "../../assets/media/canyon-landscape.webm";
+import canyonLandscapePoster from "../../assets/media/canyon-landscape-poster.webp";
 
 /** Wednesday, Sep 30, 2026, 10:30 am: every date in the examples is relative to it. */
 export const TODAY = new Date(2026, 8, 30, 10, 30);
@@ -370,3 +372,41 @@ export const photos = {
     porchCamera: { src: porchLiveView, alt: "Wide-angle camera view of the porch and the wooden front door" },
   } satisfies Record<string, Photo>,
 };
+
+// ——— Videos (src/assets/media/CREDITS.md) ——————————————————————————————————————————————————————————————————————
+/** A clip and its poster, the frame shown until it plays. The player that shows it names it (aria-label). */
+export type Video = { src: string; poster: string };
+export const videos = {
+  /** A 16:9 Grand Canyon timelapse. */
+  canyonLandscape: { src: canyonLandscapeVideo, poster: canyonLandscapePoster },
+} satisfies Record<string, Video>;
+
+/** A time on the day `offset` days from today. */
+const eventAt = (offset: number, hour: number, minute = 0) => new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + offset, hour, minute);
+const eventDay = (offset: number) => new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + offset);
+const eventTeam = [people.alex, people.bao, people.chi].map((person) => ({ src: person.photo, alt: person.name }));
+
+/** Đìzai Studio's calendars around Wednesday 30 September 2026 (the Calendar examples).
+ *  Team → Brand, Design → Violet, Clients → Blue, People → Teal, Company → Orange, Social → Green, Hiring → Pink. */
+export const calendarEvents: CalendarEventData[] = [
+  { id: "standup", title: "Daily standup", start: eventAt(0, 9), end: eventAt(0, 9, 30), meta: "Zoom", attendees: eventTeam },
+  { id: "q4-planning", title: "Q4 planning", start: eventAt(0, 10, 30), end: eventAt(0, 12), color: "blue", meta: "Room 2 · Lotus", attendees: eventTeam },
+  { id: "lunch", title: "Lunch · Linh Tran", start: eventAt(0, 12), end: eventAt(0, 13), color: "green", meta: "Phở Hà" },
+  { id: "maya", title: "1:1 Maya Chen", start: eventAt(0, 14), end: eventAt(0, 14, 45), color: "teal", meta: "Google Meet" },
+  { id: "critique", title: "Design critique", start: eventAt(0, 16), end: eventAt(0, 17), color: "violet", meta: "Studio floor" },
+  { id: "kickoff", title: "Q4 kickoff", start: eventDay(1), allDay: true, meta: "Whole studio", attendees: eventTeam },
+  { id: "lotus-call", title: "Client call · Lotus", start: eventAt(1, 13), end: eventAt(1, 14), color: "blue", meta: "Zoom" },
+  { id: "demo", title: "Sprint demo", start: eventAt(2, 15), end: eventAt(2, 16), color: "teal", meta: "Room 3 · Bamboo", attendees: eventTeam },
+  { id: "planning", title: "Weekly planning", start: eventAt(-2, 9), end: eventAt(-2, 10), meta: "Room 1" },
+  { id: "review", title: "Design review", start: eventAt(-1, 11), end: eventAt(-1, 12), color: "violet", meta: "Room 2" },
+  { id: "hiring", title: "Hiring panel", start: eventAt(-1, 14), end: eventAt(-1, 15, 30), color: "pink", meta: "Room 4" },
+  { id: "portfolio", title: "Portfolio review with the hiring committee", start: eventAt(-1, 14, 30), end: eventAt(-1, 16), color: "orange", meta: "Room 1" },
+  { id: "offsite", title: "Studio offsite", start: eventDay(-16), end: eventDay(-14), allDay: true, color: "orange", meta: "Đà Lạt" },
+  { id: "retro", title: "Sprint retro", start: eventAt(-7, 16), end: eventAt(-7, 17), color: "teal" },
+  { id: "payroll", title: "Payroll run", start: eventAt(-9, 9), end: eventAt(-9, 9, 30), color: "orange" },
+  { id: "brand-sync", title: "Brand sync", start: eventAt(-8, 10), end: eventAt(-8, 11), color: "violet" },
+  { id: "invoice", title: "Invoice review", start: eventAt(-8, 11), end: eventAt(-8, 11, 30), color: "blue" },
+  { id: "1-1-bao", title: "1:1 Bao Nguyen", start: eventAt(-8, 14), end: eventAt(-8, 14, 30), color: "teal" },
+  { id: "showcase", title: "Friday showcase", start: eventAt(-8, 16), end: eventAt(-8, 17), color: "green" },
+  { id: "quiz", title: "Team quiz night", start: eventAt(-8, 18), end: eventAt(-8, 20), color: "green" },
+];

@@ -372,3 +372,15 @@ example takes `scrollRef` ("window" in an app); `PlatformPhoneApp` passes the de
 (lost in PR1 too). What the subset costs: loads that started in an effect now start from a button, and focus lands on
 the nearest element a ref can reach where a component gives none to its inner control (ListItem's row, Tag's Remove,
 EmptyState and InlineMessage actions, TopNavigation's actions) — BACKLOG-user-and-later, waiting for approval.
+
+**PR3 as built (2026-11-19):** the 92 examples of Button, Input, Checkbox, Radio Button, Toggle, Slider, Slider Field,
+Segmented, Search, Color Picker, Color Selector, Uploader, Form, Date Picker and Calendar, ported by five agents (three
+pages each) and reviewed in one pass; all twelve page CSS files went. New in the demo world: `videos` (the canyon
+timelapse) and `calendarEvents` (the 20 events every Calendar example shares). Patterns added: simulated progress is a
+`setTimeout` chain started by the handler that adds the file (each step replaces only the file object it moved on
+from); a demo seeded as already running starts on the first pointer or focus inside it; `matchMedia` → `useZen()?.
+breakpoint`; a Toggle that fills or hugs sits in a Stack with `align="stretch" fillChildren` (no width prop). What the
+subset cost here: "Search during an import" opens on the finished import with a button that runs it again; a radio
+card selects from its radio row, not its padding, and lost its hover stroke (both were `::after` page CSS); more focus
+targets land on the nearest reachable element (Slider's ref is its wrapper, ColorSelector and FileUpload give none) —
+added to the BACKLOG-user-and-later line.
