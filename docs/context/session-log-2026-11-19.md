@@ -111,4 +111,5 @@ Branch `zen/feat/code-view-p2b7-chat-shell-20261119`, worktree `studio-words-pro
   were page CSS) plus Skeleton first's added sentence, a 6 px icon edge in B1.
 - Gate (`qa --isolated --pages=<10 pages + sidebar> --files=…`): first run 1 ✗ (snippet-parser test did not know the
   AI UI entry) → fixed; re-run PASS (Vitest 98/98, audit 1512/390/320, dark, APG, Sidebar Figma 6/6) with one ⚠
-  dead click on E3's Save heart (same handler as main; checked again in the final run).
+  dead click on E3's Save heart (same handler as main). After the merge and the gate closing, the final run (105 files):
+  PASS, 0 warnings (the dead click did not come back: 1 run of 3); ai-ui:check, mcp:selftest, build OK.
