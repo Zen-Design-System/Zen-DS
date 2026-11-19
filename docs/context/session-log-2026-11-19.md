@@ -91,3 +91,24 @@ stopped clean and was archived on the user's word; its survey gave the per-page 
 - Visual diff (212 panels, 1512 + 390): 195 identical; changed = the studio logo (2xs) in four desktop frames, the five
   phone examples now on AppShell (a few px of margin), and capture artifacts (docs search bar, Voice playground clock).
 
+
+## Code view P2b PR7: chat, AI and App Shell pages, gate closed (tier M; session from "Code view P2b")
+
+Branch `zen/feat/code-view-p2b7-chat-shell-20261119`, worktree `studio-words-props-dark-20261027-b8fcaa`.
+- 74 examples of Chat, AI Chat, AI UI, Widgets (2) and App Shell + its five layout pages to files by eight agents; the
+  App Shell part files and chat, ai-chat, app-shell.css went. 505/505 moved: baseline 0, `examples/portable-subset` an
+  error (usage selftest fails if it is ever a warning again). Merged main after PR6 (#409): plan, HANDOFF, BACKLOG and
+  baseline conflicts, both sides kept.
+- `@zen-ds/react/ai-ui` allowed in examples (alias in vite, vitest, tsconfig, the fixture; the snippet-parser test); the
+  1.1 MB AI UI catalog is a prop the page loads lazily (pages load at start-up).
+- Bugs met → fixed: harness `sidebarLook` read `density="small"` as shadowless (only `variant="small-density"`; A1's
+  allow comment went, Sidebar JSDoc fixed); Voice messages' Bao Tran (not in the demo world) and undeletable sent texts;
+  a typed invoices sentence stayed on the Skeleton; Discover's "Not a match" dropped focus; three Smart home
+  descriptions (Surface → Tertiary IconButtons, Heading/1 → Display/3, OK → Select). Style-guard baseline 1 → 0
+  (chat.css went). Review added PR6's lesson: AI Chat streams and Chat's voice playback stop once the example is gone.
+- Visual diff (200 panels, 1512 + 390): 173 identical; changed = studio logo/mark (2xs) in 8 desktop frames, the three
+  fixed Smart home descriptions, Widgets on a phone on AppShell (body spacing), AI UI ≤ 3/255 per channel (fade-ins
+  were page CSS) plus Skeleton first's added sentence, a 6 px icon edge in B1.
+- Gate (`qa --isolated --pages=<10 pages + sidebar> --files=…`): first run 1 ✗ (snippet-parser test did not know the
+  AI UI entry) → fixed; re-run PASS (Vitest 98/98, audit 1512/390/320, dark, APG, Sidebar Figma 6/6) with one ⚠
+  dead click on E3's Save heart (same handler as main; checked again in the final run).

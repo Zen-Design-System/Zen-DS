@@ -2814,7 +2814,7 @@ export const rules = [
         if (selectedFill && !ringed) return `shows focus on .${item} with a fill only, and its selected state is a fill too — on or beside a selected item focus can vanish; draw the 3px Focus/Accent ring (inset where a scrolling list clips).`;
       }
       return null;
-    } },  { id: "examples/portable-subset", source: true, components: [], repoOnly: true, severity: "warn", allow: "portable", guideline: "docs/guides/example-patterns.md",
+    } },  { id: "examples/portable-subset", source: true, components: [], repoOnly: true, severity: "error", allow: "portable", guideline: "docs/guides/example-patterns.md",
     summary: "An example file (*.example.tsx) stays in the portable React subset the Vue, Svelte, SwiftUI and Flutter translations read: useState, useId, useRef for elements, Zen hooks, conditionals, map / filter / sort / find / slice and handlers (a setTimeout inside one). No effects, context, forwardRef or direct DOM (document, window, querySelector, ResizeObserver, requestAnimationFrame).",
     check: ({ src, file }) => portableSubset(src, file) },
 ];

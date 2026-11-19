@@ -57,10 +57,10 @@ How to maintain it:
   on that layer is the layer's own, as before the photos moved (it would have changed every page's photo). A data edit
   in the Studio no longer reloads its panels and loses the session (since the photos moved).
 - CI: the SwiftUI and Flutter token jobs run on macOS 15; GitHub no longer runs macOS 14, so they were cancelled.
-- Harness: new repo rule `examples/portable-subset` (warning) keeps example files in the React subset other languages can
-  translate: useState, useId, useRef, Zen hooks, conditions, lists and handlers; no effects, context, forwardRef or
-  direct DOM. New `npm run examples:check` (QA gate and CI) compiles every example as copied, and fails when an example
-  imports docs helpers or when the examples still written as code strings grow (baseline 492, going to 0).
+- Harness: new repo rule `examples/portable-subset` (an error since every example moved) keeps example files in the
+  React subset other languages can translate: useState, useId, useRef, Zen hooks, conditions, lists and handlers; no
+  effects, context, forwardRef or direct DOM. New `npm run examples:check` (QA gate and CI) compiles every example as copied, and fails when an example
+  imports docs helpers or when an example is written as a code string again (the baseline went from 492 to 0).
 - Language ports: `platforms/tests/demo-vectors.json` holds the demo formatters' answers (dates, money, sizes,
   initials) that every language's demo module must give; `npm run guidelines:build` writes it.
 - Tooling: `visual-diff capture` and `platform:shoot` with `--isolated` exit when done (they left their private server
