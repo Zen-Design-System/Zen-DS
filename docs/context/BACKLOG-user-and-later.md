@@ -54,8 +54,8 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   shared CSS), the dropdown lists all six with honest states, example snippets become the render's source (P2b).
   Examples get every language too (user, 2026-10-03). P1 (picker, status manifest, not-ready state, parser; PR #398)
   and P2 (HTML + CSS: 26 components ready, 34/34 parity, CSS contract) built 2026-11-13 (plan §9–§10). P2b (portable
-  example snippets) started 2026-11-13: subset rule, `./demo` file, AppShell phone pattern decided; 7 slices (plan §11).
-  P3–P9 wait for approval; next by the user's order: Vue (P3).
+  example snippets) done 2026-11-19: seven slices #400–#410, all 505 examples are `*.example.tsx` files, baseline 0,
+  `examples/portable-subset` an error (plan §11). P3–P9 wait for approval; next by the user's order: Vue (P3).
 - **ListItem Value in Figma — decided, not built (user, 2026-10-23: "not now"; 2026-10-13: "code first"):** code has
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
