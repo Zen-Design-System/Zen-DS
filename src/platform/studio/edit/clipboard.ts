@@ -426,6 +426,30 @@ function spotAtPoint(point: { x: number; y: number }): Spot | string {
  * place. A frame without auto layout takes it where the copied layer floats (its offsets in its own frame), else in the
  * middle of what shows of it; a layout takes it as its last layer.
  */
+/** Whether the layer `copied` was copied from is on the canvas and in view (a cut one is gone). */
+function originalInView(copied: Clip): boolean {
+  const world = canvasApi.getWorldElement();
+  const host = copied.file && copied.loc && world ? findBySrc(world, `${copied.file}:${copied.loc}`)[0]?.hosts[0] : undefined;
+  if (!(host instanceof HTMLElement)) return false;
+  const rect = host.getBoundingClientRect();
+  const view = getViewportBox();
+  return rect.right > view.left && rect.left < view.left + view.width && rect.bottom > view.top && rect.top < view.top + view.height;
+}
+
+/** The middle of the view when no Screen or Overlay is under it (the board's empty space, or a Section's), else null. */
+function emptyViewMiddle(): { x: number; y: number } | null {
+  const world = canvasApi.getWorldElement();
+  if (!world) return null;
+  const view = getViewportBox();
+  const middle = { x: view.left + view.width / 2, y: view.top + view.height / 2 };
+  for (const frame of world.querySelectorAll("[data-studio-frame]")) {
+    if (!/^(?:screen|overlay):/.test(frame.getAttribute("data-studio-frame") ?? "")) continue;
+    const rect = frame.getBoundingClientRect();
+    if (rect.left <= middle.x && middle.x <= rect.right && rect.top <= middle.y && middle.y <= rect.bottom) return null;
+  }
+  return middle;
+}
+
 function spotInView(frameId: string | null): Spot | string {
   const world = canvasApi.getWorldElement();
   const frame = frameId ? world?.querySelector(`[data-studio-frame="${CSS.escape(frameId)}"]`) ?? null : frameInView();
@@ -481,6 +505,14 @@ async function pasteOnCanvas(text: string | null, point: { x: number; y: number 
   if (!own && !point && !raw.startsWith("<") && plainTextPaste) return plainTextPaste(raw);
   const code = raw.startsWith("<") ? raw : textLayer(raw);
   const selection = studioStore.getState().selection;
+  // Nothing selected, the copied layer's place out of view (or cut) and no frame in the middle of the view, on a page you
+  // made: Figma's paste lands there, on the canvas; a page's Board holds frames only, so a new frame there holds it
+  // (builder/boardPaste.ts, as Paste here's). A copied layer still in view keeps Figma's paste at its place (spotInView).
+  const middle = !point && selection?.kind !== "frame" && studioStore.getState().localPage && !(own && originalInView(own)) ? emptyViewMiddle() : null;
+  if (middle) {
+    const { pasteOnBoard } = await import("../builder/boardPaste");
+    return pasteOnBoard(middle, { ...(own ? {} : { text: raw }), centred: true });
+  }
   const spot = point ? spotAtPoint(point) : spotInView(selection?.kind === "frame" ? selection.frameId : null);
   if (typeof spot === "string") { fail(spot); return false; }
   const into: NodeSelection = { kind: "node", src: spot.parent.src, name: spot.parent.name, frameId: spot.frameId, panelId: spot.panelId, instance: 0 };

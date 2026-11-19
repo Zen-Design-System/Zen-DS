@@ -5841,6 +5841,55 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       return `dropped at X 23 → insetLeft={20} (the Rectangle's edge), Y ${top} · Assets click → ${Math.round(boxes.field.x)}, ${Math.round(boxes.field.y)}, clear of both shapes · one ⌘Z each`;
     },
   },
+  {
+    id: "FW-269", feature: "⌘X on a shape, nothing selected, the view moved to the empty canvas, ⌘V (user 2026-11-20: it said \"Nothing here takes a paste\"): Figma's paste in the middle of the view, a new frame there holds the shape at X 0 Y 0, selected; ⌘Z takes the frame, ⌘Z again brings the shape back", wp: "paste outside a frame 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 0);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyX");
+      await until(async () => !/type="rectangle"/.test((await pageText(page, id)) ?? ""), { message: "the Rectangle cut" }).catch(async (error) => { throw new Error(`${error.message} · selected ${await selectedName(page)} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const cut = (await pageText(page, id)) ?? "";
+      await deselect(page);
+      // The view's middle on the empty canvas right of the frame: the whole page in view, a step out, then a pan.
+      await roomAround(page);
+      const viewport = await page.locator(".studio-viewport").boundingBox();
+      const middle = { x: viewport.x + viewport.width / 2, y: viewport.y + viewport.height / 2 };
+      await page.mouse.move(middle.x, middle.y);
+      const frameBox = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+      await page.mouse.wheel(Math.round(frameBox.x + frameBox.width - middle.x + 240), 0);
+      await sleep(600);
+      const free = await page.evaluate(({ x, y }) => ![...document.querySelectorAll('[data-studio-frame^="screen:"], [data-studio-frame^="overlay:"]')].some((frame) => { const r = frame.getBoundingClientRect(); return r.left <= x && x <= r.right && r.top <= y && y <= r.bottom; }), middle);
+      if (!free) throw new Error("the view's middle is still on a frame after the pan");
+      const element = page.locator('[data-studio-frame="screen:screen-1"]');
+      const shown = await element.boundingBox();
+      const zoom = shown.width / (await element.evaluate((node) => node.offsetWidth));
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyV");
+      await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a new frame" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const own = boardTag(text, "Screen", "screen-1");
+      const frame = boardTag(text, "Screen", "screen-2");
+      const inside = text.slice(text.indexOf('<Screen id="screen-2"'), text.indexOf("</Screen>", text.indexOf('<Screen id="screen-2"')));
+      const shape = shapeTags(inside)[0];
+      // The view's middle on the board: from the first frame's written X / Y and where it shows.
+      const want = { x: Math.round((numberAttr(own, "x") ?? 0) + (middle.x - shown.x) / zoom), y: Math.round((numberAttr(own, "y") ?? 0) + (middle.y - shown.y) / zoom) };
+      const centre = { x: numberAttr(frame, "x") + numberAttr(frame, "width") / 2, y: numberAttr(frame, "y") + numberAttr(frame, "height") / 2 };
+      const problems = [
+        (Math.abs(centre.x - want.x) > 3 || Math.abs(centre.y - want.y) > 3) && `its middle at ${centre.x}, ${centre.y}, the view's at ${want.x}, ${want.y}`,
+        (shape?.type !== "rectangle" || shape.x !== 0 || shape.y !== 0) && `inside: ${shape?.type} at ${shape?.x}, ${shape?.y}`,
+        /Nothing here/.test(await statusText(page)) && `status "${(await statusText(page)).slice(0, 80)}"`,
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').getAttribute("data-selected")) === "true", { message: "the new frame selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === cut, { message: "⌘Z: the frame gone" });
+      await undoTo(page, id, before, 1);
+      return `⌘X → ⌘V on the empty canvas → Frame at ${numberAttr(frame, "x")}, ${numberAttr(frame, "y")} (${numberAttr(frame, "width")} × ${numberAttr(frame, "height")}), its middle the view's · the Rectangle at 0, 0 · ⌘Z, ⌘Z → as before`;
+    },
+  },
   ...pictureRows,
 ];
 

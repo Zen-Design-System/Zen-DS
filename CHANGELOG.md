@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: ⌘V with nothing selected on the empty canvas (no frame in the middle of the view) pastes there, as Figma
+  does: a new frame in the middle of the view holds what you copied or cut. It said "Nothing here takes a paste". A
+  copied layer still in view keeps pasting at its place in its frame.
 - Tooltip: closing a `closable` tooltip with its X (or Escape while the X has focus) gives focus back to its trigger
   instead of dropping it on the page, and that returned focus does not open the tooltip again.
 - Zen Studio: a Top Navigation's Type is labelled **Theme** in the Inspector (it picks the bar's look: Default, Alt,
