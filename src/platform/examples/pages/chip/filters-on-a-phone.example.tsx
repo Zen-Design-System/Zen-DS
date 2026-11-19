@@ -38,8 +38,10 @@ export default function TeamFilters({ scrollRef = "window" }: { scrollRef?: RefO
     // A tab root: the whole studio is listed, so the screen scrolls and the large title folds under the bar.
     <AppShell topNavigation={<TopNavigation scrollRef={scrollRef} type="alt" title="Team" largeTitle="Team" />}>
       <Stack gap="md">
-        {/* One row that scrolls sideways; on a phone Sort's items open in a Bottom Sheet by themselves, not a Popover. */}
-        <Stack direction="row" gap="xs" scroll="x" paddingY="2xs" role="group" aria-label="Filters">
+        {/* One row that scrolls sideways; on a phone Sort's items open in a Bottom Sheet by themselves, not a Popover.
+            It runs to the screen's edges, past the page margin, so a chip cut at the edge shows there is more. */}
+        <Stack direction="row" gap="xs" scroll="x" paddingY="2xs" role="group" aria-label="Filters"
+          style={{ marginInline: "calc(-1 * var(--zen-margin-comfortable, 20px))", paddingInline: "var(--zen-margin-comfortable, 20px)" }}>
           <Chip variant="advanced" popoverLabel="Sort by" popoverItems={sorts.map((item) => ({ id: item.id, label: item.label, selected: item.id === sort }))}
             onPopoverSelect={(item) => setSort(item.id as SortId)}>
             {`Sort: ${sortLabel}`}
