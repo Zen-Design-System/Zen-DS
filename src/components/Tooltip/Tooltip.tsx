@@ -116,6 +116,19 @@ export function Tooltip({ content, children, color = "default", size: sizeProp =
   };
   const show = (wait: number) => { clear(); if (wait <= 0) setOpen(true); else timer.current = window.setTimeout(() => setOpen(true), wait); };
   const hide = () => { clear(); setOpen(false); };
+  // Closing from inside the tooltip (its X, or Escape while the X has focus) would drop focus on <body> as the X goes:
+  // focus goes back to the trigger instead, without the keyboard focus opening the tooltip again.
+  const anchorRef = useRef<HTMLSpanElement>(null);
+  const returningFocus = useRef(false);
+  const hideToTrigger = () => {
+    hide();
+    const trigger = [...(anchorRef.current?.querySelectorAll<HTMLElement>("button, a[href], input, select, textarea, [tabindex]:not([tabindex='-1'])") ?? [])]
+      .find((el) => !el.closest(".zen-tooltip--floating"));
+    if (!trigger) return;
+    returningFocus.current = true;
+    trigger.focus({ preventScroll: true });
+    returningFocus.current = false;
+  };
   // A closable tooltip stays until its X (or Escape) closes it.
   const hideOnLeave = closable ? undefined : hide;
   // Hiding fades out at XFast (tooltip.css); Escape dismisses at once.
@@ -142,7 +155,12 @@ export function Tooltip({ content, children, color = "default", size: sizeProp =
   useEffect(() => clear, []);
   useEffect(() => {
     if (!open) return undefined;
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") { setEscaped(true); hide(); } };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setEscaped(true);
+      if (document.activeElement?.closest(".zen-tooltip--floating") && anchorRef.current?.contains(document.activeElement)) hideToTrigger();
+      else hide();
+    };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
@@ -166,16 +184,16 @@ export function Tooltip({ content, children, color = "default", size: sizeProp =
     ? cloneElement(children, { "aria-describedby": [children.props["aria-describedby"], open ? id : undefined].filter(Boolean).join(" ") || undefined })
     : children;
   return (
-    <span {...dataAttributes(dataRest)}
+    <span {...dataAttributes(dataRest)} ref={anchorRef}
       className={["zen-tooltip-anchor", className].filter(Boolean).join(" ")}
       onPointerEnter={(event) => { if (event.pointerType !== "touch") show(hoverWait(delay)); }}
       onPointerLeave={hideOnLeave}
-      onFocus={(event) => { const target = event.target as HTMLElement; setFocused(target); if (target.matches(":focus-visible")) show(0); }}
+      onFocus={(event) => { const target = event.target as HTMLElement; setFocused(target); if (!returningFocus.current && target.matches(":focus-visible")) show(0); }}
       onBlur={() => { setFocused(null); hideOnLeave?.(); }}
       onPointerDown={closable ? undefined : hide}
     >
       <InsideTooltipContext.Provider value={true}>{trigger}</InsideTooltipContext.Provider>
-      {presence.mounted && !(escaped && !open) ? <TooltipSurface id={id} role={closable ? "note" : "tooltip"} color={color} size={size} className="zen-tooltip--floating" data-placement={placement} data-state={open ? undefined : "closing"} style={shift ? ({ "--zen-tooltip-shift": `${shift}px` } as CSSProperties) : undefined} onClose={closable ? hide : undefined}>{content}</TooltipSurface> : null}
+      {presence.mounted && !(escaped && !open) ? <TooltipSurface id={id} role={closable ? "note" : "tooltip"} color={color} size={size} className="zen-tooltip--floating" data-placement={placement} data-state={open ? undefined : "closing"} style={shift ? ({ "--zen-tooltip-shift": `${shift}px` } as CSSProperties) : undefined} onClose={closable ? hideToTrigger : undefined}>{content}</TooltipSurface> : null}
     </span>
   );
 }

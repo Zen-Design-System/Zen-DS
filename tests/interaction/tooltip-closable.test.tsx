@@ -36,6 +36,28 @@ describe("Tooltip closable", () => {
     await expect.element(screen.getByRole("note")).not.toBeInTheDocument();
   });
 
+  it("closing from the X (Enter, or Escape on it) gives focus back to the trigger without opening the tip again", async () => {
+    function Owner() {
+      const [open, setOpen] = useState(true);
+      return <><Tooltip content="Tip" placement="bottom" closable open={open} onOpenChange={setOpen}><Button>Act</Button></Tooltip><Button onClick={() => setOpen(true)}>Show tip</Button></>;
+    }
+    const screen = await render(<Owner />);
+    const trigger = screen.getByRole("button", { name: "Act" });
+    (screen.getByRole("button", { name: "Close" }).element() as HTMLElement).focus();
+    await userEvent.keyboard("{Enter}");
+    await expect.element(screen.getByRole("note")).not.toBeInTheDocument();
+    await expect.element(trigger).toHaveFocus();
+    // Keyboard focus on the trigger opens a tooltip; this focus came back from the X, so the tip stays closed.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.container.querySelector(".zen-tooltip--floating")).toBeNull();
+
+    await screen.getByRole("button", { name: "Show tip" }).click();
+    (screen.getByRole("button", { name: "Close" }).element() as HTMLElement).focus();
+    await userEvent.keyboard("{Escape}");
+    await expect.element(screen.getByRole("note")).not.toBeInTheDocument();
+    await expect.element(trigger).toHaveFocus();
+  });
+
   it("a plain tooltip keeps role=tooltip and no close button", async () => {
     const screen = await render(<Tooltip content="Plain" open><Button>Act</Button></Tooltip>);
     await expect.element(screen.getByRole("tooltip")).toHaveTextContent("Plain");
