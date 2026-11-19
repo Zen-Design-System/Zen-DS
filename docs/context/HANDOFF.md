@@ -26,7 +26,8 @@ Last updated: 2026-11-13.
   `examples/portable-subset` (warn), vectors `platforms/tests/demo-vectors.json`. PR1 (#400) = foundation + Link, Badge;
   PR2 = display and text (14 pages, 88/505 moved, baseline 417; photos in `./demo`; phone examples take `scrollRef`,
   drawn by `PlatformPhoneApp`); PR3 = controls and forms (15 pages, 180/505 moved, baseline 325; `videos` and
-  `calendarEvents` in `./demo`). Four family slices follow (plan §11, guide `docs/guides/example-patterns.md` §8b).
+  `calendarEvents` in `./demo`); PR5 = overlays and feedback (8 pages, 230/505 moved, baseline 275; `leaveHistory` in
+  `./demo`). The other family slices follow (plan §11, guide `docs/guides/example-patterns.md` §8b).
 - **Code view in other languages, P1 (2026-11-13, user 2026-11-12):** every snippet (classic + Studio Code tab) has a
   language picker (`src/platform/code/SnippetCode.tsx`): all six languages with honest states, one choice per viewer +
   `?code=`; only React has code. Status per component: `src/platform/code-languages.generated.json` (built with the

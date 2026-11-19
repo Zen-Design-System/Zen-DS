@@ -1,4 +1,0 @@
-/* Dialog examples (pages/dialog.tsx). Tokens only. */
-
-/* A narrow list's trailing Badge or button, under the caption: it keeps its own width. */
-.px-dialog-row-trailing { display: flex; align-self: flex-start; }

@@ -32,6 +32,9 @@ How to maintain it:
   Toggle, Slider, Slider Field, Segmented, Search, Color Picker, Color Selector, Uploader, Form, Date Picker, Calendar):
   180 of 505 so far. `./demo` adds `videos` and `calendarEvents`. Simulated uploads and imports run from the action
   that starts them ("Search during an import" opens on the finished import, with a button that runs it again).
+- Docs and Zen Studio: the overlays and feedback pages' examples are files too (Dialog, Bottom Sheet, Side Panel,
+  Popover, Menu, Tooltip, Toast, Chip): 230 of 505 so far. `./demo` adds `leaveHistory`. The brand film on the Tooltip
+  page waits for Play instead of starting by itself.
 - Zen Studio: a picture read from the shared photo library (`photos` in `./demo`) is never changed there; a new picture
   on that layer is the layer's own, as before the photos moved (it would have changed every page's photo). A data edit
   in the Studio no longer reloads its panels and loses the session (since the photos moved).

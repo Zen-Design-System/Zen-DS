@@ -293,6 +293,22 @@ export const leaveRequests: LeaveRequest[] = [
   { id: "l4", person: "bao", kind: "Sick leave", from: daysFromToday(-2), to: daysFromToday(-2), days: 1, status: "Approved", requested: daysFromToday(-2, 8, 5) },
   { id: "l5", person: "gia", kind: "Unpaid leave", from: new Date(2026, 10, 2), to: new Date(2026, 10, 6), days: 5, status: "Declined", note: "Overlaps the Saola kickoff", requested: daysFromToday(-6, 14, 30) },
 ];
+/** Alex's earlier time off, newest first (before his request above): days count Monday to Friday. */
+export const leaveHistory: Omit<LeaveRequest, "person" | "requested">[] = [
+  { id: "sep", kind: "Sick leave", from: new Date(2026, 8, 8), to: new Date(2026, 8, 8), days: 1, status: "Approved" },
+  { id: "aug", kind: "Annual leave", from: new Date(2026, 7, 18), to: new Date(2026, 7, 20), days: 3, status: "Approved" },
+  { id: "apr", kind: "Annual leave", from: new Date(2026, 3, 27), to: new Date(2026, 3, 29), days: 3, status: "Approved", note: "Long weekend in Hội An" },
+  { id: "mar", kind: "Unpaid leave", from: new Date(2026, 2, 16), to: new Date(2026, 2, 17), days: 2, status: "Approved", note: "Moving house" },
+  { id: "feb", kind: "Annual leave", from: new Date(2026, 1, 23), to: new Date(2026, 1, 24), days: 2, status: "Approved", note: "Tết with family in Huế" },
+  { id: "jan", kind: "Sick leave", from: new Date(2026, 0, 19), to: new Date(2026, 0, 19), days: 1, status: "Approved" },
+  { id: "dec25", kind: "Annual leave", from: new Date(2025, 11, 22), to: new Date(2025, 11, 26), days: 5, status: "Approved" },
+  { id: "nov25", kind: "Sick leave", from: new Date(2025, 10, 17), to: new Date(2025, 10, 18), days: 2, status: "Approved" },
+  { id: "oct25", kind: "Annual leave", from: new Date(2025, 9, 6), to: new Date(2025, 9, 8), days: 3, status: "Cancelled" },
+  { id: "aug25", kind: "Sick leave", from: new Date(2025, 7, 4), to: new Date(2025, 7, 4), days: 1, status: "Approved" },
+  { id: "jul25", kind: "Annual leave", from: new Date(2025, 6, 14), to: new Date(2025, 6, 18), days: 5, status: "Approved", note: "Summer trip to Phú Quốc" },
+  { id: "may25", kind: "Annual leave", from: new Date(2025, 4, 2), to: new Date(2025, 4, 2), days: 1, status: "Approved" },
+  { id: "mar25", kind: "Sick leave", from: new Date(2025, 2, 10), to: new Date(2025, 2, 10), days: 1, status: "Approved" },
+];
 /** Alex's allowance this year and what is left after the approved requests (one set for every page). */
 export const leaveBalance: Record<LeaveKind, { perYear: number; left: number } | null> = {
   "Annual leave": { perYear: 18, left: 7 },

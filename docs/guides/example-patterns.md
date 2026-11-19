@@ -174,6 +174,8 @@ Kế hoạch `docs/research/code-languages-plan-2026-10-03.md` §11 (user duyệ
   - `platformMedia.x`: dùng `photos.x` từ `../../data`.
   - CSS `px-*` của trang: trước hết dùng prop của Zen (`width`, `minWidth`, `hideOn`, `stackBelow`, `columns` của Stack/Grid/Text…). Không có prop thì dùng `style` inline, giá trị bằng `var(--zen-…)`. Container query hay selector `:focus-visible` không viết inline được: chọn prop gần nhất và ghi lại khác biệt cho người review.
   - `window.matchMedia` hay độ rộng cửa sổ: dùng `useZen()?.breakpoint`.
+  - `ResizeObserver` đo khung để chọn bố cục hẹp (PR5): cũng theo `useZen()?.breakpoint`. Khi chính độ rộng của card mới quyết định (Side Panel chỉ mở sẵn ở nơi nó dock được), trang đo khung và truyền một prop cho ví dụ (`startOpen`), như `scrollRef`.
+  - Toast trong app điện thoại: `ToastStack inline` nằm trong slot `bottomNavigation` của AppShell, trên tab bar; khoảng cách chỉ có khi đang có toast, để slot không chiếm một dải trống chặn click.
 - **Gate:** `npm run examples:check` (trong `npm run qa` và CI) kiểm import, kiểm trang hiện đúng file nó render, giữ baseline số ví dụ chưa chuyển (`tools/code-languages/examples-baseline.json`, chỉ được giảm; chạy `-- --write` sau khi chuyển) và biên dịch từng snippet đúng dạng chép (cạnh `demo.ts`) trong một project tạm. Formatter của `data.ts` có test vectors chung cho mọi ngôn ngữ: `platforms/tests/demo-vectors.json` (`npm run guidelines:build` ghi lại).
 
 ## 9. Kiểm tra trước khi xong
