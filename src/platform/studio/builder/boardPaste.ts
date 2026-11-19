@@ -50,13 +50,19 @@ export async function boardPasteReady(): Promise<boolean> {
   return Boolean(text?.trim());
 }
 
-/** Pastes what was copied last on the board of the page you are on, its corner at the client point `point`. */
-export async function pasteOnBoard(point: { x: number; y: number }): Promise<boolean> {
+/**
+ * Pastes what was copied last on the board of the page you are on, its corner at the client point `point`. `text`: what
+ * a ⌘V event held that the Studio did not copy (else the Studio's clip, or the system clipboard). `centred`: the new
+ * frame's middle at `point` (⌘V with no frame in the middle of the view, edit/clipboard.ts: Figma pastes in the middle
+ * of the view, on the canvas; user 2026-11-20 "không cho cắt component ra ngoài frame": ⌘X, then ⌘V there said
+ * "Nothing here takes a paste").
+ */
+export async function pasteOnBoard(point: { x: number; y: number }, options: { text?: string; centred?: boolean } = {}): Promise<boolean> {
   const { localPage } = studioStore.getState();
   if (!localPage || !canEdit()) return false;
   const place = boardPlaceAt(point);
   if (!place) { fail("Paste here pastes on the board of a page you made"); return false; }
-  const last = lastCopied();
+  const last = options.text === undefined ? lastCopied() : null;
   if (last?.frame) {
     const { frame } = last;
     // Still on this page: copied from it (after it in Layers); else from what ⌘C read (another page, or deleted since).
@@ -64,9 +70,9 @@ export async function pasteOnBoard(point: { x: number; y: number }): Promise<boo
     return Boolean(await copyFrame(localPage, frame.frameId, place, { label: "Paste frame here", ...(here ? {} : { source: frame }) }));
   }
   const layers = last?.layers ?? null;
-  const read = layers ? null : await readClipboardText();
+  const read = layers || options.text !== undefined ? null : await readClipboardText();
   if (read?.blocked) { fail(CLIPBOARD_BLOCKED); return false; }
-  const text = layers ? layers.code : (read?.text ?? "").trim();
+  const text = layers ? layers.code : (options.text ?? read?.text ?? "").trim();
   if (!text) { fail("The clipboard is empty — copy a layer first"); return false; }
   const code = text.startsWith("<") ? text : textLayer(text);
   if (/^<(?:Screen|Overlay|Section)\b/.test(code)) { fail("Select the frame by its name, copy it, then paste it here"); return false; }
@@ -82,7 +88,8 @@ export async function pasteOnBoard(point: { x: number; y: number }): Promise<boo
   }
   const size = layers?.size ?? UNMEASURED;
   const name = layers?.name ?? (text.startsWith("<") ? "layer" : "text");
-  return Boolean(await frameOnBoard(localPage, place, content, size, `Paste ${name} here`));
+  const at = options.centred ? { x: place.x - Math.round(clamp(size.width) / 2), y: place.y - Math.round(clamp(size.height) / 2) } : place;
+  return Boolean(await frameOnBoard(localPage, at, content, size, options.centred ? `Paste ${name}` : `Paste ${name} here`));
 }
 
 /** A new empty frame of `size` (100 to 4096 a side) at `place` on the board, holding `content`: Paste here's, a drop's. */

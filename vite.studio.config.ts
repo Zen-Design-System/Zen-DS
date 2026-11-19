@@ -7,7 +7,8 @@ import { zenStudio } from "./tools/studio/vite-plugin-zen-studio.mjs";
 // Open http://127.0.0.1:5180/studio.html?page=button. Same alias as vite.config.ts.
 export default defineConfig({
   plugins: [zenStudio(), react()],
-  resolve: { alias: { "@zen-ds/react": fileURLToPath(new URL("./src/index.ts", import.meta.url)) } },
+  // The AI UI entry first: "@zen-ds/react" alone would take "@zen-ds/react/ai-ui" too (the docs' AI examples import it).
+  resolve: { alias: { "@zen-ds/react/ai-ui": fileURLToPath(new URL("./src/ai-ui/index.ts", import.meta.url)), "@zen-ds/react": fileURLToPath(new URL("./src/index.ts", import.meta.url)) } },
   server: { port: 5180, strictPort: true, host: "127.0.0.1" },
   // Own optimizer cache: sharing node_modules/.vite would re-optimize under the 5173 server other sessions use.
   cacheDir: "node_modules/.vite-studio",
