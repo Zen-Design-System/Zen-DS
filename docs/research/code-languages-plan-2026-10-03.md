@@ -395,5 +395,5 @@ in AppShell's `bottomNavigation` slot above the tab bar, its gap only while a to
 Menu's controlled `open` instead of `closest('[role="menu"]')`; a name measured for its ellipsis is measured from a
 ref as the pointer or focus arrives. What the subset cost here: the brand film waits for Play (autoplay was an effect
 reading `matchMedia`); the Toast phone app keeps its scroll when tabs change; Breadcrumbs' crumbs, Table's row
-checkboxes, EmptyState's action and Tooltip's own close X give focus no target — added to the BACKLOG-user-and-later
-line.
+checkboxes and EmptyState's action give focus no target — added to the BACKLOG-user-and-later line. Tooltip's own
+close X dropped focus on body: fixed in Tooltip right after (focus goes back to the trigger).

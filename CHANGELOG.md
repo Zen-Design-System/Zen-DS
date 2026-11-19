@@ -14,6 +14,8 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Tooltip: closing a `closable` tooltip with its X (or Escape while the X has focus) gives focus back to its trigger
+  instead of dropping it on the page, and that returned focus does not open the tooltip again.
 - Zen Studio: a Top Navigation's Type is labelled **Theme** in the Inspector (it picks the bar's look: Default, Alt,
   Blurring, Liquid glass, Overlay). The code prop stays `type`, the Figma property "Type".
 - Zen Studio: in a phone Screen with a Top or Bottom Navigation, smart guides now take the status bar and both
