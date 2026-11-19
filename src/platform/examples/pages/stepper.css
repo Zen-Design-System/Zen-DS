@@ -1,6 +1,0 @@
-/* Stepper examples. */
-
-/* New project: the step content is a readable column under the full-width stepper. Container centres itself with
-   auto margins, which would shrink it to its content inside a flex column; the column takes the width up to 640px. */
-.px-stepper-column { inline-size: 100%; }
-

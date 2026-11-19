@@ -1,6 +1,0 @@
-/* Bottom Navigation examples (src/platform/examples/pages/bottom-navigation.tsx). Tokens only. */
-
-/* Photo grids on a media screen run edge to edge, starting under the status bar (the phone's safe area, which no Zen
-   padding step is) so the clock and levels stay on the dark canvas. */
-.px-bottom-navigation-grid { padding-top: var(--zen-safe-area-top, 0px); }
-

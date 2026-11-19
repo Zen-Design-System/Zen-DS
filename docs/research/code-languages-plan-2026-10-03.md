@@ -397,3 +397,18 @@ ref as the pointer or focus arrives. What the subset cost here: the brand film w
 reading `matchMedia`); the Toast phone app keeps its scroll when tabs change; Breadcrumbs' crumbs, Table's row
 checkboxes and EmptyState's action give focus no target — added to the BACKLOG-user-and-later line. Tooltip's own
 close X dropped focus on body: fixed in Tooltip right after (focus goes back to the trigger).
+
+**PR4 as built (2026-11-19):** the 104 examples of Tabs, Breadcrumbs, Pagination, Stepper, Top Navigation, Bottom
+Navigation, Sidebar, Page Header, Dashboard Header, Action Bar, Accordion, Layout, List Item, Description List and Card,
+ported by six agents (at most three pages each) in the Giám sát session and reviewed in one pass; all ten page CSS files
+went (Card's Playground slot rule moved to `platform.css`). New in the demo world: `videos.canyonPortrait`. Patterns
+added: where the docs frame's width decides a layout that the breakpoint alone would get wrong at 1512 (Stepper
+orientation, Layout's Tasks card, Accordion's docs frame, Description List docking), the page measures and passes a
+prop, and the example falls back to the breakpoint without it; full-bleed phone media is a `Box position="absolute"`
+layer over the AppShell (`zen-allow-absolute-parent`); a chat thread fills the body above the composer by taking back
+the body's margins; `useChatDemo` and `figmaSidebarBrand` (the Zen wordmark) became plain state and the studio logo.
+What the subset cost here: videos wait for Play; device labels stay one per example; more focus targets land on titles
+or rows (Tabs' tab buttons, Accordion's headers, TopNavigation and ActionBar actions give no ref); the moodboard tiles
+use the browser's focus ring (the Accent ring was page CSS). The Sidebar flyout dropped focus on close: fixed in
+Sidebar here (Escape or a pick returns focus to the rail item that opened it). The two phone chip rows from PR2/PR3
+(Badge, Segmented) now bleed to the screen edge like PR5's Chip row.

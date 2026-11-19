@@ -37,8 +37,10 @@ export default function PeriodsOnAPhone({ scrollRef = "window" }: { scrollRef?: 
   return (
     <AppShell topNavigation={<TopNavigation scrollRef={scrollRef} type="alt" title="Hours" largeTitle="Hours" />}>
       <Stack gap="lg">
-        {/* Four periods don't fit a phone as equal segments: one row of single-choice chips that scrolls sideways. */}
-        <Stack direction="row" gap="xs" scroll="x" paddingY="2xs" role="group" aria-label="Period">
+        {/* Four periods don't fit a phone as equal segments: one row of single-choice chips that scrolls sideways.
+            It runs to the screen's edges, past the page margin, so a chip cut at the edge shows there is more. */}
+        <Stack direction="row" gap="xs" scroll="x" paddingY="2xs" role="group" aria-label="Period"
+          style={{ marginInline: "calc(-1 * var(--zen-margin-comfortable, 20px))", paddingInline: "var(--zen-margin-comfortable, 20px)" }}>
           {hourPeriods.map((item) => (
             <Chip key={item.id} variant="normal" level="primary" selected={item.id === periodId} onClick={() => setPeriodId(item.id)}>
               {item.label}

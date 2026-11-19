@@ -1,4 +1,0 @@
-/* The cover: a panel of fixed height (rem: it follows the type scale) whose middle grows (height="fill"), so an empty
-   state sits in its optical centre and the footnote stays at the bottom. */
-.px-layout-cover { min-height: 26rem; }
-

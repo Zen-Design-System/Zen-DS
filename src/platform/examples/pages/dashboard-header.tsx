@@ -2,232 +2,26 @@
    Alex Duong, Wednesday Sep 30, 2026. The rows a dashboard page's header is built from: the control bar over the leave
    requests table (Search, filter Chips, the count, the actions), the navigation bar, the rows inside an AppShell (Figma
    Header/Dashboard), a row of your own and a narrow column. Phones name their screens with the Top Navigation and filter
-   in one scrolling Chip row instead (see Top navigation and Chip › Mobile filter row). */
-import { useEffect, useState } from "react";
-import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
-import { Avatar } from "../../../components/Avatar";
-import { Badge } from "../../../components/Badge";
-import { Breadcrumbs } from "../../../components/Breadcrumbs";
-import { Button } from "../../../components/Button";
-import { Chip } from "../../../components/Chip";
-import { DashboardHeader } from "../../../components/DashboardHeader";
-import { EmptyState } from "../../../components/EmptyState";
-import { Icon } from "../../../components/Icon";
-import { Box, Stack } from "../../../components/Layout";
-import { Menu, type MenuItemData } from "../../../components/Menu";
-import { Search } from "../../../components/Search";
-import { Segmented } from "../../../components/Segmented";
-import { Sidebar } from "../../../components/Sidebar";
-import { Table, TableMedia, TableText, type TableColumn } from "../../../components/Table";
-import { Text, plural } from "../../../components/Text";
-import { useToast } from "../../../components/Toast";
-import { keepOnHotUpdate } from "../../hotData";
-import type { PlatformPage } from "../../PlatformExamples";
+   in one scrolling Chip row instead (see Top navigation and Chip › Mobile filter row). Each example is its own file in
+   dashboard-header/ (P2b, plan docs/research/code-languages-plan-2026-10-03.md §11): the card renders its default export
+   (the dashboard page in the page's desktop window) and shows its text as the snippet. */
 import { PreviewAppFrame } from "../../PlatformFrames";
-import { figmaSidebarBrand } from "../../PlatformSidebarBrand";
-import { formatRange, initials, leaveRequests, leaveStatusTheme, people, type LeaveKind, type LeaveRequest, type LeaveStatus } from "../data";
+import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
+import { exampleCode } from "../exampleCode";
 import type { ExampleDef } from "../types";
-import "./dashboard-header.css";
+import LeaveRequests from "./dashboard-header/control-bar-over-a-table.example";
+import leaveRequestsRaw from "./dashboard-header/control-bar-over-a-table.example.tsx?raw";
+import NavigationBar from "./dashboard-header/navigation-bar.example";
+import navigationBarRaw from "./dashboard-header/navigation-bar.example.tsx?raw";
+import DashboardPage from "./dashboard-header/the-rows-of-a-dashboard-page.example";
+import dashboardPageRaw from "./dashboard-header/the-rows-of-a-dashboard-page.example.tsx?raw";
+import ReportingPeriod from "./dashboard-header/a-row-of-your-own.example";
+import reportingPeriodRaw from "./dashboard-header/a-row-of-your-own.example.tsx?raw";
+import NarrowColumn from "./dashboard-header/a-narrow-column.example";
+import narrowColumnRaw from "./dashboard-header/a-narrow-column.example.tsx?raw";
 
 export const page: PlatformPage = "dashboard-header";
-
-const statuses: LeaveStatus[] = ["Pending", "Approved", "Declined"];
-const kinds: LeaveKind[] = ["Annual leave", "Sick leave", "Unpaid leave"];
-
-/** A filter Chip: Chip Advanced whose Popover picks one value; picked again (or cleared) it shows every row. */
-function FilterChip<T extends string>({ label, options, value, onChange }: { label: string; options: T[]; value: T | null; onChange: (next: T | null) => void }) {
-  return (
-    <Chip variant="advanced" dropdown selected={value !== null} popoverLabel={label}
-      popoverItems={options.map((option) => ({ id: option, label: option, selected: value === option }))}
-      onPopoverSelect={(item) => onChange(value === item.id ? null : (item.id as T))} onClearSelection={() => onChange(null)}>
-      {value ?? label}
-    </Chip>
-  );
-}
-
-const columns: TableColumn<LeaveRequest>[] = [
-  { id: "person", header: "Person", cell: (row) => { const person = people[row.person]; return <TableMedia media={<Avatar size="xs" src={person.photo} alt="" theme={person.photo ? "photo" : person.theme}>{person.name.slice(0, 1)}</Avatar>}>{person.name}</TableMedia>; } },
-  { id: "kind", header: "Type", width: "160px", cell: (row) => <TableText>{row.kind}</TableText> },
-  { id: "dates", header: "Dates", width: "200px", cell: (row) => <TableText>{formatRange(row.from, row.to)}</TableText> },
-  { id: "days", header: "Days", width: "88px", align: "right", cell: (row) => <TableText>{plural(row.days, "day")}</TableText> },
-  { id: "status", header: "Status", width: "136px", cell: (row) => <Badge size="medium" theme={leaveStatusTheme[row.status]} background="subtle">{row.status}</Badge> },
-];
-
-/** A narrow window keeps the person and the status, the type and dates under the name; a phone-width one (no room for
- *  a second column) puts the status in that line too. */
-const personColumn = (withStatus: boolean): TableColumn<LeaveRequest> => ({
-  id: "person", header: "Person", cell: (row) => {
-    const person = people[row.person];
-    return <TableMedia media={<Avatar size="small" src={person.photo} alt="" theme={person.photo ? "photo" : person.theme}>{initials(person.name)}</Avatar>} caption={`${withStatus ? `${row.status} · ` : ""}${row.kind} · ${formatRange(row.from, row.to)}`}>{person.name}</TableMedia>;
-  },
-});
-const narrowColumns: TableColumn<LeaveRequest>[] = [personColumn(false), { ...columns[columns.length - 1], width: undefined }];
-const phoneColumns: TableColumn<LeaveRequest>[] = [personColumn(true)];
-
-// ——— 1. Control bar over a table ————————————————————————————————————————————————————————————
-function LeaveRequests() {
-  const { toast } = useToast();
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<LeaveStatus | null>(null);
-  const [kind, setKind] = useState<LeaveKind | null>(null);
-  const [requests, setRequests] = useState(leaveRequests);
-  const needle = query.trim().toLowerCase();
-  const rows = requests.filter((row) => (!status || row.status === status) && (!kind || row.kind === kind) && (!needle || `${people[row.person].name} ${row.kind}`.toLowerCase().includes(needle)));
-  const filtered = Boolean(needle || status || kind);
-  const clear = () => { setQuery(""); setStatus(null); setKind(null); };
-  const submit = () => {
-    const next: LeaveRequest = { id: `l${requests.length + 1}`, person: "alex", kind: "Annual leave", from: new Date(2026, 10, 16), to: new Date(2026, 10, 17), days: 2, status: "Pending", requested: new Date(2026, 8, 30, 10, 30) };
-    setRequests((list) => [next, ...list]);
-    toast({ type: "positive", title: "Leave submitted", children: `${next.kind} · ${formatRange(next.from, next.to)}`, action: { label: "Undo", onClick: () => setRequests((list) => list.filter((row) => row.id !== next.id)) } });
-  };
-  return (
-    <Stack gap="md" width="fill">
-      <DashboardHeader
-        search={<Search size="md" placeholder="Search leave requests" value={query} onValueChange={setQuery} onClear={() => setQuery("")} />}
-        controls={<><FilterChip label="Status" options={statuses} value={status} onChange={setStatus} /><FilterChip label="Type" options={kinds} value={kind} onChange={setKind} /></>}
-        subheading={plural(rows.length, "leave request")}
-        actions={<>
-          <Button level="tertiary" startIcon="icon-download-01-line" onClick={() => toast({ title: "Export started", children: `leave-requests.csv · ${plural(rows.length, "row")}` })}>Export report</Button>
-          <Button level="primary" startIcon="icon-plus-line" onClick={submit}>Submit leave</Button>
-        </>}
-      />
-      {/* The page's table sits on the Canvas: no Card */}
-      <Table aria-label="Leave requests" rows={rows} columns={columns}
-        empty={<EmptyState size="sm" icon="icon-search-medium-line" title="No leave requests match" secondaryAction={filtered ? { label: "Clear filters", onClick: clear } : undefined}>Try another name, or clear the filters.</EmptyState>} />
-    </Stack>
-  );
-}
-
-// ——— 2. Navigation bar ——————————————————————————————————————————————————————————————————————
-const trail = [{ id: "home", label: "Home" }, { id: "time-off", label: "Time off" }, { id: "my-leaves", label: "My leaves" }];
-/** The width of an element, kept current: a phone-width bar trades the trail for Back. */
-function useWidth() {
-  const [element, setElement] = useState<HTMLElement | null>(null);
-  const [width, setWidth] = useState(0);
-  useEffect(() => {
-    if (!element) return undefined;
-    const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [element]);
-  return [setElement, width] as const;
-}
-function NavigationBar() {
-  const [depth, setDepth] = useState(trail.length);
-  const [unread, setUnread] = useState(8);
-  const [note, setNote] = useState<string | null>(null);
-  const [measure, width] = useWidth();
-  const alex = people.alex;
-  // A narrow bar has no room for the trail beside the actions: Back to the parent takes its place (as PageHeader's back).
-  const narrow = width > 0 && width < 480;
-  const parent = depth > 1 ? trail[depth - 2] : undefined;
-  // On a phone Help moves into the account menu, so the bar keeps room for Back.
-  const help: MenuItemData = { id: "help", label: "Help", icon: "icon-help-circle-line", onSelect: () => setNote("Help opened") };
-  return (
-    <Stack gap="xs" width="fill" ref={measure}>
-      <DashboardHeader
-        type="navigation"
-        leading={narrow && parent
-          ? <Button appearance="flat" level="primary" size="sm" startIcon={<Icon name="icon-chevron-left-line-medium" decorative />} onClick={() => setDepth(depth - 1)}>{parent.label}</Button>
-          : <Breadcrumbs items={trail.slice(0, depth)} onNavigate={(item, event) => { event.preventDefault(); setDepth(trail.findIndex((crumb) => crumb.id === item.id) + 1); }} />}
-        trailing={<>
-          <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => { setUnread(0); setNote(unread ? `${plural(unread, "notification")} marked read` : "No new notifications"); }} />
-          {narrow ? null : <AppShellAction icon="icon-help-circle-line" aria-label="Help" onClick={help.onSelect} />}
-          <Menu align="end" aria-label="Account" trigger={<AppShellAccount name={alex.name} src={alex.photo} />}
-            items={[{ id: "profile", label: "Profile", icon: "icon-user-line", onSelect: () => setNote("Profile opened") }, ...(narrow ? [help] : []), { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => setNote("Signed out") }]} />
-        </>}
-      />
-      {depth < trail.length ? <Button level="tertiary" size="sm" onClick={() => setDepth(trail.length)}>Back to My leaves</Button> : null}
-      {note ? <Text as="p" textStyle="Body/Small/Regular" tone="light" role="status">{note}</Text> : null}
-    </Stack>
-  );
-}
-
-// ——— 3. The rows of a dashboard page (Figma Header/Dashboard) —————————————————————————————————————
-const navSections = [{ items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }, { id: "time-off", label: "Time off", icon: "icon-calendar-line" }, { id: "team", label: "Team", icon: "icon-users-line" }] }];
-function DashboardPage() {
-  const { toast } = useToast();
-  const [status, setStatus] = useState<LeaveStatus | null>(null);
-  const [requests, setRequests] = useState(leaveRequests);
-  const [waiting, setWaiting] = useState(true);
-  const rows = requests.filter((row) => !status || row.status === status);
-  const [measure, width] = useWidth();
-  const alex = people.alex;
-  // Only Time off is drawn here: the other rows and crumbs say so instead of selecting a page that doesn't change.
-  const notHere = (label: string) => toast({ title: `${label} isn’t part of this example`, children: "This example shows the Time off page." });
-  const pending = leaveRequests.filter((row) => row.status === "Pending");
-  const submit = () => {
-    const next: LeaveRequest = { id: `l${requests.length + 1}`, person: "alex", kind: "Annual leave", from: new Date(2026, 10, 16), to: new Date(2026, 10, 17), days: 2, status: "Pending", requested: new Date(2026, 8, 30, 10, 30) };
-    setRequests((list) => [next, ...list]);
-    toast({ type: "positive", title: "Leave submitted", children: `${next.kind} · ${formatRange(next.from, next.to)}`, action: { label: "Undo", onClick: () => setRequests((list) => list.filter((row) => row.id !== next.id)) } });
-  };
-  return (
-    <PreviewAppFrame>
-      <AppShell
-        sidebar={<Sidebar {...figmaSidebarBrand} sections={navSections} selectedId="time-off" onItemClick={(item) => { if (item.id !== "time-off") notHere(item.label); }} />}
-        header={(
-          <AppShellHeader
-            // The top row: the collapse toggle, then the trail (no Master icon beside the toggle), Notifications and
-            // the account last.
-            leading={<Breadcrumbs master={false} items={[{ id: "home", label: "Home" }, { id: "time-off", label: "Time off" }]} onNavigate={(item, event) => { event.preventDefault(); if (item.id !== "time-off") notHere(String(item.label)); }} />}
-            actions={<>
-              <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot={waiting} onClick={() => {
-                toast(waiting
-                  ? { title: `${plural(pending.length, "request")} wait for you`, children: `${pending.map((row) => people[row.person].name).join(" and ")} asked for annual leave.` }
-                  : { title: "No new notifications", children: "You’re all caught up." });
-                setWaiting(false);
-              }} />
-              <Menu align="end" aria-label="Account" trigger={<AppShellAccount name={alex.name} src={alex.photo} />} items={[
-                { id: "profile", label: "Profile", icon: "icon-user-line", onSelect: () => toast({ title: alex.name, children: `${alex.role} · ${alex.email}` }) },
-                { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: "Signed out" }) },
-              ]} />
-            </>}
-            // The Main row: the page title row with the page's one Primary.
-            main={<DashboardHeader type="main" title="Time off" childTitle="2026" subheading="Leave requests from the Design team."
-              actions={<Button level="primary" startIcon="icon-plus-line" onClick={submit}>Submit leave</Button>} />}
-            // Sections: the control bar over the table, at the page margins.
-            sections={<DashboardHeader controls={<FilterChip label="Status" options={statuses} value={status} onChange={setStatus} />} subheading={plural(rows.length, "request")}
-              actions={<Button level="tertiary" startIcon="icon-download-01-line" onClick={() => toast({ title: "Export started", children: `time-off-2026.csv · ${plural(rows.length, "row")}` })}>Export report</Button>} />}
-          />
-        )}
-      >
-        {/* The Body pads the page margins: the table sits straight on the Canvas. */}
-        <div ref={measure}><Table aria-label="Time off requests" rows={rows} columns={width > 0 && width < 360 ? phoneColumns : width > 0 && width < 560 ? narrowColumns : columns} /></div>
-      </AppShell>
-    </PreviewAppFrame>
-  );
-}
-
-// ——— 4. A row of your own ————————————————————————————————————————————————————————————————————
-const periods = [{ id: "week", label: "Week" }, { id: "month", label: "Month" }, { id: "quarter", label: "Quarter" }];
-const periodRange: Record<string, string> = { week: "Sep 28 – Oct 4, 2026", month: "Sep 1 – Sep 30, 2026", quarter: "Jul 1 – Sep 30, 2026" };
-function ReportingPeriod() {
-  const [period, setPeriod] = useState("month");
-  const [team, setTeam] = useState<string | null>(null);
-  return (
-    <DashboardHeader type="custom" className="pe-dashboard-page">
-      <Segmented aria-label="Reporting period" options={periods} value={period} onValueChange={setPeriod} />
-      <Text textStyle="Body/Base/Medium">{periodRange[period]}</Text>
-      <FilterChip label="All teams" options={["Design", "Engineering", "Delivery"]} value={team} onChange={setTeam} />
-    </DashboardHeader>
-  );
-}
-
-// ——— 5. A narrow column ————————————————————————————————————————————————————————————————————————
-function NarrowColumn() {
-  const { toast } = useToast();
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<LeaveStatus | null>(null);
-  return (
-    <Box width="fill" maxWidth={480}>
-      <DashboardHeader
-        search={<Search size="md" placeholder="Search requests" value={query} onValueChange={setQuery} onClear={() => setQuery("")} />}
-        controls={<FilterChip label="Status" options={statuses} value={status} onChange={setStatus} />}
-        actions={<Button level="primary" onClick={() => toast({ type: "positive", title: "Leave submitted" })}>Submit leave</Button>}
-      />
-    </Box>
-  );
-}
 
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
@@ -235,87 +29,34 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     description: "The leave requests list: Search filters by person or type, Status and Type are filter Chips, the count follows the filters, and the page's actions sit on the right — Tertiary Export, then the one Primary (first on a phone). No match shows the empty table with Clear filters.",
     wide: true,
     render: () => <LeaveRequests />,
-    code: `<Stack gap="md">
-  <DashboardHeader
-    search={<Search size="md" placeholder="Search leave requests" value={query} onValueChange={setQuery} onClear={() => setQuery("")} />}
-    controls={<>
-      <Chip variant="advanced" dropdown selected={status !== null} popoverLabel="Status" popoverItems={statusItems}
-        onPopoverSelect={(item) => setStatus(item.id)} onClearSelection={() => setStatus(null)}>{status ?? "Status"}</Chip>
-      <Chip variant="advanced" dropdown selected={kind !== null} popoverLabel="Type" popoverItems={kindItems}
-        onPopoverSelect={(item) => setKind(item.id)} onClearSelection={() => setKind(null)}>{kind ?? "Type"}</Chip>
-    </>}
-    subheading={plural(rows.length, "leave request")}
-    actions={<>
-      <Button level="tertiary" startIcon="icon-download-01-line" onClick={exportCsv}>Export report</Button>
-      <Button level="primary" startIcon="icon-plus-line" onClick={submitLeave}>Submit leave</Button>
-    </>}
-  />
-  {/* The page's table sits on the Canvas: no Card */}
-  <Table aria-label="Leave requests" rows={rows} columns={columns}
-    empty={<EmptyState size="sm" icon="icon-search-medium-line" title="No leave requests match" secondaryAction={{ label: "Clear filters", onClick: clear }}>Try another name, or clear the filters.</EmptyState>} />
-</Stack>`,
+    code: exampleCode(leaveRequestsRaw),
   },
   {
     title: "Navigation bar",
     description: "Where the page is, then the notifications, Help and the account on the right — the navigation row on its own, for a page outside an AppShell. Notifications marks the 8 unread as read; a crumb goes back up the trail. On a phone Back to the parent takes the trail's place and Help moves into the account menu.",
     wide: true,
     render: () => <NavigationBar />,
-    code: `<DashboardHeader
-  type="navigation"
-  leading={<Breadcrumbs items={trail} onNavigate={go} />}
-  trailing={<>
-    <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={markRead} />
-    <AppShellAction icon="icon-help-circle-line" aria-label="Help" onClick={openHelp} />
-    <Menu align="end" aria-label="Account" trigger={<AppShellAccount name="Alex Duong" src={photo} />} items={accountItems} />
-  </>}
-/>`,
+    code: exampleCode(navigationBarRaw),
   },
   {
     title: "The rows of a dashboard page",
     description: "Figma's Header/Dashboard inside an AppShell (AppShellHeader): the top row keeps the trail, Notifications and the account, the page title row (type main: the title, a second title in Light, one line under it and the page's Primary) is the Main row, and the control bar sits in Sections, at the page margins. The Body pads the table, so it needs no Container. Submit leave adds a pending request (the toast can undo it) and the Status chip filters the rows.",
     wide: true,
     screen: true,
-    render: () => <DashboardPage />,
-    code: `<AppShell
-  sidebar={<Sidebar sections={sections} selectedId="time-off" onItemClick={go} />}
-  header={
-    <AppShellHeader
-      leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />}
-      actions={<>
-        <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot={waiting} onClick={openInbox} />
-        <Menu align="end" aria-label="Account" trigger={<AppShellAccount name="Alex Duong" src={photo} />} items={accountItems} />
-      </>}
-      main={<DashboardHeader type="main" title="Time off" childTitle="2026" subheading="Leave requests from the Design team."
-        actions={<Button level="primary" startIcon="icon-plus-line" onClick={submitLeave}>Submit leave</Button>} />}
-      sections={<DashboardHeader controls={statusChip} subheading={plural(rows.length, "request")}
-        actions={<Button level="tertiary" startIcon="icon-download-01-line" onClick={exportCsv}>Export report</Button>} />}
-    />
-  }
->
-  <Table aria-label="Time off requests" rows={rows} columns={columns} />
-</AppShell>`,
+    render: () => <PreviewAppFrame><DashboardPage /></PreviewAppFrame>,
+    code: exampleCode(dashboardPageRaw),
   },
   {
     title: "A row of your own",
     description: "Type custom takes any content, Gap/Medium apart and centred: here the reporting period (Segmented), its dates and a team filter, between the title row and the report.",
     wide: true,
     render: () => <ReportingPeriod />,
-    code: `<DashboardHeader type="custom">
-  <Segmented aria-label="Reporting period" options={periods} value={period} onValueChange={setPeriod} />
-  <Text textStyle="Body/Base/Medium">{periodRange[period]}</Text>
-  <Chip variant="advanced" dropdown selected={team !== null} popoverLabel="All teams" popoverItems={teamItems}
-    onPopoverSelect={(item) => setTeam(item.id)} onClearSelection={() => setTeam(null)}>{team ?? "All teams"}</Chip>
-</DashboardHeader>`,
+    code: exampleCode(reportingPeriodRaw),
   },
   {
     title: "A narrow column",
     description: "Squeezed by a Sidebar and a docked panel (here 480px), the control bar wraps instead of shrinking its parts: the Search keeps its width and the Primary moves to the next line, Gap/XSmall under it. On a phone the Search takes a line of its own.",
     render: () => <NarrowColumn />,
-    code: `{/* a 480px column */}
-<DashboardHeader
-  search={<Search size="md" placeholder="Search requests" value={query} onValueChange={setQuery} onClear={() => setQuery("")} />}
-  controls={statusChip}
-  actions={<Button level="primary" onClick={submitLeave}>Submit leave</Button>}
-/>`,
+    code: exampleCode(narrowColumnRaw),
   },
 ]);

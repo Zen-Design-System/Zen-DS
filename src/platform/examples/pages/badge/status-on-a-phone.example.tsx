@@ -43,7 +43,9 @@ export default function MobileTasks({ scrollRef = "window" }: { scrollRef?: RefO
   return (
     <AppShell topNavigation={<TopNavigation scrollRef={scrollRef} type="alt" title="Tasks" largeTitle="Tasks" />}>
       <Stack gap="md" align="stretch">
-        <Stack direction="row" gap="xs" scroll="x" paddingY="2xs" role="group" aria-label="Filter by status">
+        {/* The filter row runs to the screen's edges, past the page margin, so a chip cut at the edge shows there is more. */}
+        <Stack direction="row" gap="xs" scroll="x" paddingY="2xs" role="group" aria-label="Filter by status"
+          style={{ marginInline: "calc(-1 * var(--zen-margin-comfortable, 20px))", paddingInline: "var(--zen-margin-comfortable, 20px)" }}>
           {(["All", ...taskStatuses] as const).map((option) => (
             <Chip key={option} variant="normal" level="primary" selected={filter === option} onClick={() => setFilter(option)}>{option}</Chip>
           ))}
