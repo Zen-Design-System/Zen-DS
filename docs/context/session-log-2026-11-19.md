@@ -76,3 +76,18 @@ stopped clean and was archived on the user's word; its survey gave the per-page 
   `currentTarget` is kept in a ref and focused on close (no DOM query); Handbook's logo grew 2px past the 20px Small-Density
   slot at Comfortable → the row and the 2xs mark take the slot's height. Re-run on sidebar + description-list: PASS.
 
+## Code view P2b PR6: data (tier M; Giám sát session, user "làm PR6 ở đây luôn")
+
+- The "P2b PR6" session the coordinator's chip had just started stopped before editing anything and was archived;
+  PR7 runs in its own session (file areas agreed: PR6 = the nine data pages, both append to `data.ts`).
+- Five agents ported 97 examples (Chart 30; Metric 16; Table 8 + Sheet Table 5; Shape 12 + Curve Preview 6; Voice 7 +
+  Schedule 6 + Timeline 7): 431/505 are files, baseline 74 (PR7's). Page CSS deleted: chart, metric, schedule, table.
+- Review: data copied into two to six files moved into `data.ts` (`clientShares`, `clientSharesYtd`, `teamCapacity`,
+  `hoursThisWeek`, `scheduleResources`, `bookingSlots`, `roadmapGroups`, `activityLog`). A first rename script also
+  renamed the words in comments and aria-labels ("against capacity"); reverted and redone on code references only.
+- Bug met → fixed: Voice's live-microphone recorder kept the microphone open when it left the screen while paused (the
+  unmount effect went with the subset) → a paused take checks every 0.5 s that its recorder is still there.
+- Kept on purpose: Metric's `usd` alias (MetricCard `format` would pass a second argument to `formatMoney`).
+- Visual diff (212 panels, 1512 + 390): 195 identical; changed = the studio logo (2xs) in four desktop frames, the five
+  phone examples now on AppShell (a few px of margin), and capture artifacts (docs search bar, Voice playground clock).
+

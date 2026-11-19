@@ -412,3 +412,18 @@ or rows (Tabs' tab buttons, Accordion's headers, TopNavigation and ActionBar act
 use the browser's focus ring (the Accent ring was page CSS). The Sidebar flyout dropped focus on close: fixed in
 Sidebar here (Escape or a pick returns focus to the rail item that opened it). The two phone chip rows from PR2/PR3
 (Badge, Segmented) now bleed to the screen edge like PR5's Chip row.
+
+**PR6 as built (2026-11-19):** the 97 examples of Table, Sheet Table, Chart, Metric, Schedule, Timeline, Shape, Curve
+Preview and Voice, ported by five agents (at most three pages each) in the Giám sát session and reviewed in one pass;
+all four page CSS files went. New in the demo world: `clientShares` / `clientSharesYtd`, `teamCapacity`,
+`hoursThisWeek`, `scheduleResources`, `bookingSlots`, `roadmapGroups` and `activityLog` (data two to six examples had
+copied; one-line formatters such as `hours` stay in each file). Patterns added: a page rule that reached into a
+component (Table's progress column, `.zen-progress-bar__label`) becomes a label node with its own min-width; a
+component's CSS custom property (`--zen-table-fill-min-width`) and a size container with a sticky Empty State are
+inline styles; timer chains that ran in effects (Voice's turns, the recording clock, the missed-turn wait) are
+`setTimeout` chains started by the press, each run numbered in a ref so a newer press, or an element whose ref went
+null, stops the older one (a paused recorder that leaves the screen lets the microphone go). What the subset cost here:
+a load is no longer cancelled on unmount; focus after a Chart import or Undo lands on the card title (LineChart's ref is
+its wrapper) and after a Metric drill-in on the pushed screen's title (TopNavigation's leading action takes no ref);
+the Table progress label is a node, so the bar loses `aria-valuetext` (its value is still read as a percent); Metric's
+drill-in keeps one device label.

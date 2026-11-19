@@ -1,3 +1,0 @@
-/* Data didn't load: the Skeleton in the chart's place. The Skeleton takes the chart's own height
-   (LineChart height={220}) so nothing jumps when the months arrive; the doubled class outranks the shape's size. */
-.px-chart-skeleton.px-chart-skeleton { display: block; inline-size: 100%; block-size: 220px; }
