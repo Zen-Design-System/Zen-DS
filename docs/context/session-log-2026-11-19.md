@@ -54,3 +54,25 @@ the focused button and dropped focus on body. Branch `zen/fix/tooltip-close-focu
   surface); a flag keeps that returned keyboard focus from opening the tooltip again. Other closes are unchanged.
 - Test: `tests/interaction/tooltip-closable.test.tsx` (Enter on the X, Escape on the X → trigger focused, tip closed).
 - BACKLOG-user-and-later refs line and plan §11 PR5 paragraph updated; CHANGELOG line.
+
+## Code view P2b PR4: navigation and structure (tier M; Giám sát session, user "làm PR4 ở đây luôn")
+
+Branch `zen/feat/code-view-p2b4-nav-20261119`, worktree `.claude/worktrees/p2b-pr4` (the PR4 session that had started
+stopped clean and was archived on the user's word; its survey gave the per-page helper list).
+- 104 examples of 15 pages to files by six agents; ten page CSS files went (Card's Playground rule → platform.css).
+  Baseline 275 → 171; 334 example files compile as copied. `videos.canyonPortrait` added to data.ts before the agents ran.
+- Bug met → fixed: Sidebar's flyout dropped focus on close (the old example hid it with querySelector). `SidebarFlyout`
+  reads its opener on first render and, if focus was inside when it closes, focuses the opener again (skips StrictMode's
+  trial unmount). Test `tests/interaction/sidebar-flyout-focus.test.tsx`.
+- Bug met → fixed: Badge and Segmented phone chip rows (PR2/PR3) lacked the edge bleed PR5 found.
+- Review fixes: Layout's TasksCardFrame looked for the card before the app rendered (390 showed the cut table) → watches
+  for it, falls back to the breakpoint; Conversation header's thread sat at the top with doubled margins → fills the
+  body above the composer, edge to edge.
+- Visual diff (274 panels, 1512 + 390): 199 identical; changed = phone examples on AppShell, the studio logo (2xs) in
+  desktop frames and Dashboard Header's Zen wordmark, the two chip-row bleeds, a capture-scroll artifact on the
+  Description List page top.
+- Gate (`qa --isolated --only=<15 pages + badge, segmented>`): Vitest 98/98, Sidebar Figma suites 6/6, dark clean; two
+  findings fixed: Receipt on a phone returned focus to the row's `li`, APG wants the row button → the click's
+  `currentTarget` is kept in a ref and focused on close (no DOM query); Handbook's logo grew 2px past the 20px Small-Density
+  slot at Comfortable → the row and the 2xs mark take the slot's height. Re-run on sidebar + description-list: PASS.
+

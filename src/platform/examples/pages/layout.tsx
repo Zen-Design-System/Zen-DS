@@ -7,854 +7,101 @@
    opening on the AppShell's Media pattern). Two more change with the breakpoint, each shown on the page and in a phone:
    a row that stacks on phones and a panel hidden on phones (per-breakpoint props, hideOn), and one dashboard grid whose
    widgets take spans by importance (span, rowSpan; docs/research/grid-span-2026-10-26.md). The screens sit in the studio's AppShell (pattern sidebar on desktop, the
-   mobile parts on a phone), whose Body pads the page, so no layout here adds a page margin of its own. */
-import { Fragment, useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { ActionBar } from "../../../components/ActionBar";
-import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
-import { Avatar } from "../../../components/Avatar";
-import { Badge, type BadgeTheme } from "../../../components/Badge";
-import { BadgeStatus } from "../../../components/BadgeStatus";
-import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
-import { BottomSheet } from "../../../components/BottomSheet";
-import { Breadcrumbs } from "../../../components/Breadcrumbs";
-import { Button, IconButton } from "../../../components/Button";
-import { Card } from "../../../components/Card";
-import { BarList, BulletChart, ChartCard, DonutChart, LineChart } from "../../../components/Chart";
-import { Checkbox } from "../../../components/Checkbox";
-import { Chip } from "../../../components/Chip";
-import { DescriptionList } from "../../../components/DescriptionList";
-import { DockIcon, type DockIconTheme } from "../../../components/DockIcon";
-import { EmptyState } from "../../../components/EmptyState";
-import { Form, FormActions, FormFieldset, useFormState } from "../../../components/Form";
-import type { IconName } from "../../../components/Icon";
-import { Image } from "../../../components/Image";
-import { InputField, SelectField } from "../../../components/Input";
-import { Box, Grid, Stack } from "../../../components/Layout";
-import { List, ListBox, ListItem } from "../../../components/ListItem";
-import { Menu } from "../../../components/Menu";
-import { MetricCard } from "../../../components/MetricWidget";
-import { PageHeader } from "../../../components/PageHeader";
-import { useZen } from "../../../components/Provider";
-import { Sidebar, SidebarMenuItem, type SidebarItem, type SidebarSection } from "../../../components/Sidebar";
-import { Table, TableMedia, TableText, type TableColumn } from "../../../components/Table";
-import { Tag } from "../../../components/Tag";
-import { Heading, Text, plural } from "../../../components/Text";
-import { useToast } from "../../../components/Toast";
+   mobile parts on a phone), whose Body pads the page, so no layout here adds a page margin of its own.
+   Each example is its own file in layout/ (P2b, plan docs/research/code-languages-plan-2026-10-03.md §11): the card
+   renders its default export and shows its text as the snippet. */
+import { useLayoutEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
+import { Box, Grid } from "../../../components/Layout";
 import { TopNavigation } from "../../../components/TopNavigation";
-import { DemoFieldDialog } from "../../PlatformDemoActions";
-import { platformMedia, type PlatformPhoto } from "../../PlatformMedia";
-import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
+import { PreviewAppFrame } from "../../PlatformFrames";
+import { PlatformPhone, PlatformPhoneApp, type PhoneScrollRef } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
-import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
-import {
-  activity, daysFromToday, formatCompactMoney, formatDate, formatDay, formatDue, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, invoices,
-  me, people, projectById, projectProgress, projectStep, projects, studio, tasks, taskStep,
-  type Person, type PersonId, type TaskStatus,
-} from "../data";
-import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
-import "./layout.css";
+import { studio } from "../data";
+import { exampleCode } from "../exampleCode";
+import type { ExampleDef } from "../types";
+import ProjectOverview from "./layout/main-column-and-aside.example";
+import projectOverviewRaw from "./layout/main-column-and-aside.example.tsx?raw";
+import AnnotatedSettings from "./layout/annotated-settings.example";
+import annotatedSettingsRaw from "./layout/annotated-settings.example.tsx?raw";
+import TemplateGallery from "./layout/cards-that-reflow.example";
+import templateGalleryRaw from "./layout/cards-that-reflow.example.tsx?raw";
+import ProfileSkills from "./layout/wrapping-cluster.example";
+import profileSkillsRaw from "./layout/wrapping-cluster.example.tsx?raw";
+import ClientInvoices from "./layout/centred-in-a-panel.example";
+import clientInvoicesRaw from "./layout/centred-in-a-panel.example.tsx?raw";
+import ElevatedPanels from "./layout/elevated-panel.example";
+import elevatedPanelsRaw from "./layout/elevated-panel.example.tsx?raw";
+import PhoneTasks from "./layout/phone-screen.example";
+import phoneTasksRaw from "./layout/phone-screen.example.tsx?raw";
+import StudioEvents from "./layout/layers-over-photos.example";
+import studioEventsRaw from "./layout/layers-over-photos.example.tsx?raw";
+import InvoiceSummary from "./layout/a-row-that-stacks-on-phones.example";
+import invoiceSummaryRaw from "./layout/a-row-that-stacks-on-phones.example.tsx?raw";
+import TasksAndActivity from "./layout/a-panel-hidden-on-phones.example";
+import tasksAndActivityRaw from "./layout/a-panel-hidden-on-phones.example.tsx?raw";
+import DashboardGrid from "./layout/one-dashboard-grid.example";
+import dashboardGridRaw from "./layout/one-dashboard-grid.example.tsx?raw";
 
 export const page: PlatformPage = "layout";
 
-/** Photo when the person has one, else initials on their steady theme. */
-const avatarOf = (person: Person) => person.photo
-  ? { theme: "photo" as const, src: person.photo, alt: "" }
-  : { theme: person.theme, alt: "", children: initials(person.name) };
-const statusBadge = (status: TaskStatus) => <BadgeStatus status={taskStep[status]}>{status}</BadgeStatus>;
-const taskStatuses: TaskStatus[] = ["To do", "In progress", "In review", "Done"];
-/** A row caption of whole values: it wraps between values, never inside a key or a name; each "· " stays with the value it introduces, so no line ends on a dot. */
-const wholeValues = (...values: (string | false)[]) => values.filter((value): value is string => Boolean(value)).map((value, index) => (
-  <Fragment key={`${index}:${value}`}>{index ? " " : null}{whole(`${index ? "· " : ""}${value}`)}</Fragment>
-));
-/** A run of words that never breaks: its spaces are no-break spaces. */
-const whole = (text: string) => text.replace(/ /g, "\u00a0");
+/** Under this width inside, the Tasks card of "Main column and aside" lists title and status instead of the table. */
+const TASKS_TABLE_MIN_WIDTH = 560;
 
-/** The width of an element, kept current: the table folds its columns when the main column gets narrow. */
-function useWidth() {
-  const [element, setElement] = useState<HTMLElement | null>(null);
+/**
+ * "Main column and aside" in its desktop frame. The Tasks card picks the table or a list by its own width, and in the
+ * docs the card is narrower than the window (a card in the page, a thumbnail, the Sidebar collapsed or not): the page
+ * measures it (the first card in the frame) and tells the example.
+ */
+function TasksCardFrame({ app: App }: { app: ComponentType<{ narrowTasks?: boolean }> }) {
+  const [frame, setFrame] = useState<HTMLDivElement | null>(null);
   const [width, setWidth] = useState(0);
-  useEffect(() => {
-    if (!element) return undefined;
-    const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
-    observer.observe(element);
+  useLayoutEffect(() => {
+    if (!frame) return undefined;
+    // The app inside may render after the frame mounts: watch for the Tasks card, then measure it.
+    let card: HTMLElement | null = null;
+    const resize = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
+    const attach = () => {
+      const next = frame.querySelector<HTMLElement>(".zen-card");
+      if (!next || next === card) return;
+      if (card) resize.unobserve(card);
+      card = next;
+      resize.observe(card);
+    };
+    attach();
+    const mutations = new MutationObserver(attach);
+    mutations.observe(frame, { childList: true, subtree: true });
+    return () => { mutations.disconnect(); resize.disconnect(); };
+  }, [frame]);
+  // Until the card is measured the example decides by the breakpoint.
+  return <PreviewAppFrame height={{ min: 640, max: 820 }} frameRef={setFrame}><App narrowTasks={width > 0 ? width < TASKS_TABLE_MIN_WIDTH : undefined} /></PreviewAppFrame>;
+}
+
+/**
+ * "Layers over photos" on the phone. The event screen lays its photo under the status bar (AppShell mobileTop="media"),
+ * so there the device's status bar turns light and its screen Surface, as a phone app sets them for that screen; the
+ * page watches which screen shows.
+ */
+function EventsPhone({ app: App }: { app: ComponentType<{ scrollRef?: PhoneScrollRef }> }) {
+  const screenRef = useRef<HTMLDivElement>(null);
+  const [media, setMedia] = useState(false);
+  useLayoutEffect(() => {
+    const screen = screenRef.current;
+    if (!screen) return undefined;
+    const update = () => setMedia(screen.querySelector('.zen-app-shell[data-top="media"]') !== null);
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(screen, { childList: true, subtree: true, attributeFilter: ["data-top"] });
     return () => observer.disconnect();
-  }, [element]);
-  return [setElement, width] as const;
-}
-
-// ——— The studio app's chrome ——————————————————————————————————————————————————————————————————————————
-// The desktop screens of this page are pages of the Đìzai Studio app: one AppShell (pattern sidebar) with the studio's
-// Sidebar, the header's top row (the trail, notifications, the account) and the page's PageHeader in its Main row. The
-// Body pads the page (Margin-Comfortable), so the layouts below start at the page margin without a Container.
-type StudioPlace = "home" | "projects" | "tasks" | "invoices" | "people";
-const myOpenTasks = tasks.filter((task) => task.assignee === me.id && task.status !== "Done").length;
-const studioPlaces: SidebarSection[] = [{ items: [
-  { id: "home", label: "Home", icon: "icon-home-03-line" },
-  { id: "projects", label: "Projects", icon: "icon-folder-line" },
-  { id: "tasks", label: "Tasks", icon: "icon-check-square-line", counter: myOpenTasks },
-  { id: "invoices", label: "Invoices", icon: "icon-receipt-line" },
-  { id: "people", label: "People", icon: "icon-users-line" },
-] }];
-const unreadActivity = activity.filter((item) => item.unread);
-
-/** The studio's Sidebar: its logo, the five places and Settings under the divider. */
-function StudioSidebar({ selectedId, onNavigate }: { selectedId: string; onNavigate: (item: SidebarItem) => void }) {
+  }, []);
   return (
-    <Sidebar logo={<StudioLogo src={studio.logo} name={studio.name} />} logoCollapsed={<StudioMark src={studio.logo} name={studio.name} />}
-      sections={studioPlaces} selectedId={selectedId} onItemClick={onNavigate}
-      footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />
-  );
-}
-
-/** The top row's utilities: notifications (the unread count clears once read) and the account menu, last. */
-function StudioActions() {
-  const { toast } = useToast();
-  const [unread, setUnread] = useState(unreadActivity.length);
-  const latest = unreadActivity[0];
-  return (
-    <>
-      <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={unread} onClick={() => {
-        setUnread(0);
-        toast({ title: unread ? plural(unread, "new notification") : "You're all caught up", children: `${people[latest.actor].name} ${latest.verb} ${latest.object} · ${formatRelative(latest.at)}` });
-      }} />
-      <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
-        { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => toast({ title: me.name, children: `${me.role} · ${me.location}` }) },
-        { id: "settings", label: "Settings", icon: "icon-settings-01-line", onSelect: () => toast({ title: "Settings", children: "Workspace, notifications and billing." }) },
-        { type: "separator" },
-        { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
-      ]} />
-    </>
-  );
-}
-
-/** A place this example does not draw: the toast says so, and the Sidebar keeps the current page. */
-function useNotHere() {
-  const { toast } = useToast();
-  return (label: string) => toast({ title: `${label} isn't part of this example`, children: "This page shows the layout." });
-}
-
-// ——— 1. Main column and aside ——————————————————————————————————————————————————————————————————————————
-const lumen = projectById("lumen-banking");
-type ProjectTask = { id: string; key: string; title: string; assignee: PersonId; status: TaskStatus; due: Date };
-const lumenTasks: ProjectTask[] = [
-  { id: "t5", key: "LUM-091", title: "Audit the account overview for WCAG 2.2", assignee: "alex", status: "To do", due: daysFromToday(0) },
-  { id: "t4", key: "LUM-088", title: "Run five usability sessions on transfers", assignee: "ava", status: "In progress", due: daysFromToday(3) },
-  { id: "l96", key: "LUM-096", title: "Design the transfer limits screen", assignee: "alex", status: "In review", due: daysFromToday(4) },
-  { id: "l99", key: "LUM-099", title: "Build the account overview API", assignee: "khoa", status: "In progress", due: daysFromToday(6) },
-  { id: "l97", key: "LUM-097", title: "Map the card controls flow", assignee: "ava", status: "To do", due: daysFromToday(8) },
-  { id: "l101", key: "LUM-101", title: "Write the release notes for phase 1", assignee: "hana", status: "To do", due: daysFromToday(12) },
-  { id: "t6", key: "LUM-095", title: "Spike: passkey sign-in on iOS", assignee: "finn", status: "Done", due: daysFromToday(-2) },
-];
-type TeamRow = { id: string; title: string; caption: string; person?: Person };
-const lumenTeam: TeamRow[] = lumen.members.map((id) => ({ id, title: people[id].name, caption: id === lumen.lead ? `${people[id].role} · Project lead` : people[id].role, person: people[id] }));
-
-function ProjectOverview() {
-  const [rows, setRows] = useState(lumenTasks);
-  const [team, setTeam] = useState(lumenTeam);
-  const [status, setStatus] = useState<TaskStatus | null>(null);
-  const [dialog, setDialog] = useState<"share" | "task" | "invite" | null>(null);
-  const [measure, width] = useWidth();
-  const notHere = useNotHere();
-  const tasksId = useId();
-  const teamId = useId();
-  const detailsId = useId();
-  const shown = rows.filter((task) => !status || task.status === status);
-  // A phone-width card lists the tasks (title and status) instead of a table: two table columns inside the card's
-  // padding left the titles four lines tall. The assignee and due date wait for a wider page.
-  const narrow = width > 0 && width < 560;
-  const columns: TableColumn<ProjectTask>[] = [
-    // The column that names the row is bold, as TableMedia is by default.
-    { id: "task", header: "Task", cell: (task) => <TableText bold>{task.title}</TableText> },
-    { id: "assignee", header: "Assignee", width: "176px", cell: (task) => <TableMedia bold={false} media={<Avatar size="xsmall" {...avatarOf(people[task.assignee])} />}>{people[task.assignee].name}</TableMedia> },
-    { id: "status", header: "Status", width: "144px", cell: (task) => statusBadge(task.status) },
-    { id: "due", header: "Due", width: "136px", cell: (task) => <TableText>{formatDate(task.due)}</TableText> },
-  ];
-  const tasksEmpty = <EmptyState headingLevel={3} size="sm" icon="icon-search-medium-line" title="No tasks match" secondaryAction={{ label: "Clear filter", onClick: () => setStatus(null) }}>Try another status.</EmptyState>;
-  const addTask = (title: string) => setRows((list) => [{ id: `new-${list.length}`, key: `LUM-${102 + list.length - lumenTasks.length}`, title, assignee: "alex", status: "To do", due: daysFromToday(7) }, ...list]);
-  const invite = (email: string) => setTeam((list) => [...list, { id: email, title: email, caption: "Invited just now" }]);
-
-  return (
-    <PreviewAppFrame height={{ min: 640, max: 820 }}>
-      <AppShell
-        sidebar={<StudioSidebar selectedId="projects" onNavigate={(item) => { if (item.id !== "projects") notHere(item.label); }} />}
-        header={(
-          <AppShellHeader
-            // The trail starts at a Sub level beside the collapse toggle (no Master crumb next to it).
-            leading={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: lumen.id, label: lumen.name }]}
-              onNavigate={(_, event) => { event.preventDefault(); notHere("Projects"); }} />}
-            actions={<StudioActions />}
-            main={(
-              <PageHeader title={lumen.name}
-                meta={<BadgeStatus status={projectStep[lumen.status]} progress={projectProgress(lumen)}>{lumen.status}</BadgeStatus>}
-                description={`${lumen.client} · ${lumen.progress}% done · Due ${formatDate(lumen.due)}`}
-                actions={<><Button level="tertiary" onClick={() => setDialog("share")}>Share</Button><Button level="primary" onClick={() => setDialog("task")}>New task</Button></>} />
-            )}
-          />
-        )}
-      >
-        {/* The Body pads the page, so the Grid starts at the page margin under the header. Main two-thirds, aside
-            one-third, lg apart; in a narrow window the aside moves under the main column. The two columns stop at xl
-            (1440px), so the 1/3 aside does not keep growing on a wide screen (backlog batch 6b). */}
-        <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start" maxWidth={1440}>
-          {/* Every widget of the two columns is the same card at the Sidebar's elevation (Shadow/Bottom/Level-1, no
-              border): their tops line up and their titles share one style. */}
-          <Card as="section" theme="shadow" aria-labelledby={tasksId}>
-            <Stack gap="md" ref={measure}>
-              <Stack direction="row" gap="xs" align="center" justify="between" wrap>
-                <Heading level={2} id={tasksId} textStyle="Heading/Subheading">Tasks</Heading>
-                <Chip variant="advanced" dropdown selected={status !== null} popoverLabel="Status"
-                  popoverItems={taskStatuses.map((option) => ({ id: option, label: option, selected: option === status }))}
-                  onPopoverSelect={(item) => setStatus(item.id === status ? null : (item.id as TaskStatus))}
-                  onClearSelection={() => setStatus(null)}>
-                  {status ?? "Status"}
-                </Chip>
-              </Stack>
-              {narrow ? (
-                shown.length ? (
-                  <List aria-labelledby={tasksId}>
-                    {shown.map((task) => <ListItem key={task.id} title={task.title} titleLines={2} trailing={statusBadge(task.status)} />)}
-                  </List>
-                ) : tasksEmpty
-              ) : <Table aria-labelledby={tasksId} rows={shown} columns={columns} empty={tasksEmpty} />}
-            </Stack>
-          </Card>
-          <Stack as="aside" gap="md" aria-label="About this project">
-            {/* Rows → a ListBox (title and Invite in its header); Details is not rows → a Card. */}
-            <ListBox as="section" theme="shadow" aria-labelledby={teamId}
-              header={<Stack direction="row" gap="xs" align="center" justify="between">
-                <Heading level={2} id={teamId} textStyle="Heading/Subheading">Team</Heading>
-                <Button level="tertiary" startIcon="icon-user-plus-line" onClick={() => setDialog("invite")}>Invite</Button>
-              </Stack>}>
-              <List aria-labelledby={teamId}>
-                {team.map((member) => (
-                  <ListItem key={member.id} title={member.title} caption={member.caption}
-                    leading={member.person ? <Avatar size="md" {...avatarOf(member.person)} /> : <Avatar size="md" theme="neutral" background="subtle" alt="">{member.title.slice(0, 2).toUpperCase()}</Avatar>} />
-                ))}
-              </List>
-            </ListBox>
-            <Card as="section" theme="shadow" aria-labelledby={detailsId}>
-              <Stack gap="md">
-                <Heading level={2} id={detailsId} textStyle="Heading/Subheading">Details</Heading>
-                <DescriptionList items={[
-                  { term: "Client", description: lumen.client },
-                  { term: "Lead", description: people[lumen.lead].name },
-                  { term: "Started", description: formatDate(lumen.start) },
-                  { term: "Budget", description: formatMoney(lumen.budget) },
-                  { term: "Spent", description: formatMoney(lumen.spent) },
-                ]} divider />
-              </Stack>
-            </Card>
-          </Stack>
-        </Grid>
-      </AppShell>
-      <DemoFieldDialog open={dialog === "share"} onOpenChange={(open) => setDialog(open ? "share" : null)} title={`Share ${lumen.name}`}
-        field={{ kind: "email", label: "Email address", placeholder: "name@lumenbank.com" }} submitLabel="Share project" confirm={(email) => `Project shared with ${email}`} />
-      <DemoFieldDialog open={dialog === "task"} onOpenChange={(open) => setDialog(open ? "task" : null)} title="New task"
-        field={{ kind: "name", label: "Task name", placeholder: "Review the savings goals flow" }} submitLabel="Create task" confirm={() => "Task created"} onSubmit={addTask} />
-      <DemoFieldDialog open={dialog === "invite"} onOpenChange={(open) => setDialog(open ? "invite" : null)} title="Invite to the team"
-        field={{ kind: "email", label: "Email address", placeholder: "name@dizai.studio" }} submitLabel="Send invite" confirm={(email) => `Invite sent to ${email}`} onSubmit={invite} />
-    </PreviewAppFrame>
-  );
-}
-
-// ——— 2. Annotated settings ————————————————————————————————————————————————————————————————————————————
-type WorkspaceSettings = { name: string; timeZone: string; weekStart: string; digest: boolean; reminders: boolean; leave: boolean };
-const firstSettings: WorkspaceSettings = { name: studio.name, timeZone: "hcm", weekStart: "mon", digest: true, reminders: true, leave: false };
-const timeZones = [
-  { value: "hcm", label: "Ho Chi Minh City (GMT+7)" },
-  { value: "sg", label: "Singapore (GMT+8)" },
-  { value: "london", label: "London (GMT+1)" },
-];
-const weekStarts = [{ value: "mon", label: "Monday" }, { value: "sun", label: "Sunday" }, { value: "sat", label: "Saturday" }];
-
-/** One annotated section: the title and its one-line description on the left, the controls in a Card on the right.
- *  Columns lg apart; in a narrow window the description sits md above its card. */
-function SettingsSection({ id, title, description, children }: { id: string; title: string; description: string; children: ReactNode }) {
-  return (
-    <Grid as="section" columns={{ mobile: 1, desktop: "minmax(0, 1fr) minmax(0, 2fr)" }} columnGap="lg" rowGap="md" align="start" aria-labelledby={id}>
-      <Stack gap="xs">
-        <Heading level={2} id={id} textStyle="Heading/4">{title}</Heading>
-        <Text textStyle="Body/Small/Regular" tone="base">{description}</Text>
-      </Stack>
-      {/* The Sidebar's elevation: Shadow/Bottom/Level-1, no border. */}
-      <Card theme="shadow">
-        <Stack gap="md">{children}</Stack>
-      </Card>
-    </Grid>
-  );
-}
-
-function AnnotatedSettings() {
-  const { toast } = useToast();
-  const workspaceId = useId();
-  const weekId = useId();
-  const emailId = useId();
-  const notHere = useNotHere();
-  const form = useFormState<WorkspaceSettings>({
-    initialValues: firstSettings,
-    validate: (values) => ({ name: values.name.trim() ? undefined : "Enter a workspace name" }),
-    // Saved values become the new starting point, so Cancel goes back to them.
-    onSubmit: (values, { reset }) => { reset(values); toast({ type: "positive", title: "Settings saved" }); },
-  });
-  return (
-    <PreviewAppFrame height={{ min: 640, max: 820 }}>
-      <AppShell
-        sidebar={<StudioSidebar selectedId="settings" onNavigate={(item) => { if (item.id !== "settings") notHere(item.label); }} />}
-        header={(
-          <AppShellHeader
-            leading={<Breadcrumbs master={false} items={[{ id: "settings", label: "Settings" }, { id: "workspace", label: "Workspace" }]}
-              onNavigate={(_, event) => { event.preventDefault(); notHere("Settings"); }} />}
-            actions={<StudioActions />}
-            main={<PageHeader title="Workspace settings" description={`How the ${studio.name} workspace looks and works for everyone in it.`} />}
-          />
-        )}
-      >
-        {/* A form reads best at a readable width: the Body already pads the page, so the form only stops at md (960)
-            and starts at the page margin, in line with the title above it. */}
-        <Box maxWidth={960}>
-          <Form form={form} gap="xl" aria-label="Workspace settings">
-            <SettingsSection id={workspaceId} title="Workspace" description="The name people see when they sign in and in every email Zen sends.">
-              <InputField label="Workspace name" {...form.field("name")} />
-              <InputField label="Studio domain" defaultValue={studio.domain} readOnly helpText="Only the studio owner can change the domain." />
-            </SettingsSection>
-            <SettingsSection id={weekId} title="Working week" description="Due dates, timesheets and the team calendar follow these.">
-              <SelectField label="Time zone" options={timeZones} {...form.selectField("timeZone")} />
-              <SelectField label="Week starts on" options={weekStarts} {...form.selectField("weekStart")} />
-            </SettingsSection>
-            <SettingsSection id={emailId} title="Email" description="What Zen emails the studio about. Each person can turn these off for themselves.">
-              {/* Saved with the form, so these are Checkboxes (a Toggle would apply at once). */}
-              <FormFieldset legend="Email the studio about" hideLegend kind="checkbox">
-                <Checkbox label="Weekly studio digest" caption="Every Monday at 8:00 am" {...form.checkboxField("digest")} />
-                <Checkbox label="Invoice reminders" caption="3 days before an invoice is due" {...form.checkboxField("reminders")} />
-                <Checkbox label="Leave requests" caption="When someone on your team asks for time off" {...form.checkboxField("leave")} />
-              </FormFieldset>
-            </SettingsSection>
-            <FormActions>
-              <Button level="tertiary" disabled={!form.isDirty} onClick={() => form.reset()}>Cancel</Button>
-              <Button level="primary" type="submit">Save changes</Button>
-            </FormActions>
-          </Form>
-        </Box>
-      </AppShell>
-    </PreviewAppFrame>
-  );
-}
-
-// ——— 3. Cards that reflow ——————————————————————————————————————————————————————————————————————————————
-type Category = "Product" | "Brand" | "Research";
-type Template = { id: string; name: string; summary: string; category: Category; icon: IconName; theme: DockIconTheme; tasks: number; weeks: number };
-const templates: Template[] = [
-  { id: "app", name: "Mobile app", summary: "Discovery, flows and UI for iOS and Android, with a clickable prototype ready for usability tests.", category: "Product", icon: "icon-mobile-line", theme: "orange", tasks: 18, weeks: 10 },
-  { id: "site", name: "Website", summary: "Sitemap, content plan and page designs, handed over as a Zen kit.", category: "Product", icon: "icon-globe-01-line", theme: "blue", tasks: 12, weeks: 6 },
-  { id: "brand", name: "Brand refresh", summary: "Audit, moodboards and a new identity: logo, colour, type and tone of voice.", category: "Brand", icon: "icon-palette-line", theme: "green", tasks: 14, weeks: 8 },
-  { id: "system", name: "Design system", summary: "Tokens, components and guidelines in Figma and code.", category: "Product", icon: "icon-grid-01-line", theme: "indigo", tasks: 24, weeks: 16 },
-  { id: "sprint", name: "Research sprint", summary: "Five interviews and a synthesis workshop in two weeks.", category: "Research", icon: "icon-lightbulb-line", theme: "yellow", tasks: 8, weeks: 2 },
-  { id: "usability", name: "Usability test", summary: "Plan, recruit, run and report a moderated test of a product that is already live.", category: "Research", icon: "icon-eye-line", theme: "teal", tasks: 10, weeks: 3 },
-  { id: "blueprint", name: "Service blueprint", summary: "Map what customers see and what happens behind it, across every channel from the first visit to support.", category: "Research", icon: "icon-dataflow-01-line", theme: "purple", tasks: 9, weeks: 4 },
-  { id: "campaign", name: "Campaign launch", summary: "Key visual, social kit and a landing page for a campaign.", category: "Brand", icon: "icon-rocket-line", theme: "pink", tasks: 11, weeks: 5 },
-];
-const categories: Category[] = ["Product", "Brand", "Research"];
-
-function TemplateGallery() {
-  const [category, setCategory] = useState<Category | null>(null);
-  const [picked, setPicked] = useState<Template | null>(null);
-  const shown = templates.filter((template) => !category || template.category === category);
-  return (
-    // Toolbar → grid md; the cards md apart.
-    <Stack gap="md">
-      <Stack direction="row" gap="xs" align="center" wrap>
-        <Chip variant="advanced" dropdown selected={category !== null} popoverLabel="Category"
-          popoverItems={categories.map((option) => ({ id: option, label: option, selected: option === category }))}
-          onPopoverSelect={(item) => setCategory(item.id === category ? null : (item.id as Category))}
-          onClearSelection={() => setCategory(null)}>
-          {category ?? "Category"}
-        </Chip>
-        <Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">{plural(shown.length, "template")}</Text>
-      </Stack>
-      {/* As many 240px columns as fit, with no breakpoints; every card stretches to the tallest in its row. */}
-      <Grid as="ul" minColumnWidth={240} gap="md" aria-label="Project templates">
-        {shown.map((template) => (
-          <Card as="li" key={template.id} theme="default">
-            {/* Two groups lg apart, pushed to the top and bottom of the stretched card: the footers line up across the row. */}
-            <Stack gap="lg" justify="between" height="fill">
-              <Stack gap="md">
-                <DockIcon icon={template.icon} theme={template.theme} background="subtle" />
-                <Stack gap="xs">
-                  <Heading level={4} textStyle="Heading/Subheading">{template.name}</Heading>
-                  <Text textStyle="Body/Small/Regular" tone="base">{template.summary}</Text>
-                </Stack>
-              </Stack>
-              <Stack gap="md">
-                <Text as="span" textStyle="Body/Small/Regular" tone="base">{`${plural(template.tasks, "task")} · ${plural(template.weeks, "week")}`}</Text>
-                <Button level="tertiary" aria-label={`Use the ${template.name} template`} onClick={() => setPicked(template)}>Use template</Button>
-              </Stack>
-            </Stack>
-          </Card>
-        ))}
-      </Grid>
-      <DemoFieldDialog open={picked !== null} onOpenChange={(open) => { if (!open) setPicked(null); }} title={`New ${picked?.name.toLowerCase() ?? ""} project`}
-        description={picked ? `Starts with the template's ${plural(picked.tasks, "task")}.` : undefined}
-        field={{ kind: "name", label: "Project name", placeholder: "Saola trail guide" }} submitLabel="Create project" confirm={(name) => `${name} created`} />
-    </Stack>
-  );
-}
-
-// ——— 4. A cluster that wraps ——————————————————————————————————————————————————————————————————————————
-const chi = people.chi;
-const chiSkills = ["Interaction design", "Prototyping", "Design systems", "Accessibility (WCAG 2.2)", "Usability testing", "Service blueprinting", "Figma", "Motion basics", "Workshop facilitation"];
-const chiLanguages = ["Vietnamese", "English", "Japanese"];
-
-function ProfileSkills() {
-  const { toast } = useToast();
-  const [skills, setSkills] = useState(chiSkills);
-  const [adding, setAdding] = useState(false);
-  const titleId = useId();
-  const skillsId = useId();
-  const languagesId = useId();
-  const remove = (skill: string) => {
-    const index = skills.indexOf(skill);
-    setSkills((list) => list.filter((item) => item !== skill));
-    toast({ title: "Skill removed", children: skill, action: { label: "Undo", onClick: () => setSkills((list) => (list.includes(skill) ? list : [...list.slice(0, index), skill, ...list.slice(index)])) } });
-  };
-  return (
-    <Stack><Card as="section" theme="default" width="fill" maxWidth={440} alignSelf="center" aria-labelledby={titleId}>
-      {/* Groups inside one surface lg apart; each kicker xs above its cluster. */}
-      <Stack gap="lg">
-        <Stack direction="row" gap="md" align="center">
-          <Avatar size="lg" {...avatarOf(chi)} />
-          <Stack gap="2xs">
-            <Heading level={4} id={titleId} textStyle="Heading/Subheading">{chi.name}</Heading>
-            <Text textStyle="Body/Small/Regular" tone="base">{`${chi.role} · ${chi.location}`}</Text>
-          </Stack>
-        </Stack>
-        {/* The editable cluster: its kicker, the Tags and its own Add skill, each xs apart. */}
-        <Stack as="section" gap="xs" aria-labelledby={skillsId}>
-          <Heading level={5} id={skillsId} textStyle="Body/Small/Bold" tone="light">Skills</Heading>
-          {skills.length ? (
-            // A row Stack with wrap: Tags flow onto as many lines as they need, 2xs apart across and down.
-            <Stack as="ul" direction="row" gap="2xs" wrap aria-labelledby={skillsId}>
-              {skills.map((skill) => <li key={skill}><Tag remove onRemove={() => remove(skill)}>{skill}</Tag></li>)}
-            </Stack>
-          ) : <Text textStyle="Body/Small/Regular" tone="base">No skills yet</Text>}
-          <Button level="tertiary" startIcon="icon-plus-line" onClick={() => setAdding(true)}>Add skill</Button>
-        </Stack>
-        {/* Read-only facts stay plain text, so only the cluster that can change looks like Tags. */}
-        <Stack as="section" gap="xs" aria-labelledby={languagesId}>
-          <Heading level={5} id={languagesId} textStyle="Body/Small/Bold" tone="light">Languages</Heading>
-          <Text>{chiLanguages.join(", ")}</Text>
-        </Stack>
-      </Stack>
-      <DemoFieldDialog open={adding} onOpenChange={setAdding} title="Add skill" field={{ kind: "name", label: "Skill", placeholder: "Content design" }}
-        submitLabel="Add skill" confirm={() => "Skill added"} onSubmit={(skill) => setSkills((list) => (list.includes(skill) ? list : [...list, skill]))} />
-    </Card></Stack>
-  );
-}
-
-// ——— 5. Centred in a panel ————————————————————————————————————————————————————————————————————————————
-const saolaDraft = { number: "INV-2026-0143", amount: 12000, due: daysFromToday(30) };
-
-function ClientInvoices() {
-  const { toast } = useToast();
-  const [created, setCreated] = useState(false);
-  const titleId = useId();
-  const create = () => {
-    setCreated(true);
-    toast({ title: "Invoice created", children: saolaDraft.number, action: { label: "Undo", onClick: () => setCreated(false) } });
-  };
-  return (
-    // Header at the top, footnote at the bottom; the ListBox body grows. Empty, it centres the empty state; with an
-    // invoice the list starts at the top.
-    <Stack><ListBox as="section" className="px-layout-cover" width="fill" maxWidth={440} alignSelf="center" aria-labelledby={titleId}
-      header={<Stack gap="xs">
-        <Heading level={4} id={titleId} textStyle="Heading/Subheading">Invoices</Heading>
-        <Text textStyle="Body/Small/Regular" tone="base">Saola Outdoor · Brand refresh</Text>
-      </Stack>}
-      footer={<Text textStyle="Caption/Regular" tone="light">Synced with Payments 2 minutes ago</Text>}>
-      <Stack justify={created ? "start" : "center"} height="fill">
-        {created ? (
-          <List aria-labelledby={titleId}>
-            <ListItem title={saolaDraft.number} caption={`${formatMoney(saolaDraft.amount)} · Due ${formatDate(saolaDraft.due)}`}
-              leading={<DockIcon icon="icon-receipt-line" theme="neutral" background="subtle" />}
-              trailing={<Badge theme={invoiceStatusTheme.Draft} background="subtle">Draft</Badge>} />
-          </List>
-        ) : (
-          <EmptyState size="sm" headingLevel={5} compactTitle title="No invoices yet" primaryAction={{ label: "Create invoice", onClick: create }} icon="icon-receipt-line">
-            Bill Saola Outdoor for approved hours. Paid invoices stay here.
-          </EmptyState>
-        )}
-      </Stack>
-    </ListBox></Stack>
-  );
-}
-
-// ——— 6. The ladder on a phone ——————————————————————————————————————————————————————————————————————————
-type When = "today" | "tomorrow" | "later";
-type PhoneTask = { id: string; key: string; title: string; project: string; when: When; done: boolean };
-const whenLabels: Record<When, string> = { today: "Today", tomorrow: "Tomorrow", later: "Later this week" };
-const whenDue: Record<When, Date> = { today: daysFromToday(0), tomorrow: daysFromToday(1), later: daysFromToday(3) };
-const myWeek: PhoneTask[] = [
-  { id: "p1", key: "LUM-091", title: "Audit the account overview for WCAG 2.2", project: "lumen-banking", when: "today", done: false },
-  { id: "p2", key: "PHIN-214", title: "Review the points history screen", project: "phin-loyalty", when: "today", done: false },
-  { id: "p3", key: "ZEN-405", title: "Sign off the Metric card guidelines", project: "zen-ds", when: "today", done: true },
-  { id: "p4", key: "LUM-093", title: "Reply to Hana about SOW v3", project: "lumen-banking", when: "today", done: false },
-  { id: "p5", key: "PHIN-219", title: "Review the rewards API checkout", project: "phin-loyalty", when: "tomorrow", done: false },
-  { id: "p6", key: "SAO-007", title: "Plan the Saola kickoff workshop", project: "saola-brand", when: "tomorrow", done: false },
-  { id: "p7", key: "LUM-096", title: "Update the transfer limits copy", project: "lumen-banking", when: "tomorrow", done: false },
-  { id: "p8", key: "ZEN-410", title: "Prepare the Q4 design review", project: "zen-ds", when: "tomorrow", done: false },
-  { id: "p9", key: "LUM-098", title: "Design the transfer limits screen", project: "lumen-banking", when: "later", done: false },
-  { id: "p10", key: "SAO-004", title: "Moodboard feedback for Gia", project: "saola-brand", when: "later", done: false },
-  { id: "p11", key: "ZEN-412", title: "Write the Disabled input guidelines", project: "zen-ds", when: "later", done: false },
-  { id: "p12", key: "ZEN-413", title: "Run the design team 1:1s", project: "zen-ds", when: "later", done: false },
-  { id: "p13", key: "LUM-097", title: "Map the card controls flow", project: "lumen-banking", when: "later", done: false },
-  { id: "p14", key: "PHIN-223", title: "Review the Android regression results", project: "phin-loyalty", when: "later", done: false },
-];
-const projectOptions = ["lumen-banking", "phin-loyalty", "zen-ds", "saola-brand"].map((id) => ({ value: id, label: projectById(id).name }));
-const whenOptions = (Object.keys(whenLabels) as When[]).map((value) => ({ value, label: whenLabels[value] }));
-
-/** The roots of the studio's phone app, in its bottom bar: a selected root shows its solid icon. */
-const phoneRoots: BottomNavigationItem[] = [
-  { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
-  { id: "tasks", label: "Tasks", icon: "icon-check-square-line", selectedIcon: "icon-check-square-solid" },
-  { id: "events", label: "Events", icon: "icon-calendar-line", selectedIcon: "icon-calendar-solid" },
-  { id: "me", label: "Me", icon: "icon-user-line", selectedIcon: "icon-user-solid" },
-];
-/** The bottom bar of a root screen: the other roots are not drawn here, so a toast says so and the bar keeps this root. */
-function PhoneRoots({ value, floating = false }: { value: string; floating?: boolean }) {
-  const notHere = useNotHere();
-  return (
-    <BottomNavigation type={floating ? "floating-glass" : "default"} aria-label={studio.name} showLabels={!floating} items={phoneRoots} value={value}
-      onValueChange={(id) => { if (id !== value) notHere(phoneRoots.find((item) => item.id === id)?.label ?? id); }} />
-  );
-}
-
-function PhoneTasks() {
-  const { toast } = useToast();
-  const screen = usePhoneScreen();
-  const screenRef = useRef<HTMLDivElement>(null);
-  const baseId = useId();
-  const [tasks, setTasks] = useState(myWeek);
-  const [openId, setOpenId] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
-  const form = useFormState<{ title: string; project: string; when: string }>({
-    initialValues: { title: "", project: "lumen-banking", when: "today" },
-    validate: (values) => ({ title: values.title.trim() ? undefined : "Enter a task name" }),
-    onSubmit: (values, { reset }) => {
-      const next = tasks.length + 1;
-      setTasks((list) => [...list, { id: `p${next}`, key: `NEW-${next}`, title: values.title.trim(), project: values.project, when: values.when as When, done: false }]);
-      setCreating(false);
-      reset();
-      toast({ type: "positive", title: "Task added", children: whenLabels[values.when as When] });
-    },
-  });
-  const task = tasks.find((item) => item.id === openId);
-  const setDone = (id: string, done: boolean) => setTasks((list) => list.map((item) => (item.id === id ? { ...item, done } : item)));
-  const dueToday = tasks.filter((item) => item.when === "today" && !item.done).length;
-  const doneThisWeek = tasks.filter((item) => item.done).length;
-
-  if (task) {
-    const project = projectById(task.project);
-    const back = () => screen.go(`[data-task="${task.id}"] .zen-list-item__wrapper`, () => setOpenId(null));
-    return (
-      // A pushed screen: the compact bar with Back and the task's key, the task's one action pinned in the Action bar
-      // (Figma Bottom=Actions), no bottom bar. The Body pads it as it pads the root.
-      <PlatformPhone key={task.id} label="Zen tasks" canvas="default" screenRef={screenRef}>
-        <AppShell
-          topNavigation={<TopNavigation type="compact-alt" title={task.key} scrollRef={screenRef}
-            leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
-          actionBar={<ActionBar primaryAction={task.done
-            ? { label: "Reopen task", onClick: () => setDone(task.id, false) }
-            : { label: "Mark as done", onClick: () => { setDone(task.id, true); toast({ title: "Task completed", action: { label: "Undo", onClick: () => setDone(task.id, false) } }); } }} />}
-        >
-          {screen.anchor}
-          <Stack gap="xs">
-            <Heading level={2} textStyle="Heading/4">{task.title}</Heading>
-            <Text textStyle="Body/Small/Regular" tone="base">{`${project.name} · ${project.client}`}</Text>
-          </Stack>
-          <Card theme="default">
-            <DescriptionList divider items={[
-              { term: "Status", description: statusBadge(task.done ? "Done" : "To do") },
-              { term: "Due", description: formatDay(whenDue[task.when]) },
-              { term: "Assignee", description: me.name },
-              { term: "Project lead", description: people[project.lead].name },
-            ]} />
-          </Card>
-        </AppShell>
-      </PlatformPhone>
-    );
-  }
-
-  return (
-    // A tab root: the large title folds as the groups scroll under the bar, and the bottom bar holds the app's roots. The
-    // Body pads the screen (Margin-Comfortable, 20) and spaces its sections Layout-Mobile/Section-Gap apart; the bottom bar
-    // casts a shadow, so every block on the grey Canvas takes the same Shadow elevation.
-    <PlatformPhone key="tasks" label="Zen tasks" canvas="default" screenRef={screenRef}>
-      <AppShell
-        topNavigation={<TopNavigation title="Tasks" largeTitle="Tasks" scrollRef={screenRef}
-          trailing={[{ icon: "icon-plus-line", label: "New task", onClick: () => setCreating(true) }]} />}
-        bottomNavigation={<PhoneRoots value="tasks" />}
-      >
-        {screen.anchor}
-        {/* Two metrics in a fixed two-column Grid, md apart. */}
-        <Grid columns={2} gap="md">
-          <MetricCard iconBackground="solid" theme="shadow" size="lg" label="Due today" value={String(dueToday)} icon="icon-calendar-line" iconTheme="yellow" />
-          <MetricCard iconBackground="solid" theme="shadow" size="lg" label="Done this week" value={String(doneThisWeek)} icon="icon-check-done-line" iconTheme="green" />
-        </Grid>
-        {(Object.keys(whenLabels) as When[]).map((when) => {
-          const rows = tasks.filter((item) => item.when === when);
-          if (!rows.length) return null;
-          const groupId = `${baseId}-${when}`;
-          return (
-            // Kicker xs above its ListBox. Each row opens its task and has no side padding of its own: the ListBox pads 20px on a
-            // phone, so the hover fill (12px outside the row) sits 8px from every edge (2XLarge 24px = the fill's 16px + 8px),
-            // and the kicker lines up with the row text (paddingX lg, 20px).
-            <Stack key={when} as="section" gap="xs" aria-labelledby={groupId}>
-              <Box paddingX="lg"><Heading level={2} id={groupId} textStyle="Body/Small/Bold" tone="light">{whenLabels[when]}</Heading></Box>
-              <ListBox theme="shadow">
-                <List aria-labelledby={groupId}>
-                  {rows.map((item) => {
-                    const project = projectById(item.project);
-                    return (
-                      // A trailing Badge would squeeze a phone row's caption, so a done task's status leads the caption.
-                      <ListItem key={item.id} data-task={item.id} title={item.title} titleLines={1} caption={wholeValues(item.done && "Done", item.key, project.name)}
-                        leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" size="md" />}
-                        onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(item.id))} />
-                    );
-                  })}
-                </List>
-              </ListBox>
-            </Stack>
-          );
-        })}
-      </AppShell>
-      <BottomSheet inline open={creating} onOpenChange={(open) => { setCreating(open); if (!open) form.reset(); }} title="New task" onSubmit={form.handleSubmit}
-        primaryAction={{ label: "Add task" }} secondaryAction={{ label: "Cancel" }}>
-        <InputField label="Task name" placeholder="Review the onboarding copy" data-autofocus="" {...form.field("title")} />
-        <SelectField label="Project" options={projectOptions} {...form.selectField("project")} />
-        <SelectField label="Due" options={whenOptions} {...form.selectField("when")} />
-      </BottomSheet>
+    <PlatformPhone label={studio.name} canvas={media ? "surface" : "default"} statusBar={media ? "light" : "dark"} screenRef={screenRef}>
+      <App scrollRef={screenRef} />
     </PlatformPhone>
   );
 }
 
-// ——— 7. Elevated panel ——————————————————————————————————————————————————————————————————————————————————
-type ShellPage = Extract<StudioPlace, "home" | "projects" | "invoices">;
-/** Each page's one Primary: what it creates, and what the toast says once it has. */
-const shellPages: Record<ShellPage, { create: string; submit: string; field: string; placeholder: string; done: (name: string) => string }> = {
-  home: { create: "New task", submit: "Create task", field: "Task name", placeholder: "Review the transfer limits copy", done: (name) => `Task created: ${name}` },
-  projects: { create: "New project", submit: "Create project", field: "Project name", placeholder: "Saola trail guide", done: (name) => `${name} created` },
-  invoices: { create: "New invoice", submit: "Create draft", field: "Client", placeholder: "Saola Outdoor", done: (name) => `Draft invoice created for ${name}` },
-};
-const dueThisWeek = tasks.filter((task) => task.status !== "Done" && task.due <= daysFromToday(7, 23, 59)).sort((a, b) => a.due.getTime() - b.due.getTime());
-const outstanding = invoices.filter((invoice) => invoice.status === "Sent" || invoice.status === "Overdue").reduce((sum, invoice) => sum + invoice.amount, 0);
-const clientCount = new Set(projects.map((project) => project.client)).size;
-
-/** A block of rows at the Sidebar's elevation: a ListBox with theme="shadow" (Shadow/Bottom/Level-1, no border). */
-function ElevatedList({ children, header, ...name }: { children: ReactNode; header?: ReactNode; "aria-label"?: string; "aria-labelledby"?: string }) {
-  return (
-    <ListBox theme="shadow" header={header}>
-      <List {...name}>{children}</List>
-    </ListBox>
-  );
-}
-
-function ElevatedPanels() {
-  const notHere = useNotHere();
-  const [page, setPage] = useState<ShellPage>("home");
-  const [creating, setCreating] = useState(false);
-  const dueId = useId();
-  const activityId = useId();
-  // A narrow page keeps each row's title readable: the status leads the caption instead of squeezing it as a trailing Badge.
-  const [measure, width] = useWidth();
-  const narrow = width > 0 && width < 560;
-  const badge = (theme: BadgeTheme, status: string) => (narrow ? undefined : <Badge theme={theme} background="subtle">{status}</Badge>);
-  const create = shellPages[page];
-  const primary = <Button level="primary" startIcon="icon-plus-line" onClick={() => setCreating(true)}>{create.create}</Button>;
-  let header: ReactNode;
-  let content: ReactNode;
-  if (page === "projects") {
-    header = <PageHeader title="Projects" description={`${plural(projects.length, "project")} for ${plural(clientCount, "client")}`} actions={primary} />;
-    content = (
-      <ElevatedList aria-label="Projects">
-        {projects.map((project) => (
-          <ListItem key={project.id} title={project.name} titleLines={2}
-            caption={wholeValues(narrow && project.status, project.client, `${project.progress}% done`, `Due ${formatDate(project.due)}`)}
-            leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" size="md" />}
-            trailing={narrow ? undefined : <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>} />
-        ))}
-      </ElevatedList>
-    );
-  } else if (page === "invoices") {
-    header = <PageHeader title="Invoices" description={`${formatMoney(outstanding)} outstanding`} actions={primary} />;
-    content = (
-      <ElevatedList aria-label="Invoices">
-        {invoices.map((invoice) => (
-          <ListItem key={invoice.id} title={invoice.number}
-            caption={wholeValues(narrow && invoice.status, invoice.client, formatMoney(invoice.amount), invoice.status === "Paid" ? `Issued ${formatDate(invoice.issued)}` : `Due ${formatDate(invoice.due)}`)}
-            leading={<DockIcon icon="icon-receipt-line" theme="neutral" background="subtle" size="md" />}
-            trailing={badge(invoiceStatusTheme[invoice.status], invoice.status)} />
-        ))}
-      </ElevatedList>
-    );
-  } else {
-    header = <PageHeader title="Home" description={`Good morning, ${me.name.split(" ")[0]}. ${plural(dueThisWeek.length, "task")} due this week.`} actions={primary} />;
-    content = (
-      <>
-        {/* MetricCard theme="shadow" is the same elevation: Shadow/Bottom/Level-1 and no border. */}
-        <Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
-          <MetricCard label="Due this week" value={String(dueThisWeek.length)} icon="icon-calendar-line" theme="shadow" />
-          <MetricCard label="Active projects" value={String(projects.filter((project) => project.status === "Active").length)} icon="icon-folder-line" theme="shadow" />
-          <MetricCard label="Outstanding" value={formatCompactMoney(outstanding)} icon="icon-coins-line" theme="shadow" />
-        </Grid>
-        {/* The week's work beside what changed since yesterday: two blocks of rows at the same elevation. */}
-        <Grid columns="minmax(0, 2fr) minmax(0, 1fr)" stackBelow={880} gap="md" align="start">
-          <ElevatedList aria-labelledby={dueId} header={<Heading level={2} id={dueId} textStyle="Heading/Subheading">Due this week</Heading>}>
-            {dueThisWeek.map((task) => (
-              <ListItem key={task.id} title={task.title} titleLines={2} caption={wholeValues(narrow && task.status, task.key, formatDue(task.due))}
-                leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} trailing={narrow ? undefined : <BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus>} />
-            ))}
-          </ElevatedList>
-          <ElevatedList aria-labelledby={activityId} header={<Heading level={2} id={activityId} textStyle="Heading/Subheading">Since yesterday</Heading>}>
-            {activity.slice(0, 5).map((item) => (
-              <ListItem key={item.id} title={people[item.actor].name} titleLines={1} caption={`${item.verb} ${item.object} · ${formatRelative(item.at)}`}
-                leading={<Avatar size="md" {...avatarOf(people[item.actor])} />} />
-            ))}
-          </ElevatedList>
-        </Grid>
-      </>
-    );
-  }
-  return (
-    // A Canvas/Default page beside the default Sidebar (Surface + Shadow/Bottom/Level-1, no border): every Surface on the
-    // screen takes the same elevation.
-    <PreviewAppFrame height={{ min: 640, max: 820 }}>
-      <AppShell
-        sidebar={<StudioSidebar selectedId={page} onNavigate={(item) => (item.id in shellPages ? setPage(item.id as ShellPage) : notHere(item.label))} />}
-        header={<AppShellHeader actions={<StudioActions />} main={header} />}
-      >
-        {/* The Body pads the page (Margin-Comfortable); the page's blocks sit xl apart. */}
-        <Stack ref={measure} gap="xl">{content}</Stack>
-      </AppShell>
-      <DemoFieldDialog open={creating} onOpenChange={setCreating} title={create.create}
-        field={{ kind: "name", label: create.field, placeholder: create.placeholder }} submitLabel={create.submit} confirm={create.done} />
-    </PreviewAppFrame>
-  );
-}
-
-// ——— 8. Layers over photos —————————————————————————————————————————————————————————————————————————————
-// The Events tab of the Đìzai app. Each photo in the feed is a frame its layers pin to: Save to the top-right corner and
-// the caption bar to the bottom edge. An event opens on a media screen: its photo is background media under the whole
-// screen, and the details sit in a sheet docked to the bottom.
-type StudioEvent = { id: string; name: string; start: Date; end?: Date; going: number; photo: PlatformPhoto; organiser: Person; about: string; join: string };
-const studioEvents: StudioEvent[] = [
-  { id: "hoi-an", name: "Sketch weekend in Hội An", start: daysFromToday(10), end: daysFromToday(11), going: 9, photo: platformMedia.site[2], organiser: people.gia,
-    about: "Two slow days in the old town: sketch the lanes and the river at dawn, then share the pages over coffee.", join: "Join the weekend" },
-  { id: "vung-tau", name: "Coast ride to Vũng Tàu", start: daysFromToday(24), going: 14, photo: platformMedia.feed[6], organiser: people.duy,
-    about: "An early start on the coast road, breakfast by the sea and back in the city by lunch. The studio brings the bikes and helmets.", join: "Join the ride" },
-  { id: "da-lat", name: "Studio retreat in Đà Lạt", start: daysFromToday(37), end: daysFromToday(39), going: 31, photo: platformMedia.mountainRoad, organiser: people.minhAnh,
-    about: "Three days in the pine hills with the whole studio: the 2027 roadmap, a design jam and the night market.", join: "Join the retreat" },
-  { id: "year-end", name: "Year-end party by the river", start: daysFromToday(79), going: 44, photo: platformMedia.site[4], organiser: people.minhAnh,
-    about: "Dinner on the riverside with the whole studio and our clients: the year in pictures, the team awards and live music.", join: "Join the party" },
-];
-const eventDates = (event: StudioEvent) => (event.end ? formatRange(event.start, event.end) : formatDate(event.start));
-/** Adds or removes one id, so a toast's Undo puts back exactly the state before the press. */
-const withId = (list: string[], id: string, on: boolean) => (on ? [...list.filter((item) => item !== id), id] : list.filter((item) => item !== id));
-
-function StudioEvents() {
-  const { toast } = useToast();
-  const screen = usePhoneScreen();
-  const screenRef = useRef<HTMLDivElement>(null);
-  const [openId, setOpenId] = useState<string | null>(null);
-  const [saved, setSaved] = useState<string[]>([]);
-  const [going, setGoing] = useState<string[]>([]);
-  const save = (event: StudioEvent) => {
-    const next = !saved.includes(event.id);
-    setSaved((list) => withId(list, event.id, next));
-    toast({ title: next ? "Event saved" : "Event removed from saved", children: event.name, action: { label: "Undo", onClick: () => setSaved((list) => withId(list, event.id, !next)) } });
-  };
-  const rsvp = (event: StudioEvent, next: boolean) => {
-    setGoing((list) => withId(list, event.id, next));
-    toast({ title: next ? "RSVP sent" : "RSVP cancelled", children: event.name, action: { label: "Undo", onClick: () => setGoing((list) => withId(list, event.id, !next)) } });
-  };
-  const event = studioEvents.find((item) => item.id === openId);
-
-  if (event) {
-    const isSaved = saved.includes(event.id);
-    const isGoing = going.includes(event.id);
-    const back = () => screen.go(`[data-event="${event.id}"] .zen-list-item__wrapper`, () => setOpenId(null));
-    return (
-      // The AppShell's Media pattern (Figma Top=Media, Bottom=Actions): the photo is the backdrop behind the top of the
-      // screen, the overlay bar keeps Back and Save readable on it, and the details rise over it as the shell's sheet,
-      // only its top corners rounded. The RSVP sits in the Action bar, clear of the home indicator; its one Button changes
-      // its label, so focus stays on it after each press.
-      <PlatformPhone key={event.id} label={studio.name} canvas="surface" statusBar="light">
-        <AppShell mobileTop="media"
-          backdrop={<Image src={event.photo.src} alt={event.photo.alt} radius="none" loading="eager" />}
-          topNavigation={<TopNavigation aria-label={event.name}
-            leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }}
-            trailing={[{ icon: isSaved ? "icon-bookmark-solid" : "icon-bookmark-line", label: isSaved ? "Remove from saved" : "Save event", onClick: () => save(event) }]} />}
-          actionBar={<ActionBar
-            summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{isGoing ? `You and ${plural(event.going, "other")} are going` : `${plural(event.going, "person", "people")} going`}</Text>}
-            primaryAction={isGoing ? { label: "Cancel RSVP", level: "tertiary", onClick: () => rsvp(event, false) } : { label: event.join, onClick: () => rsvp(event, true) }} />}
-        >
-          {screen.anchor}
-          <Stack gap="md">
-            <Stack gap="xs">
-              {/* The bar carries no title over the photo, so this heading is the screen's h1. */}
-              <Heading level={1}>{event.name}</Heading>
-              <Text textStyle="Body/Small/Regular" tone="base">{eventDates(event)}</Text>
-            </Stack>
-            <Text>{event.about}</Text>
-            <List aria-label="Organiser">
-              <ListItem title={event.organiser.name} caption={`Organiser · ${event.organiser.role}`}
-                leading={<Avatar size="md" {...avatarOf(event.organiser)} />} />
-            </List>
-          </Stack>
-        </AppShell>
-      </PlatformPhone>
-    );
-  }
-
-  return (
-    // The tab root: the large title folds as the feed scrolls under the bar; the floating glass bar rides over the photos.
-    <PlatformPhone key="events" label={studio.name} canvas="default" screenRef={screenRef}>
-      <AppShell
-        topNavigation={<TopNavigation title="Events" largeTitle="Events" scrollRef={screenRef} />}
-        bottomNavigation={<PhoneRoots value="events" floating />}
-      >
-        {screen.anchor}
-        <Stack as="ul" gap="md" aria-label="Upcoming events">
-          {studioEvents.map((item) => {
-            const isSaved = saved.includes(item.id);
-            return (
-              // The frame owns the radius and clips the photo to it (Clip content), so the photo takes none.
-              <Box as="li" key={item.id} data-event={item.id} radius="3xl" clip>
-                <Image src={item.photo.src} alt={item.photo.alt} ratio="4:3" radius="none" loading="eager" />
-                {/* Right / Top, sm in from both edges. */}
-                <Box position="absolute" constraintX="right" constraintY="top" insetRight="sm" insetTop="sm">
-                  <IconButton appearance="overlay" level="black-overlay" icon={isSaved ? "icon-bookmark-solid" : "icon-bookmark-line"}
-                    aria-label={`Save ${item.name}`} aria-pressed={isSaved} onClick={() => save(item)} />
-                </Box>
-                {/* Left & right / Bottom: the bar stretches between its sm insets at any width. Its radius (lg) plus the
-                    inset is the frame's 3xl, so the corners stay concentric. The whole row opens the event and pads 12px above
-                    and below: the bar pads md sideways and 2xs above and below, so the row's fill (its height, 12px past it
-                    sideways) sits 4px inside the bar on every side (lg 16px = Base 12px + 4px). */}
-                <Box position="absolute" constraintX="left-right" constraintY="bottom" insetLeft="sm" insetRight="sm" insetBottom="sm"
-                  surface="surface" radius="lg" paddingX="md" paddingY="2xs">
-                  <ListItem as="div" title={item.name} caption={wholeValues(eventDates(item), `${item.going + (going.includes(item.id) ? 1 : 0)} going`)}
-                    leading={<Avatar size="md" {...avatarOf(item.organiser)} />}
-                    onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(item.id))} />
-                </Box>
-              </Box>
-            );
-          })}
-        </Stack>
-      </AppShell>
-    </PlatformPhone>
-  );
-}
-
-// ——— 9. Per breakpoint ——————————————————————————————————————————————————————————————————————————————————
+// ——— Per breakpoint ——————————————————————————————————————————————————————————————————————————————————————
 // Stack, Grid and Box take { desktop, tablet, mobile } for their structure props, resolved at the nearest
 // ZenProvider's breakpoint: on the page, the window's; in PlatformPhone, mobile. A breakpoint without its own value
 // takes the next wider one's, so { desktop, mobile } covers tablet too.
@@ -875,518 +122,75 @@ function OnPageAndPhone({ label, title, children }: { label: string; title: stri
   );
 }
 
-const overdueInvoice = invoices.find((invoice) => invoice.status === "Overdue") ?? invoices[0];
-
-function InvoiceSummary({ headingLevel }: { headingLevel: CardHeadingLevel }) {
-  const { toast } = useToast();
-  const titleId = useId();
-  const invoice = overdueInvoice;
-  return (
-    <Card as="section" theme="default" aria-labelledby={titleId}>
-      {/* One row on desktop and tablet; on a phone the parts go under each other and the button takes the width. */}
-      <Stack direction={{ desktop: "row", mobile: "column" }} align={{ desktop: "center", mobile: "stretch" }} gap="md">
-        <Stack gap="2xs" width="fill">
-          <Heading level={headingLevel} id={titleId} textStyle="Heading/Subheading">{invoice.number}</Heading>
-          <Text textStyle="Body/Small/Regular" tone="base">{`${invoice.client} · Overdue since ${formatDate(invoice.due)}`}</Text>
-        </Stack>
-        <Text textStyle="Body/Extra/Bold">{formatMoney(invoice.amount)}</Text>
-        <Button level="primary" onClick={() => toast({ title: "Reminder sent", children: `${invoice.client} · ${invoice.number}` })}>Send reminder</Button>
-      </Stack>
-    </Card>
-  );
-}
-
-/** The three open tasks due first. */
-const openTasks = tasks.filter((task) => task.status !== "Done").sort((a, b) => a.due.getTime() - b.due.getTime()).slice(0, 3);
-
-function TasksAndActivity({ headingLevel }: { headingLevel: CardHeadingLevel }) {
-  const tasksId = useId();
-  const activityId = useId();
-  return (
-    // Desktop and tablet: the open tasks beside what changed; a phone keeps only the tasks.
-    <Grid columns={{ mobile: 1, desktop: "minmax(0, 3fr) minmax(0, 2fr)" }} gap="lg" align="start">
-      <ListBox as="section" theme="default" aria-labelledby={tasksId} header={<Heading level={headingLevel} id={tasksId} textStyle="Heading/Subheading">Open tasks</Heading>}>
-        <List aria-labelledby={tasksId}>
-          {openTasks.map((task) => <ListItem key={task.id} title={task.title} titleLines={2} caption={wholeValues(task.key, formatDue(task.due))}
-            leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} />)}
-        </List>
-      </ListBox>
-      {/* Secondary on a phone: hidden there (display none), still in the DOM. ListBox has no hideOn: a Box holds it. */}
-      <Box as="aside" hideOn={["mobile"]} aria-labelledby={activityId}>
-        <ListBox theme="default" header={<Heading level={headingLevel} id={activityId} textStyle="Heading/Subheading">Since yesterday</Heading>}>
-          <List aria-labelledby={activityId}>
-            {activity.slice(0, 3).map((item) => (
-              <ListItem key={item.id} title={people[item.actor].name} titleLines={1} caption={`${item.verb} ${item.object} · ${formatRelative(item.at)}`}
-                leading={<Avatar size="md" {...avatarOf(people[item.actor])} />} />
-            ))}
-          </List>
-        </ListBox>
-      </Box>
-    </Grid>
-  );
-}
-
-// One dashboard grid (skills/zen-component-usage/references/dashboard-layout.md): every widget of the overview in one
-// 12-column Grid, sized by importance with span — four KPIs over 3 columns each, the revenue trend (the hero) over 8
-// beside the list to act on over 4 (five rows: as tall as the hero), then three breakdowns over 4. Tablet lays out 6
-// columns, a phone 2; each widget says what it takes there, so no row leaves a hole and the reading order stays the same.
-const studioKpis = [
-  { id: "revenue", label: "Revenue this month", value: "$48,260", icon: "icon-currency-dollar-line", trend: { direction: "positive", label: "+12% vs. Sep" } },
-  { id: "invoices", label: "Open invoices", value: "7", icon: "icon-receipt-line", trend: { direction: "negative", label: "2 overdue" } },
-  { id: "hours", label: "Hours logged", value: "1,284 h", icon: "icon-clock-line", trend: { direction: "positive", label: "+6% vs. Sep" } },
-  { id: "projects", label: "Active projects", value: "12", icon: "icon-folder-line", trend: { direction: "normal", label: "Same as Sep" } },
-] as const;
-const studioRevenue = [
-  { label: "May", value: 31200 }, { label: "Jun", value: 35800 }, { label: "Jul", value: 33900 },
-  { label: "Aug", value: 39400 }, { label: "Sep", value: 43100 }, { label: "Oct", value: 48260 },
-];
-const studioHours = [
-  { id: "design", label: "Design", value: 512 }, { id: "research", label: "Research", value: 268 },
-  { id: "engineering", label: "Engineering", value: 344 }, { id: "brand", label: "Brand", value: 160 },
-];
-const studioClients = [
-  { label: "Lumen Bank", value: 14200 }, { label: "Saola Coffee", value: 9800 }, { label: "Phin Loyalty", value: 8600 },
-  { label: "Mekong Freight", value: 7400 }, { label: "Other", value: 8260 },
-];
-const studioGoals = [
-  { label: "Revenue", value: 128400, target: 150000 },
-  { label: "Billable hours", value: 3640, target: 4000 },
-  { label: "New clients", value: 4, target: 6 },
-  { label: "Utilisation", value: 78, target: 85, max: 100 },
-];
-const goalValue = (value: number, row: { label: string }) =>
-  row.label === "Revenue" ? `$${Math.round(value / 1000)}K` : row.label === "Billable hours" ? `${value.toLocaleString("en-US")} h` : row.label === "Utilisation" ? `${value}%` : String(value);
-const studioAttention = [
-  { id: "inv-139", title: "INV-2026-0139 is overdue", caption: "Mekong Freight · $12,880 · 9 days", icon: "icon-receipt-line", theme: "red" },
-  { id: "inv-141", title: "INV-2026-0141 is overdue", caption: "Saola Coffee · $3,420 · 2 days", icon: "icon-receipt-line", theme: "red" },
-  { id: "lum-091", title: "WCAG audit due today", caption: "LUM-091 · Lumen Banking", icon: "icon-check-square-line", theme: "orange" },
-  { id: "lum-088", title: "Usability sessions in 3 days", caption: "LUM-088 · 5 participants booked", icon: "icon-users-line", theme: "blue" },
-  { id: "brand", title: "Brand refresh review on Friday", caption: "Saola · moodboards round 2", icon: "icon-calendar-line", theme: "violet" },
-] as const;
-
-function DashboardGrid({ headingLevel }: { headingLevel: CardHeadingLevel }) {
-  const attentionId = useId();
-  const phone = useZen()?.breakpoint === "mobile";
-  return (
-    // 12 columns on desktop, 6 on tablet, 2 on a phone: one grid, rows md apart like the columns.
-    <Grid columns={{ desktop: 12, tablet: 6, mobile: 2 }} gap="md">
-      {studioKpis.map((kpi) => phone
-        // A phone's figures are stat tiles, two up; Small, so an amount like "$48,260" stays on one line.
-        ? <MetricCard key={kpi.id} type="tile" size="sm" theme="default" span={1} label={kpi.label} value={kpi.value} icon={kpi.icon} trend={kpi.trend} />
-        : <MetricCard key={kpi.id} theme="default" span={3} label={kpi.label} value={kpi.value} icon={kpi.icon} trend={kpi.trend} />)}
-      {/* The hero: the trend the overview is for, two thirds of the row; the whole row from tablet down. */}
-      <ChartCard theme="default" span={{ desktop: 8, tablet: "full" }} headingLevel={headingLevel} title="Revenue" description="Invoiced per month, May to October" value="$48,260">
-        <LineChart aria-label="Revenue invoiced per month, May to October 2026" label="Revenue" data={studioRevenue} format="currency" height={phone ? 200 : 280} />
-      </ChartCard>
-      {/* What to act on beside it: five rows, as tall as the hero; on tablet it pairs with the first breakdown. Its title
-          takes the chart cards' style (Body/Extra/Medium): sibling widget titles look alike. */}
-      <ListBox as="section" theme="default" span={{ desktop: 4, tablet: 3, mobile: "full" }} aria-labelledby={attentionId}
-        header={<Heading level={headingLevel} id={attentionId} textStyle="Body/Extra/Medium">Needs attention</Heading>}>
-        <List aria-labelledby={attentionId}>
-          {studioAttention.map((item) => <ListItem key={item.id} title={item.title} caption={item.caption} leading={<DockIcon icon={item.icon} theme={item.theme} size="md" background="subtle" />} />)}
-        </List>
-      </ListBox>
-      <ChartCard theme="default" span={{ desktop: 4, tablet: 3, mobile: "full" }} headingLevel={headingLevel} title="Hours by team" description="October, all projects">
-        <DonutChart aria-label="Hours logged by team in October 2026" data={studioHours} format={(value) => `${value.toLocaleString("en-US")} h`} />
-      </ChartCard>
-      <ChartCard theme="default" span={{ desktop: 4, tablet: 3, mobile: "full" }} headingLevel={headingLevel} title="Top clients" description="Invoiced in October">
-        <BarList aria-label="Revenue by client in October 2026" data={studioClients} format="currency" />
-      </ChartCard>
-      <ChartCard theme="default" span={{ desktop: 4, tablet: 3, mobile: "full" }} headingLevel={headingLevel} title="Quarter goals" description="Q4 so far">
-        <BulletChart aria-label="Q4 goals so far: revenue, billable hours, new clients and utilisation" data={studioGoals} format={goalValue} />
-      </ChartCard>
-    </Grid>
-  );
-}
-
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Main column and aside",
     description: "A project page in the studio's AppShell: the trail and the account in the header's top row, the PageHeader in its Main row, and the Body padding the page, so the Grid needs no Container. The Grid gives a two-thirds main column and a one-third aside, lg apart. Every widget takes the Sidebar's elevation (Shadow, no border) — Tasks (title, Status filter, the table; a List of title + status when the column is narrow) in the main column, Team and Details stacked md apart in the aside — so their tops line up and their titles share Heading/Subheading; in a narrow window the aside moves under the main column.",
     wide: true,
     screen: true,
-    render: () => <ProjectOverview />,
-    code: `<PreviewAppFrame>
-  <AppShell
-    sidebar={<Sidebar logo={logo} sections={places} selectedId="projects" onItemClick={go} footer={settings} />}
-    header={
-      <AppShellHeader
-        // A Sub-level trail beside the collapse toggle
-        leading={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }, { id: "lumen", label: "Online banking redesign" }]} onNavigate={go} />}
-        actions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} onClick={openNotifications} />
-          <Menu align="end" trigger={<AppShellAccount name="Alex Duong" src={alex.photo} />} items={account} /></>}
-        main={<PageHeader title="Online banking redesign" meta={<Badge theme="blue" background="subtle">Active</Badge>}
-          description="Lumen Bank · 38% done · Due Dec 15, 2026"
-          actions={<><Button level="tertiary" onClick={share}>Share</Button><Button level="primary" onClick={newTask}>New task</Button></>} />}
-      />
-    }
-  >
-    {/* The Body pads the page. Layout columns: lg; one column in a narrow window, the aside under the main column. */}
-    <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start" maxWidth={1440}>
-      {/* Every widget at the Sidebar's elevation: tops line up, titles share one style */}
-      <Card as="section" theme="shadow" aria-labelledby="tasks">
-        <Stack gap="md">
-          {/* Heading and its filter: one toolbar row, xs */}
-          <Stack direction="row" gap="xs" align="center" justify="between" wrap>
-            <Heading level={2} id="tasks" textStyle="Heading/Subheading">Tasks</Heading>
-            <Chip variant="advanced" dropdown selected={status !== null} popoverLabel="Status"
-              popoverItems={statuses.map((s) => ({ id: s, label: s, selected: s === status }))}
-              onPopoverSelect={(item) => setStatus(item.id === status ? null : item.id)}
-              onClearSelection={() => setStatus(null)}>{status ?? "Status"}</Chip>
-          </Stack>
-          {/* A narrow card: a List (title + status Badge); wider: the Table */}
-          {narrow
-            ? <List aria-labelledby="tasks">{shown.map((task) => <ListItem key={task.id} title={task.title} titleLines={2} trailing={statusBadge(task.status)} />)}</List>
-            : <Table aria-labelledby="tasks" rows={shown} columns={columns} empty={<EmptyState … />} />}
-        </Stack>
-      </Card>
-      {/* Cards in a stack: md */}
-      <Stack as="aside" gap="md" aria-label="About this project">
-        {/* Rows → ListBox; the Details DescriptionList → Card */}
-        <ListBox as="section" theme="shadow" aria-labelledby="team"
-          header={<Stack direction="row" gap="xs" align="center" justify="between">
-            <Heading level={2} id="team" textStyle="Heading/Subheading">Team</Heading>
-            <Button level="tertiary" startIcon="icon-user-plus-line" onClick={invite}>Invite</Button>
-          </Stack>}>
-          <List aria-labelledby="team">…</List>
-        </ListBox>
-        <Card as="section" theme="shadow" aria-labelledby="details">…</Card>
-      </Stack>
-    </Grid>
-  </AppShell>
-</PreviewAppFrame>`,
+    render: () => <TasksCardFrame app={ProjectOverview} />,
+    code: exampleCode(projectOverviewRaw),
   },
   {
     title: "Annotated settings",
     description: "A long form stops at a readable width (960) however wide the window is: the AppShell's Body already pads the page, so the form starts at the page margin, in line with the PageHeader in the header's Main row. Each section is a Grid with its title and a short description in the narrow column and its fields in a Card at the Sidebar's elevation; sections sit xl apart and stack in a narrow window. Save checks the name and moves focus to it when it is empty.",
     wide: true,
     screen: true,
-    render: () => <AnnotatedSettings />,
-    code: `const form = useFormState({ initialValues, validate, onSubmit: (values, { reset }) => { reset(values); toast({ type: "positive", title: "Settings saved" }); } });
-
-function SettingsSection({ id, title, description, children }) {
-  return (
-    // Columns lg apart; in a narrow window the description sits md above its card.
-    <Grid as="section" columns={{ mobile: 1, desktop: "minmax(0, 1fr) minmax(0, 2fr)" }} columnGap="lg" rowGap="md" align="start" aria-labelledby={id}>
-      <Stack gap="xs">
-        <Heading level={2} id={id} textStyle="Heading/4">{title}</Heading>
-        <Text textStyle="Body/Small/Regular" tone="base">{description}</Text>
-      </Stack>
-      <Card theme="shadow"><Stack gap="md">{children}</Stack></Card>
-    </Grid>
-  );
-}
-
-<AppShell
-  sidebar={<Sidebar logo={logo} sections={places} selectedId="settings" onItemClick={go} footer={<SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />} />}
-  header={
-    <AppShellHeader
-      leading={<Breadcrumbs master={false} items={[{ id: "settings", label: "Settings" }, { id: "workspace", label: "Workspace" }]} onNavigate={go} />}
-      actions={<>{notifications}{account}</>}
-      main={<PageHeader title="Workspace settings" description="How the Đìzai Studio workspace looks and works for everyone in it." />}
-    />
-  }
->
-  {/* The Body pads the page; the form stops at 960 and starts at the page margin, in line with the title */}
-  <Box maxWidth={960}>
-    <Form form={form} gap="xl" aria-label="Workspace settings">
-      <SettingsSection id="workspace" title="Workspace" description="The name people see when they sign in and in every email Zen sends.">
-        <InputField label="Workspace name" {...form.field("name")} />
-        <InputField label="Studio domain" defaultValue="dizai.studio" readOnly helpText="Only the studio owner can change the domain." />
-      </SettingsSection>
-      <SettingsSection id="week" title="Working week" description="Due dates, timesheets and the team calendar follow these.">…</SettingsSection>
-      <SettingsSection id="email" title="Email" description="What Zen emails the studio about.">
-        <FormFieldset legend="Email the studio about" hideLegend kind="checkbox">
-          <Checkbox label="Weekly studio digest" caption="Every Monday at 8:00 am" {...form.checkboxField("digest")} />
-          …
-        </FormFieldset>
-      </SettingsSection>
-      <FormActions>
-        <Button level="tertiary" disabled={!form.isDirty} onClick={() => form.reset()}>Cancel</Button>
-        <Button level="primary" type="submit">Save changes</Button>
-      </FormActions>
-    </Form>
-  </Box>
-</AppShell>`,
+    render: () => <PreviewAppFrame height={{ min: 640, max: 820 }}><AnnotatedSettings /></PreviewAppFrame>,
+    code: exampleCode(annotatedSettingsRaw),
   },
   {
     title: "Cards that reflow",
     description: "Grid minColumnWidth fits as many 240px columns as the width allows, four here and one on a phone, with no breakpoints. Cells stretch to the tallest card in the row and each card pushes its footer to the bottom, so the Use template buttons line up across each row.",
     wide: true,
     render: () => <TemplateGallery />,
-    code: `{/* Toolbar → grid: md */}
-<Stack gap="md">
-  <Stack direction="row" gap="xs" align="center" wrap>
-    <Chip variant="advanced" dropdown selected={category !== null} popoverLabel="Category" … >{category ?? "Category"}</Chip>
-    <Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">{plural(shown.length, "template")}</Text>
-  </Stack>
-  <Grid as="ul" minColumnWidth={240} gap="md" aria-label="Project templates">
-    {shown.map((template) => (
-      <Card as="li" key={template.id} theme="default">
-        {/* Fill height: the content takes the stretched card; two groups lg apart, pushed to the top and the bottom */}
-        <Stack gap="lg" justify="between" height="fill">
-          <Stack gap="md">
-            <DockIcon icon={template.icon} theme={template.theme} background="subtle" />
-            <Stack gap="xs">
-              <Heading level={4} textStyle="Heading/Subheading">{template.name}</Heading>
-              <Text textStyle="Body/Small/Regular" tone="base">{template.summary}</Text>
-            </Stack>
-          </Stack>
-          <Stack gap="xs">
-            <Text as="span" textStyle="Body/Small/Regular" tone="base">{\`\${plural(template.tasks, "task")} · \${plural(template.weeks, "week")}\`}</Text>
-            <Button level="tertiary" aria-label={\`Use the \${template.name} template\`} onClick={() => use(template)}>Use template</Button>
-          </Stack>
-        </Stack>
-      </Card>
-    ))}
-  </Grid>
-</Stack>`,
+    code: exampleCode(templateGalleryRaw),
   },
   {
     title: "Wrapping cluster",
     description: "A row Stack with wrap flows the Tags onto as many lines as they need, 2xs apart across and down. Inside the card the header and each labelled group sit lg apart; the kicker sits xs above the Skills cluster and Add skill xs below it. Removing a skill can be undone from the toast.",
     render: () => <ProfileSkills />,
-    code: `<Card as="section" theme="default" aria-labelledby="profile">
-  {/* Groups inside one surface: lg */}
-  <Stack gap="lg">
-    <Stack direction="row" gap="md" align="center">
-      <Avatar size="lg" theme="photo" src={chi.photo} alt="" />
-      <Stack gap="2xs">
-        <Heading level={4} id="profile" textStyle="Heading/Subheading">Chi Tran</Heading>
-        <Text textStyle="Body/Small/Regular" tone="base">Product Designer · Hanoi</Text>
-      </Stack>
-    </Stack>
-    {/* Kicker → its cluster → its action: xs */}
-    <Stack as="section" gap="xs" aria-labelledby="skills">
-      <Heading level={5} id="skills" textStyle="Body/Small/Bold" tone="light">Skills</Heading>
-      {/* A cluster: 2xs across and down */}
-      <Stack as="ul" direction="row" gap="2xs" wrap aria-labelledby="skills">
-        {skills.map((skill) => <li key={skill}><Tag remove onRemove={() => remove(skill)}>{skill}</Tag></li>)}
-      </Stack>
-      <Button level="tertiary" startIcon="icon-plus-line" onClick={addSkill}>Add skill</Button>
-    </Stack>
-    {/* Read-only facts stay plain text */}
-    <Stack as="section" gap="xs" aria-labelledby="languages">
-      <Heading level={5} id="languages" textStyle="Body/Small/Bold" tone="light">Languages</Heading>
-      <Text>Vietnamese, English, Japanese</Text>
-    </Stack>
-  </Stack>
-</Card>`,
+    code: exampleCode(profileSkillsRaw),
   },
   {
     title: "Centred in a panel",
     description: "A panel of fixed height: the header stays at the top, the footnote at the bottom, and the middle Stack grows, so an empty state sits in the optical centre. Create invoice puts the draft at the top of the list instead; the toast's Undo brings the empty state back.",
     render: () => <ClientInvoices />,
-    code: `{/* .cover { min-height: 26rem }: the ListBox body grows by itself, and the Fill-height Stack grows with it */}
-<ListBox as="section" className="cover" aria-labelledby="invoices"
-  header={<Stack gap="xs">
-    <Heading level={4} id="invoices" textStyle="Heading/Subheading">Invoices</Heading>
-    <Text textStyle="Body/Small/Regular" tone="base">Saola Outdoor · Brand refresh</Text>
-  </Stack>}
-  footer={<Text textStyle="Caption/Regular" tone="light">Synced with Payments 2 minutes ago</Text>}>
-  <Stack justify={invoices.length ? "start" : "center"} height="fill">
-    {invoices.length ? <List aria-labelledby="invoices">…</List> : (
-      <EmptyState size="sm" headingLevel={5} compactTitle title="No invoices yet"
-        primaryAction={{ label: "Create invoice", onClick: create }} icon="icon-receipt-line">
-        Bill Saola Outdoor for approved hours. Paid invoices stay here.
-      </EmptyState>
-    )}
-  </Stack>
-</ListBox>`,
+    code: exampleCode(clientInvoicesRaw),
   },
   {
     title: "Elevated panel",
     description: "The AppShell's default Sidebar is Surface with Shadow/Bottom/Level-1 on the Canvas/Default page, so every Surface on the screen takes the same elevation: the MetricCards and ListBoxes with theme=\"shadow\" (no border). The Sidebar switches Home, Projects and Invoices; each page's PageHeader sits in the header's Main row with its one Primary.",
     wide: true,
     screen: true,
-    render: () => <ElevatedPanels />,
-    code: `{/* Canvas/Default page + default Sidebar (Surface, Shadow/Bottom/Level-1, no border) */}
-<AppShell
-  sidebar={<Sidebar logo={logo} sections={places} selectedId={page} onItemClick={(item) => setPage(item.id)} />}
-  header={<AppShellHeader actions={<>{notifications}{account}</>}
-    main={<PageHeader title="Home" description="Good morning, Alex. 7 tasks due this week." actions={<Button level="primary" startIcon="icon-plus-line" onClick={newTask}>New task</Button>} />} />}
->
-  <Stack gap="xl">
-    {/* MetricCard theme="shadow" is the same elevation */}
-    <Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
-      <MetricCard label="Due this week" value="7" icon="icon-calendar-line" theme="shadow" />
-      …
-    </Grid>
-    <Grid columns="minmax(0, 2fr) minmax(0, 1fr)" stackBelow={880} gap="md" align="start">
-      {/* Blocks of rows at the same elevation: shadow, no border */}
-      <ListBox theme="shadow" header={<Heading level={2} id="due" textStyle="Heading/Subheading">Due this week</Heading>}>
-        <List aria-labelledby="due">
-          {tasks.map((task) => (
-            <ListItem key={task.id} title={task.title} titleLines={2} caption={\`\${task.key} · \${formatDue(task.due)}\`}
-              leading={<Avatar size="md" {...avatarOf(task.assignee)} />}
-              trailing={<BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus>} />
-          ))}
-        </List>
-      </ListBox>
-      <ListBox theme="shadow" header={<Heading level={2} id="since" textStyle="Heading/Subheading">Since yesterday</Heading>}>…</ListBox>
-    </Grid>
-  </Stack>
-</AppShell>`,
+    render: () => <PreviewAppFrame height={{ min: 640, max: 820 }}><ElevatedPanels /></PreviewAppFrame>,
+    code: exampleCode(elevatedPanelsRaw),
   },
   {
     title: "Phone screen",
     description: "The same ladder on a phone, inside the AppShell's mobile parts: the Body pads the screen (Margin-Comfortable, 20) and spaces its sections Layout-Mobile/Section-Gap apart. Two metrics share a fixed two-column Grid md apart, and each day is a block under its kicker; the bottom bar casts a shadow, so the blocks take the same Shadow elevation. A task opens its own screen with Back and its one action in the Action bar; New task adds one from a Bottom Sheet.",
-    render: () => <PhoneTasks />,
-    code: `const screenRef = useRef<HTMLDivElement>(null);
-
-<PlatformPhone key="tasks" screenRef={screenRef}>
-  <AppShell
-    topNavigation={<TopNavigation title="Tasks" largeTitle="Tasks" scrollRef={screenRef}
-      trailing={[{ icon: "icon-plus-line", label: "New task", onClick: () => setCreating(true) }]} />}
-    bottomNavigation={<BottomNavigation aria-label="Đìzai Studio" showLabels value="tasks" onValueChange={go} items={[
-      { id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" },
-      { id: "tasks", label: "Tasks", icon: "icon-check-square-line", selectedIcon: "icon-check-square-solid" },
-      { id: "events", label: "Events", icon: "icon-calendar-line", selectedIcon: "icon-calendar-solid" },
-      { id: "me", label: "Me", icon: "icon-user-line", selectedIcon: "icon-user-solid" },
-    ]} />}
-  >
-    {/* The Body pads 20 (Margin-Comfortable) and spaces its sections Layout-Mobile/Section-Gap apart */}
-    {/* Cards in a grid: md */}
-    <Grid columns={2} gap="md">
-      <MetricCard iconBackground="solid" theme="shadow" size="lg" label="Due today" value={String(dueToday)} icon="icon-calendar-line" iconTheme="yellow" />
-      <MetricCard iconBackground="solid" theme="shadow" size="lg" label="Done this week" value={String(done)} icon="icon-check-done-line" iconTheme="green" />
-    </Grid>
-    {/* Kicker → its ListBox: xs; rows pad 0 at the sides, so the ListBox pads 20px on a phone with 2XLarge corners (24px = the fill's
-        16px + 8px) and the kicker lines up with the row text (lg, 20px) */}
-    <Stack as="section" gap="xs" aria-labelledby="today">
-      <Box paddingX="lg"><Heading level={2} id="today" textStyle="Body/Small/Bold" tone="light">Today</Heading></Box>
-      <ListBox theme="shadow">
-        <List aria-labelledby="today">
-          {today.map((task) => (
-            <ListItem key={task.id} title={task.title} titleLines={1} caption={\`\${task.key} · \${project.name}\`}
-              leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" size="md" />}
-              onClick={() => setOpenId(task.id)} />
-          ))}
-        </List>
-      </ListBox>
-    </Stack>
-    {/* Tomorrow and Later this week follow the same way */}
-  </AppShell>
-</PlatformPhone>
-
-// The task: a pushed screen with Back and its one action in the Action bar (no bottom bar)
-<PlatformPhone key={task.id} screenRef={screenRef}>
-  <AppShell
-    topNavigation={<TopNavigation type="compact-alt" title="LUM-091" scrollRef={screenRef}
-      leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
-    actionBar={<ActionBar primaryAction={{ label: "Mark as done", onClick: markDone }} />}
-  >
-    <Stack gap="xs">
-      <Heading level={2} textStyle="Heading/4">Audit the account overview for WCAG 2.2</Heading>
-      <Text textStyle="Body/Small/Regular" tone="base">Online banking redesign · Lumen Bank</Text>
-    </Stack>
-    <Card theme="default"><DescriptionList divider items={details} /></Card>
-  </AppShell>
-</PlatformPhone>`,
+    render: () => <PlatformPhoneApp label="Zen tasks" canvas="default" app={PhoneTasks} />,
+    code: exampleCode(phoneTasksRaw),
   },
   {
     title: "Layers over photos",
     description: "In the Events feed each photo is a frame that clips to 3xl: Save pins to its top-right corner, sm in from both edges (Right / Top), and the caption bar stretches between sm insets along the bottom edge (Left & right / Bottom); the floating glass bar rides over the photos. An event opens on the AppShell's Media pattern: its photo is the backdrop behind the top of the screen, the overlay bar keeps Back and Save readable on it, and the details rise over it as the shell's sheet with only its top corners rounded, the RSVP in the Action bar. Back returns to the event you opened, and the toast can undo a save or an RSVP.",
-    render: () => <StudioEvents />,
-    code: `const screenRef = useRef<HTMLDivElement>(null);
-const [openId, setOpenId] = useState<string | null>(null);
-const [saved, setSaved] = useState<string[]>([]);
-const [going, setGoing] = useState<string[]>([]);
-// withId(list, id, on) adds or removes one id, so Undo puts back exactly the state before the press.
-const save = (event) => {
-  const next = !saved.includes(event.id);
-  setSaved((list) => withId(list, event.id, next));
-  toast({ title: next ? "Event saved" : "Event removed from saved", children: event.name,
-    action: { label: "Undo", onClick: () => setSaved((list) => withId(list, event.id, !next)) } });
-};
-
-// The Events feed: each photo is a frame its layers pin to.
-<PlatformPhone key="events" screenRef={screenRef}>
-  <AppShell
-    topNavigation={<TopNavigation title="Events" largeTitle="Events" scrollRef={screenRef} />}
-    bottomNavigation={<BottomNavigation type="floating-glass" aria-label="Đìzai Studio" value="events" onValueChange={go} items={roots} />}
-  >
-    <Stack as="ul" gap="md" aria-label="Upcoming events">
-      {events.map((event) => (
-        // The frame owns the radius and clips the photo to it
-        <Box as="li" key={event.id} data-event={event.id} radius="3xl" clip>
-          <Image src={event.photo.src} alt={event.photo.alt} ratio="4:3" radius="none" />
-          {/* Right / Top, sm in from both edges */}
-          <Box position="absolute" constraintX="right" constraintY="top" insetRight="sm" insetTop="sm">
-            <IconButton appearance="overlay" level="black-overlay" icon={saved.includes(event.id) ? "icon-bookmark-solid" : "icon-bookmark-line"}
-              aria-label={\`Save \${event.name}\`} aria-pressed={saved.includes(event.id)} onClick={() => save(event)} />
-          </Box>
-          {/* Left & right / Bottom between sm insets; radius lg + inset sm = the frame's 3xl */}
-          <Box position="absolute" constraintX="left-right" constraintY="bottom" insetLeft="sm" insetRight="sm" insetBottom="sm"
-            surface="surface" radius="lg" paddingX="md" paddingY="2xs"> {/* the row pads 12px above and below: its fill sits 4px inside the bar */}
-            <ListItem as="div" title={event.name} caption="Nov 6 – Nov 8, 2026 · 31 going"
-              leading={<Avatar size="md" {...avatarOf(event.organiser)} />} onClick={() => setOpenId(event.id)} />
-          </Box>
-        </Box>
-      ))}
-    </Stack>
-  </AppShell>
-</PlatformPhone>
-
-// The event: the AppShell's Media pattern. The photo is the backdrop, the bar overlays it, the page rises as a sheet.
-<PlatformPhone key={event.id} canvas="surface" statusBar="light">
-  <AppShell mobileTop="media"
-    backdrop={<Image src={event.photo.src} alt={event.photo.alt} radius="none" />}
-    topNavigation={<TopNavigation aria-label="Studio retreat in Đà Lạt"
-      leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }}
-      trailing={[{ icon: isSaved ? "icon-bookmark-solid" : "icon-bookmark-line", label: isSaved ? "Remove from saved" : "Save event", onClick: () => save(event) }]} />}
-    actionBar={<ActionBar
-      summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{isGoing ? "You and 31 others are going" : "31 people going"}</Text>}
-      primaryAction={isGoing ? { label: "Cancel RSVP", level: "tertiary", onClick: () => rsvp(event, false) }
-        : { label: "Join the retreat", onClick: () => rsvp(event, true) }} />}
-  >
-    <Stack gap="md">
-      <Stack gap="xs">
-        {/* The bar has no title over the photo: this is the screen's h1 */}
-        <Heading level={1}>Studio retreat in Đà Lạt</Heading>
-        <Text textStyle="Body/Small/Regular" tone="base">Nov 6 – Nov 8, 2026</Text>
-      </Stack>
-      <Text>Three days in the pine hills with the whole studio: the 2027 roadmap, a design jam and the night market.</Text>
-      <List aria-label="Organiser">
-        <ListItem title="Minh Anh Vo" caption="Organiser · People Ops Manager" leading={<Avatar size="md" {...avatarOf(minhAnh)} />} />
-      </List>
-    </Stack>
-  </AppShell>
-</PlatformPhone>`,
+    render: () => <EventsPhone app={StudioEvents} />,
+    code: exampleCode(studioEventsRaw),
   },
   {
     title: "A row that stacks on phones",
     description: "One invoice summary for every screen: direction and align take a value per breakpoint, so the number, the amount and Send reminder share one row on desktop and tablet and go under each other on a phone, where the button takes the full width. The phone shows the same code at the mobile breakpoint; a breakpoint without its own value takes the next wider one's.",
     wide: true,
     render: () => <OnPageAndPhone label="Invoice on a phone" title="Invoice">{(level) => <InvoiceSummary headingLevel={level} />}</OnPageAndPhone>,
-    code: `<Card as="section" theme="default" aria-labelledby="invoice">
-  {/* One row on desktop and tablet (tablet takes desktop's value); on a phone a column whose button takes the width */}
-  <Stack direction={{ desktop: "row", mobile: "column" }} align={{ desktop: "center", mobile: "stretch" }} gap="md">
-    <Stack gap="2xs" width="fill">
-      <Heading level={4} id="invoice" textStyle="Heading/Subheading">INV-2026-0139</Heading>
-      <Text textStyle="Body/Small/Regular" tone="base">Mekong Freight · Overdue since {formatDate(due)}</Text>
-    </Stack>
-    <Text textStyle="Body/Extra/Bold">$12,880</Text>
-    <Button level="primary" onClick={remind}>Send reminder</Button>
-  </Stack>
-</Card>`,
+    code: exampleCode(invoiceSummaryRaw),
   },
   {
     title: "A panel hidden on phones",
     description: "Open tasks beside what changed since yesterday on desktop and tablet; a phone keeps only the tasks. hideOn={[\"mobile\"]} hides the aside there (display none: it stays in the DOM, so Studio still lists it), and the Grid's columns go from two to one at the same breakpoint. Hide only what is secondary, and never on every breakpoint.",
     wide: true,
     render: () => <OnPageAndPhone label="Open tasks on a phone" title="Home">{(level) => <TasksAndActivity headingLevel={level} />}</OnPageAndPhone>,
-    code: `<Grid columns={{ mobile: 1, desktop: "minmax(0, 3fr) minmax(0, 2fr)" }} gap="lg" align="start">
-  <ListBox as="section" theme="default" aria-labelledby="tasks" header={<Heading level={4} id="tasks" textStyle="Heading/Subheading">Open tasks</Heading>}>
-    <List aria-labelledby="tasks">{openTasks.map((task) => <ListItem key={task.id} title={task.title} titleLines={2} caption={\`\${task.key} · \${formatDue(task.due)}\`} leading={<Avatar size="md" {...task.avatar} />} />)}</List>
-  </ListBox>
-  {/* Hidden on a phone, still in the DOM. ListBox has no hideOn: a Box holds it. */}
-  <Box as="aside" hideOn={["mobile"]} aria-labelledby="activity">
-    <ListBox theme="default" header={<Heading level={4} id="activity" textStyle="Heading/Subheading">Since yesterday</Heading>}>
-      <List aria-labelledby="activity">{activity.map((item) => <ListItem key={item.id} title={item.name} caption={item.change} leading={<Avatar size="md" {...item.avatar} />} />)}</List>
-    </ListBox>
-  </Box>
-</Grid>`,
+    code: exampleCode(tasksAndActivityRaw),
   },
   {
     title: "One dashboard grid",
@@ -1394,20 +198,7 @@ const save = (event) => {
     wide: true,
     // On the page only: a dashboard needs the page's width (beside a phone frame its 12 columns would be too narrow);
     // the window's breakpoint picks the spans, so a tablet or a phone shows their own layout.
-    render: () => <DashboardGrid headingLevel={4} />,
-    code: `<Grid columns={{ desktop: 12, tablet: 6, mobile: 2 }} gap="md">
-  {kpis.map((kpi) => <MetricCard key={kpi.id} theme="default" span={3} … />)}{/* a phone: type="tile" size="sm" theme="default" span={1} */}
-  {/* The hero: two thirds of the row; the whole row from tablet down */}
-  <ChartCard theme="default" span={{ desktop: 8, tablet: "full" }} title="Revenue" description="Invoiced per month, May to October" value="$48,260">
-    <LineChart aria-label="Revenue invoiced per month, May to October 2026" label="Revenue" data={revenue} format="currency" />
-  </ChartCard>
-  {/* Beside it: five rows, as tall as the hero */}
-  <ListBox as="section" theme="default" span={{ desktop: 4, tablet: 3, mobile: "full" }} header={<Heading level={4} textStyle="Body/Extra/Medium">Needs attention</Heading>}>
-    <List>{attention.map((item) => <ListItem key={item.id} title={item.title} caption={item.caption} leading={<DockIcon icon={item.icon} theme={item.theme} size="md" background="subtle" />} />)}</List>
-  </ListBox>
-  <ChartCard theme="default" span={{ desktop: 4, tablet: 3, mobile: "full" }} title="Hours by team" description="October, all projects"><DonutChart … /></ChartCard>
-  <ChartCard theme="default" span={{ desktop: 4, tablet: 3, mobile: "full" }} title="Top clients" description="Invoiced in October"><BarList … /></ChartCard>
-  <ChartCard theme="default" span={{ desktop: 4, tablet: 3, mobile: "full" }} title="Quarter goals" description="Q4 so far"><BulletChart … /></ChartCard>
-</Grid>`,
+    render: () => <DashboardGrid />,
+    code: exampleCode(dashboardGridRaw),
   },
 ]);

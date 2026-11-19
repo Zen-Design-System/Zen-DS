@@ -63,6 +63,8 @@ import roomRollerBlind from "../../assets/media/room-roller-blind.webp";
 import porchLiveView from "../../assets/media/porch-live-view.webp";
 import canyonLandscapeVideo from "../../assets/media/canyon-landscape.webm";
 import canyonLandscapePoster from "../../assets/media/canyon-landscape-poster.webp";
+import canyonPortraitVideo from "../../assets/media/canyon-portrait.webm";
+import canyonPortraitPoster from "../../assets/media/canyon-portrait-poster.webp";
 
 /** Wednesday, Sep 30, 2026, 10:30 am: every date in the examples is relative to it. */
 export const TODAY = new Date(2026, 8, 30, 10, 30);
@@ -395,6 +397,8 @@ export type Video = { src: string; poster: string };
 export const videos = {
   /** A 16:9 Grand Canyon timelapse. */
   canyonLandscape: { src: canyonLandscapeVideo, poster: canyonLandscapePoster },
+  /** A 9:16 canyon clip, for a phone feed. */
+  canyonPortrait: { src: canyonPortraitVideo, poster: canyonPortraitPoster },
 } satisfies Record<string, Video>;
 
 /** A time on the day `offset` days from today. */

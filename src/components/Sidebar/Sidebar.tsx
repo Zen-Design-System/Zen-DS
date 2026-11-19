@@ -1,4 +1,4 @@
-import { Children, cloneElement, createContext, Fragment, isValidElement, useContext, useEffect, useRef, useState, type Dispatch, type ElementType, type FocusEvent, type PointerEvent, type ReactElement, type ReactNode, type Ref, type RefObject, type SetStateAction } from "react";
+import { Children, cloneElement, createContext, Fragment, isValidElement, useContext, useEffect, useLayoutEffect, useRef, useState, type Dispatch, type ElementType, type FocusEvent, type PointerEvent, type ReactElement, type ReactNode, type Ref, type RefObject, type SetStateAction } from "react";
 import { usePortalContainer, ZenPortal } from "../Portal";
 import { fixedLayerSpace } from "../_shared/layer-space";
 import { Icon, type IconName } from "../Icon";
@@ -659,6 +659,20 @@ export function SidebarSubMenu({ search, items = [], sections = [], onItemClick,
 /** Flyout surface for the Side-Bar/Sub panel, positioned outside the sidebar's right edge. */
 function SidebarFlyout({ children, label, onClose, rootRef }: { children: ReactNode; label: string; onClose?: (event: KeyboardEvent | globalThis.PointerEvent) => void; rootRef: RefObject<HTMLElement | null> }) {
   const isOutside = useDismissableLayer(Boolean(onClose), () => [rootRef.current]);
+  const surfaceRef = useRef<HTMLDivElement>(null);
+  // APG: closing the flyout (Escape, a pick inside it) gives focus back to what opened it, the rail item, instead of
+  // dropping it on the page. The opener is read on the first render, before an autofocused field inside takes focus;
+  // layout cleanup runs while the flyout is still in the document, so it can tell whether focus was inside (a press
+  // outside that moved focus elsewhere keeps it there).
+  const [opener] = useState(() => (typeof document !== "undefined" && document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null));
+  useLayoutEffect(() => {
+    const surface = surfaceRef.current;
+    return () => {
+      if (!opener || !surface?.contains(document.activeElement)) return;
+      // Only once the flyout is really gone (StrictMode's trial unmount keeps it in the document).
+      queueMicrotask(() => { if (!surface.isConnected && opener.isConnected) opener.focus({ preventScroll: true }); });
+    };
+  }, [opener]);
   useEffect(() => {
     if (!onClose) return undefined;
     const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(event); };
@@ -667,7 +681,7 @@ function SidebarFlyout({ children, label, onClose, rootRef }: { children: ReactN
     document.addEventListener("pointerdown", onPointer);
     return () => { document.removeEventListener("keydown", onKey); document.removeEventListener("pointerdown", onPointer); };
   }, [onClose, rootRef]);
-  return <div className="zen-sidebar__submenu" role="region" aria-label={label}>{children}</div>;
+  return <div ref={surfaceRef} className="zen-sidebar__submenu" role="region" aria-label={label}>{children}</div>;
 }
 
 export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed: collapsedArg, onCollapsedChange: onCollapsedChangeProp, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, children, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, shadow = true, theme: themeProp, subHeader, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, railBackground = "default", subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose, overrides, ref, ...rest }: SidebarProps) {

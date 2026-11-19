@@ -798,6 +798,10 @@
 .platform-slot { display: flex; min-width: 0; min-height: var(--zen-image-size-3-xlarge, 112px); box-sizing: border-box; flex: 1 1 auto; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-small, 12px); border: 1px dashed var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); border-radius: var(--zen-corner-radius-base, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: center; }
 .platform-slot--tall { min-height: calc(2 * var(--zen-image-size-3-xlarge, 112px)); }
 .platform-slot--fill { align-self: stretch; height: 100%; }
+/* Card Playground (Spacing=small, xsmall): the dashed content slot fills the card, so its corners follow the card's (outer
+   radius minus the inset: 16 − 16 = square corners; xsmall 12 − 8 = 4) instead of the slot's own 12px, and the nested
+   corners stay concentric. */
+.zen-card:is([data-spacing="small"], [data-spacing="xsmall"]) .platform-slot { border-radius: max(0px, calc(var(--zen-card-radius) - var(--zen-card-padding))); }
 .pe-card-grid { display: grid; width: 100%; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
 /* 120px: the longest Theme label in Caption (11px since the 2026-09-28 variables) plus Spacing=Small padding, unbroken. */
 .pe-card-grid--surfaces { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }

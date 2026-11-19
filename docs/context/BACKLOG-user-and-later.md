@@ -14,6 +14,7 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   its wrapper (not the range input), ColorSelector's swatches, FileUpload / UploaderFileItem buttons take none; Toggle
   has no width prop (232px fixed; examples wrap it in a Stack to fill or hug). PR5 (2026-11-19) adds: Breadcrumbs'
   crumbs, Table's row checkboxes and EmptyState's primary action take none (focus lands on a title or status line).
+  PR4 (2026-11-19) adds: Tabs' tab buttons and Accordion's headers take none (Accordion's ref is its root).
   New API (e.g. `actionRef` props): needs approval; until then examples use the nearest reachable target.
 - **P0/P1 · Studio prototype walk 2026-10-29: pick which fixes to build:** hands-on walk (4 pages, ~50 findings: 2 P0, 19
   P1) in `docs/research/studio-prototype-walk-2026-10-29.md`; §4 lists 9 fixes in order (W-47 Play status-bar band is a

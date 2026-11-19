@@ -37,6 +37,12 @@ How to maintain it:
 - Docs and Zen Studio: the overlays and feedback pages' examples are files too (Dialog, Bottom Sheet, Side Panel,
   Popover, Menu, Tooltip, Toast, Chip): 230 of 505 so far. `./demo` adds `leaveHistory`. The brand film on the Tooltip
   page waits for Play instead of starting by itself.
+- Docs and Zen Studio: the navigation and structure pages' examples are files too (Tabs, Breadcrumbs, Pagination,
+  Stepper, Top Navigation, Bottom Navigation, Sidebar, Page Header, Dashboard Header, Action Bar, Accordion, Layout,
+  List Item, Description List, Card): 334 of 505 so far. `./demo` adds `videos.canyonPortrait`. The chip rows of the
+  Badge and Segmented phone examples run to the screen edge again, so a cut chip shows the row scrolls.
+- Sidebar: closing the flyout (`subMenu`) with Escape or a pick inside it gives focus back to the rail item that opened
+  it, instead of dropping it on the page.
 - Zen Studio: a picture read from the shared photo library (`photos` in `./demo`) is never changed there; a new picture
   on that layer is the layer's own, as before the photos moved (it would have changed every page's photo). A data edit
   in the Studio no longer reloads its panels and loses the session (since the photos moved).
