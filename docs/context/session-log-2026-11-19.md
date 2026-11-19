@@ -45,3 +45,12 @@ Task from the P2b session (plan §11 slice 5). Branch `zen/feat/code-view-p2b5-2
   and Tooltip's own close X → BACKLOG-user-and-later P2 refs line.
 - Checks: tsc, examples:check, usage:check + selftest, style:check, studio:selftest, guidelines:check, build; gate
   `qa --isolated --keep-going --pages=<8> --files=<66>` PASS, then `--pages=chip` after the chip fix PASS.
+
+## Tooltip: the close X gives focus back to the trigger (tier S; same session, asked by Giám sát)
+
+Found while porting the Tooltip examples (P2b PR5): a `closable` tooltip's X, or Escape while the X had focus, unmounted
+the focused button and dropped focus on body. Branch `zen/fix/tooltip-close-focus-20261119` from main e64ee694.
+- `Tooltip.tsx`: closing from inside the tooltip focuses the trigger (first focusable in the anchor outside the
+  surface); a flag keeps that returned keyboard focus from opening the tooltip again. Other closes are unchanged.
+- Test: `tests/interaction/tooltip-closable.test.tsx` (Enter on the X, Escape on the X → trigger focused, tip closed).
+- BACKLOG-user-and-later refs line and plan §11 PR5 paragraph updated; CHANGELOG line.
