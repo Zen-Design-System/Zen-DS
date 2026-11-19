@@ -384,3 +384,16 @@ subset cost here: "Search during an import" opens on the finished import with a 
 card selects from its radio row, not its padding, and lost its hover stroke (both were `::after` page CSS); more focus
 targets land on the nearest reachable element (Slider's ref is its wrapper, ColorSelector and FileUpload give none) —
 added to the BACKLOG-user-and-later line.
+
+**PR5 as built (2026-11-19):** the 50 examples of Dialog, Bottom Sheet, Side Panel, Popover, Menu, Tooltip, Toast and
+Chip, ported by four agents (two pages each) and reviewed in one pass; all six page CSS files went. New in the demo
+world: `leaveHistory` (Alex's earlier time off, which two Dialog examples had copied). Patterns added: a component
+measured with ResizeObserver to pick a narrow layout follows `useZen()?.breakpoint` instead (Dialog card rows, Menu task
+rows, Side Panel table columns); where the docs card's width matters (the docked Side Panel starts open only where it
+docks), the page measures its frame and passes a prop (`startOpen`), as `scrollRef`; a toast host in a phone app sits
+in AppShell's `bottomNavigation` slot above the tab bar, its gap only while a toast shows; a shortcut guard reads the
+Menu's controlled `open` instead of `closest('[role="menu"]')`; a name measured for its ellipsis is measured from a
+ref as the pointer or focus arrives. What the subset cost here: the brand film waits for Play (autoplay was an effect
+reading `matchMedia`); the Toast phone app keeps its scroll when tabs change; Breadcrumbs' crumbs, Table's row
+checkboxes, EmptyState's action and Tooltip's own close X give focus no target — added to the BACKLOG-user-and-later
+line.
