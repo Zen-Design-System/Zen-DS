@@ -115,13 +115,13 @@ const topNavigation: ComponentGroups = {
         prop: "trailingGroup",
         warn: [
           { when: [], text: "Deprecated: drag one action onto another (canvas or Slots) so both share a group." },
-          { when: [{ prop: "type", oneOf: ["compact", "compact-alt", "compact-overlay"] }], text: "Compact types keep their Flat actions apart (Figma's Icon-Flat has no trailing icon)." },
+          { when: [{ prop: "type", oneOf: ["compact", "compact-alt", "compact-overlay"] }], text: "Compact themes keep their Flat actions apart (Figma's Icon-Flat has no trailing icon)." },
         ],
       }, {
         // Each action's Group stays editable on the compact types (it comes back with the other types) and says why it
         // draws no pill there (user, 2026-10-05: trailing groups do not apply to Flat actions).
         prop: "trailing",
-        warn: [{ when: [{ prop: "type", oneOf: ["compact", "compact-alt", "compact-overlay"] }], text: "Compact types keep their Flat actions apart: Group draws no pill here (Figma's Icon-Flat has no trailing icon)." }],
+        warn: [{ when: [{ prop: "type", oneOf: ["compact", "compact-alt", "compact-overlay"] }], text: "Compact themes keep their Flat actions apart: Group draws no pill here (Figma's Icon-Flat has no trailing icon)." }],
       }],
     },
     // The screen's heading level goes with the title that is the heading: the large title while there is one.

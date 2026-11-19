@@ -708,6 +708,28 @@ export const rows = [
       return `no wrap · "${(await statusText(page)).split(" | ")[0]}"`;
     }),
   },
+  {
+    id: "I-55", feature: "A Top Navigation's Type reads Theme in Look (user 2026-11-18: \"Đổi type thành theme\"): the field says Theme and shows the bar's look (Default); picking Alt writes type=\"alt\"; one ⌘Z", wp: "top nav theme label 2026-11-18", timeout: 60_000,
+    run: guarded("I-55", async (ctx, hold) => {
+      const { focusScreen } = await import("./builder.mjs");
+      const { page, id, text } = hold(await seededPage(ctx, floatPage, /Dr\. An/));
+      await focusScreen(page);
+      await deepClick(page, id, "TopNavigation");
+      await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the Top Navigation selected" });
+      const field = inspectorRow(page, "type");
+      await field.waitFor({ state: "visible", timeout: 5000 });
+      const shown = (await field.innerText()).replace(/\s+/g, " ").trim();
+      if (!/^Theme\b/.test(shown) || /\bType\b/.test(shown) || !/Default/.test(shown)) throw new Error(`the field reads "${shown}", not Theme · Default`);
+      const before = await text();
+      await field.getByRole("combobox").or(field.getByRole("button")).first().click();
+      await page.getByRole("option", { name: /^Alt$/ }).first().click();
+      await until(async () => /<TopNavigation\b[^>]*\btype="alt"/.test(await text()), { message: "type=\"alt\" written" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await text()) === before, { message: "one ⌘Z" });
+      return `"${shown}" · Alt → type="alt" · ⌘Z`;
+    }),
+  },
 ];
 
 /** A phone Screen without auto layout: its layers float in Boxes (as inserts there write them), with both bars. */

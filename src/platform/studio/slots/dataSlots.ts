@@ -109,7 +109,7 @@ export const DATA_SLOTS: Readonly<Record<string, readonly DataSlot[]>> = {
       // The compact types draw Nav-Action/Flat, which never pairs (Figma's Icon-Flat has no trailing icon; the component
       // ignores `group` there). User, 2026-10-05: "Behavior action trailing group không áp dụng cho action dạng flat".
       groups: (props) => !String(props.type ?? "default").startsWith("compact"),
-      groupsOffNote: "Compact types keep their Flat actions apart (Figma's Icon-Flat has no trailing icon)",
+      groupsOffNote: "Compact themes keep their Flat actions apart (Figma's Icon-Flat has no trailing icon)",
       maxNote: "the bar draws three places, a group counting as one (on a root, the large title's actions take the first places)",
       figma: { node: "12013:39653" },
       newItem: (count) => navAction(...NAV_ACTIONS[Math.min(count, NAV_ACTIONS.length - 1)]),
