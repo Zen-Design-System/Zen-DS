@@ -105,9 +105,10 @@ const [count, setCount] = useState(0);
     const files = import.meta.glob<string>("../../src/platform/examples/pages/*/*.example.tsx", { query: "?raw", import: "default", eager: true });
     const read = Object.entries(files).map(([file, raw]) => ({ file, code: exampleCode(raw), result: readSnippet(parse, exampleCode(raw)) }));
     expect(read.filter(({ result }) => !result.ok).map(({ file, result }) => `${file}: ${result.ok ? "" : result.error}`)).toEqual([]);
-    // The package by name, the demo world as the reader's own ./demo: nothing from the docs.
+    // The package by name (and its AI UI runtime, on the AI UI page), the demo world as the reader's own ./demo: nothing
+    // from the docs.
     const sources = new Set(read.flatMap(({ result }) => (result.ok ? result.tree.imports.map((entry) => entry.source) : [])));
-    expect([...sources].filter((source) => !["react", "@zen-ds/react", "./demo"].includes(source))).toEqual([]);
+    expect([...sources].filter((source) => !["react", "@zen-ds/react", "@zen-ds/react/ai-ui", "./demo"].includes(source))).toEqual([]);
     expect(read.length).toBeGreaterThanOrEqual(13);
   });
 });

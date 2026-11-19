@@ -47,14 +47,20 @@ How to maintain it:
   voice turns run from the press that starts them.
 - Sidebar: closing the flyout (`subMenu`) with Escape or a pick inside it gives focus back to the rail item that opened
   it, instead of dropping it on the page.
+- Docs and Zen Studio: the Chat, AI Chat, AI UI, Widgets and App Shell pages' examples are files too, with the five
+  App Shell layout pages (desktop, mobile, expressive, consumer, smart home): 408 of 505 so far. AI UI examples import
+  the runtime from `@zen-ds/react/ai-ui` and take the catalog as a `catalog` prop (in an app,
+  `import catalog from "@zen-ds/react/ai-ui/catalog.json"`).
+- Harness: `theme/mixed-elevation` and `theme/mixed-boxes` read a Sidebar with `density="small"` as shadowed, as it
+  draws (only `variant="small-density"` drops the shadow); it took every Small-density Sidebar for a flat one.
 - Zen Studio: a picture read from the shared photo library (`photos` in `./demo`) is never changed there; a new picture
   on that layer is the layer's own, as before the photos moved (it would have changed every page's photo). A data edit
   in the Studio no longer reloads its panels and loses the session (since the photos moved).
 - CI: the SwiftUI and Flutter token jobs run on macOS 15; GitHub no longer runs macOS 14, so they were cancelled.
-- Harness: new repo rule `examples/portable-subset` (warning) keeps example files in the React subset other languages can
-  translate: useState, useId, useRef, Zen hooks, conditions, lists and handlers; no effects, context, forwardRef or
-  direct DOM. New `npm run examples:check` (QA gate and CI) compiles every example as copied, and fails when an example
-  imports docs helpers or when the examples still written as code strings grow (baseline 492, going to 0).
+- Harness: new repo rule `examples/portable-subset` (an error since every example moved) keeps example files in the
+  React subset other languages can translate: useState, useId, useRef, Zen hooks, conditions, lists and handlers; no
+  effects, context, forwardRef or direct DOM. New `npm run examples:check` (QA gate and CI) compiles every example as copied, and fails when an example
+  imports docs helpers or when an example is written as a code string again (the baseline went from 492 to 0).
 - Language ports: `platforms/tests/demo-vectors.json` holds the demo formatters' answers (dates, money, sizes,
   initials) that every language's demo module must give; `npm run guidelines:build` writes it.
 - Tooling: `visual-diff capture` and `platform:shoot` with `--isolated` exit when done (they left their private server

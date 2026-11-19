@@ -1,4 +1,4 @@
-// An example file (*.example.tsx) outside the portable subset: each marked line is one examples/portable-subset finding.
+// An example file (*.example.tsx) outside the portable subset: each marked line is one examples/portable-subset error.
 // expect: examples/portable-subset
 import { useEffect } from "react";
 // expect: examples/portable-subset

@@ -2,26 +2,29 @@
    per card, each the code the Zen Studio's Widgets group inserts (studio/slots/palette.ts: widgetCode). Every widget below
    renders exactly the JSX of its palette entry: palette.selftest.mjs parses this file and compares the two, so edit both
    together. The data is Đìzai Studio's (examples/data.ts), the months, teams, clients and projects the Chart and Metric
-   pages read. Widgets sit flat on the Canvas/Default stage (usage rules §16). */
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+   pages read. Widgets sit flat on the Canvas/Default stage (usage rules §16). The last two examples (on a phone, before
+   there is data) are their own files in widgets/ (P2b, plan docs/research/code-languages-plan-2026-10-03.md §11): the
+   card renders its default export and shows its text as the snippet. */
+import { useState, type ReactNode } from "react";
 import {
   AreaChart, BarChart, BarList, BulletChart, ChartCard, ComboChart, DonutChart, FunnelChart, GaugeChart, GroupedBarChart, HeatmapChart, LineChart, RadialChart,
 } from "../../../components/Chart";
 import { Button } from "../../../components/Button";
-import { EmptyState } from "../../../components/EmptyState";
-import { Box, Grid, Stack } from "../../../components/Layout";
+import { Grid } from "../../../components/Layout";
 import { MetricCard } from "../../../components/MetricWidget";
-import { SkeletonShape } from "../../../components/Skeleton";
-import { Heading, Text, plural } from "../../../components/Text";
+import { Text, plural } from "../../../components/Text";
 import { ToastProvider, useToast } from "../../../components/Toast";
-import { TopNavigation } from "../../../components/TopNavigation";
-import { VisuallyHidden } from "../../../components/VisuallyHidden";
-import { PlatformPhone } from "../../PlatformPhone";
+import { PlatformPhoneApp } from "../../PlatformPhone";
 import { Panel, PlaygroundFilterChip, option } from "../../appLayer/shared";
 import { WIDGET_PAGE_CONTEXT, paletteItem, widgetCode } from "../../studio/slots/palette";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
 import { keepOnHotUpdate } from "../../hotData";
+import { exampleCode } from "../exampleCode";
+import StudioWidgets from "./widgets/widgets-on-a-phone.example";
+import studioWidgets from "./widgets/widgets-on-a-phone.example.tsx?raw";
+import HoursBeforeData from "./widgets/before-there-is-data.example";
+import hoursBeforeData from "./widgets/before-there-is-data.example.tsx?raw";
 import "./widgets.css";
 
 export const page: PlatformPage = "widgets";
@@ -333,62 +336,6 @@ export function WidgetsPlayground() {
   );
 }
 
-/* ───────────── On a phone ───────────── */
-
-function PhoneWidgetsExample() {
-  const screenRef = useRef<HTMLDivElement>(null);
-  const headingId = useId();
-  return (
-    // Phone screens are Canvas/Default: the widgets stay flat, the bar takes the canvas (alt). The section heading (h2,
-    // Heading/4) sits between the large title (h1) and the widgets' card titles (h3, Heading/Subheading), never smaller.
-    <PlatformPhone label="Studio" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="alt" title="Studio" largeTitle="Studio" scrollRef={screenRef} />}>
-      <Stack as="section" gap="md" padding="lg" aria-labelledby={headingId}>
-        <Heading level={2} id={headingId} textStyle="Heading/4">This quarter</Heading>
-        <UtilisationWidget />
-        <TopClientsWidget />
-      </Stack>
-    </PlatformPhone>
-  );
-}
-
-/* ───────────── Before there is data ───────────── */
-
-function NoDataExample() {
-  const { toast } = useToast();
-  const regionRef = useRef<HTMLDivElement>(null);
-  const [load, setLoad] = useState<"empty" | "loading" | "ready">("empty");
-  // A demo request: the first months arrive after about a second.
-  useEffect(() => {
-    if (load !== "loading") return undefined;
-    const timer = window.setTimeout(() => {
-      setLoad("ready");
-      toast({ title: "Timesheets connected", children: "Six months of billable hours came in.", action: { label: "Undo", onClick: () => { setLoad("empty"); regionRef.current?.focus(); } } });
-    }, 1200);
-    return () => window.clearTimeout(timer);
-  }, [load, toast]);
-  const connect = () => {
-    setLoad("loading");
-    // The pressed button goes away: focus moves to the widget's place, not to <body>.
-    regionRef.current?.focus();
-  };
-  return (
-    <Box ref={regionRef} tabIndex={-1} aria-busy={load === "loading"}>
-      {load === "ready" ? <HoursByTeamWidget /> : (
-        // The card keeps its title and description while there is nothing to draw.
-        <ChartCard title="Billable hours by team" metricLabel="Logged per month, Apr – Sep 2026">
-          {load === "loading" ? <SkeletonShape className="pe-widgets-skeleton" /> : (
-            <EmptyState icon="icon-clock-line" title="No timesheets yet" primaryAction={{ label: "Connect timesheets", onClick: connect }}>
-              Hours your teams log show here month by month.
-            </EmptyState>
-          )}
-        </ChartCard>
-      )}
-      <VisuallyHidden role="status">{load === "loading" ? "Loading billable hours" : load === "ready" ? "Billable hours loaded" : ""}</VisuallyHidden>
-    </Box>
-  );
-}
-
 /* ───────────── Examples ───────────── */
 
 /** A Widgets example's body (description, render, code) from its pattern; the title is written at the call. */
@@ -425,37 +372,13 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {
     title: "Widgets on a phone",
     description: "A phone screen is Canvas/Default too, so the widgets stay flat and stack one a row under a section heading (h2, between the large title and the card titles in size too). Pick widgets whose chart keeps its width in a card: a gauge, a ranking.",
-    render: () => <PhoneWidgetsExample />,
-    code: `const screenRef = useRef<HTMLDivElement>(null);
-
-<PlatformPhone label="Studio" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="alt" title="Studio" largeTitle="Studio" scrollRef={screenRef} />}>
-  <Stack as="section" gap="md" padding="lg" aria-labelledby={headingId}>
-    <Heading level={2} id={headingId} textStyle="Heading/4">This quarter</Heading>
-${indent(jsxOf("widget-utilisation"), 4)}
-${indent(jsxOf("widget-top-clients"), 4)}
-  </Stack>
-</PlatformPhone>`,
+    render: () => <PlatformPhoneApp label="Studio" app={StudioWidgets} />,
+    code: exampleCode(studioWidgets),
   },
   {
     title: "Before there is data",
     description: "Until the first data comes in, the widget keeps its title and description and offers the step that brings data, without an empty grid. Connect timesheets shows a Skeleton while it loads, then the widget; Undo in the Toast goes back.",
-    render: () => <NoDataExample />,
-    code: `const [load, setLoad] = useState<"empty" | "loading" | "ready">("empty");
-
-<Box ref={regionRef} tabIndex={-1} aria-busy={load === "loading"}>
-  {load === "ready" ? (
-    <HoursByTeamWidget /> // the "Hours by team" widget above
-  ) : (
-    <ChartCard title="Billable hours by team" metricLabel="Logged per month, Apr – Sep 2026">
-      {load === "loading" ? <SkeletonShape className="chart-skeleton" /> /* width: 100%; height: 236px (the chart's height) */ : (
-        <EmptyState icon="icon-clock-line" title="No timesheets yet" primaryAction={{ label: "Connect timesheets", onClick: connect }}>
-          Hours your teams log show here month by month.
-        </EmptyState>
-      )}
-    </ChartCard>
-  )}
-  <VisuallyHidden role="status">{load === "loading" ? "Loading billable hours" : load === "ready" ? "Billable hours loaded" : ""}</VisuallyHidden>
-</Box>`,
+    render: () => <HoursBeforeData />,
+    code: exampleCode(hoursBeforeData),
   },
 ]);

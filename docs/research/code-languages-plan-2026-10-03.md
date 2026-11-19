@@ -427,3 +427,30 @@ a load is no longer cancelled on unmount; focus after a Chart import or Undo lan
 its wrapper) and after a Metric drill-in on the pushed screen's title (TopNavigation's leading action takes no ref);
 the Table progress label is a node, so the bar loses `aria-valuetext` (its value is still read as a percent); Metric's
 drill-in keeps one device label.
+
+**PR7 as built (2026-11-19):** the 74 examples of Chat, AI Chat, AI UI, Widgets (two; the 21 palette widgets keep the
+code the Studio palette writes) and App Shell with its five layout pages, ported by eight agents (Chat and AI UI one
+each, the layout pages one or two each) and reviewed in one pass. The App Shell part files (`app-shell/a-…`–`g-….tsx`)
+went: each layout page lists its own `app-shell-<section>/<slug>.example.tsx`, and `app-shell/` holds the App Shell
+page's examples. Page CSS: chat, ai-chat and app-shell.css went; ai-ui.css and widgets.css keep only Playground rules.
+New: `@zen-ds/react/ai-ui` (the AI UI runtime, a package entry) is an allowed import, aliased like `@zen-ds/react` in
+Vite, Vitest, tsconfig and the compile fixture; the 1.1 MB catalog comes in as a `catalog` prop the page loads lazily
+(every example page loads at start-up, so a static import would weigh on every page; an app imports
+`@zen-ds/react/ai-ui/catalog.json`). Patterns added: a streamed answer or a playback is a `setTimeout` chain whose steps
+stop once a ref'd element of the example is gone (PR6's lesson); a conversation the example opens on is computed in a
+`useState` initializer; the live composer and the compose server's status start on the first pointer or focus; App Shell
+band and media screens (`mobileTop` band / media, a bar that is not sticky) take no `scrollRef`. What the subset cost
+here: ChatMessage's ref is its root, not the bubble; ChatComposer's and AiChatField's refs are their form, not the
+textarea or the emoji, model and + buttons (AiChatField's popovers now anchor to the whole field); ChatConversationItem's
+ref is its `li`; AiChatBubble's actions take none — focus lands on the title, the list or a status line. The emoji panel
+closes on blur instead of a document listener; AI UI's thinking sphere and fade-ins (page CSS) went; "Skeleton first"
+opens on the rows (Overdue invoices shows the Skeleton); the Consumer shortcut tiles use the browser's focus ring. Bugs
+met → fixed: the harness read `density="small"` Sidebars as shadowless (only `variant="small-density"` is); Voice
+messages named a Bao Tran who is not in the demo world and could not delete a sent text; a typed invoices sentence
+stayed on the Skeleton; Discover's "Not a match" dropped focus on the page; three Smart home descriptions named what the
+screen does not show.
+
+**P2b done (2026-11-19, PR7):** all 505 examples are `*.example.tsx` files that compile as copied; the
+`examples:check` baseline is 0 and `examples/portable-subset` is an error (`npm run usage:selftest` fails if it is
+ever a warning again). Next in §6 is P3 (web core extraction + Vue W1, whose emitter reads these files), approved on
+its own.

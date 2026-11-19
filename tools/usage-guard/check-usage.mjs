@@ -294,8 +294,9 @@ const sidebarLook = (attrs, host) => {
   const theme = literal(own, "theme") ?? (host && /\bpattern=(?:"|\{\s*")grid"/.test(host.tag) ? "border" : "default");
   const background = literal(own, "background") ?? "default";
   const flush = theme !== "default";
-  // The workspace panel and the small density never cast one (Sidebar `shadow`); `shadow={false}` is Figma Shadow=No.
-  const shadowless = literal(own, "variant") === "workspace" || literal(own, "density") === "small" || /(^|\s)shadow=\{\s*false\s*\}/.test(attrs);
+  // The workspace panel and the Small-Density variant never cast one (Sidebar `shadow`; `density="small"` alone keeps the
+  // Basic panel's shadow since 2026-10-21); `shadow={false}` is Figma Shadow=No.
+  const shadowless = ["workspace", "small-density"].includes(literal(own, "variant")) || /(^|\s)shadow=\{\s*false\s*\}/.test(attrs);
   return { background, flush, shadow: flush || background !== "default" ? null : !shadowless };
 };
 /** Block comments in a source (JSDoc and `{/* … *\/}` notes): tags quoted there are not usage (as the engine skips them). */
@@ -2813,7 +2814,7 @@ export const rules = [
         if (selectedFill && !ringed) return `shows focus on .${item} with a fill only, and its selected state is a fill too — on or beside a selected item focus can vanish; draw the 3px Focus/Accent ring (inset where a scrolling list clips).`;
       }
       return null;
-    } },  { id: "examples/portable-subset", source: true, components: [], repoOnly: true, severity: "warn", allow: "portable", guideline: "docs/guides/example-patterns.md",
+    } },  { id: "examples/portable-subset", source: true, components: [], repoOnly: true, severity: "error", allow: "portable", guideline: "docs/guides/example-patterns.md",
     summary: "An example file (*.example.tsx) stays in the portable React subset the Vue, Svelte, SwiftUI and Flutter translations read: useState, useId, useRef for elements, Zen hooks, conditionals, map / filter / sort / find / slice and handlers (a setTimeout inside one). No effects, context, forwardRef or direct DOM (document, window, querySelector, ResizeObserver, requestAnimationFrame).",
     check: ({ src, file }) => portableSubset(src, file) },
 ];

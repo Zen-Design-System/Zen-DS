@@ -26,6 +26,12 @@ for (const goodFile of fixtures.filter((f) => /\/good(\.example)?\.\w+$/.test(f)
   const report = run(goodFile);
   if (!/Usage rules pass/.test(report) || /\[/.test(report)) problems.push(`${path.basename(goodFile)} reported findings:\n${report}`);
 }
+// Every example is a file since P2b PR7, so examples/portable-subset is an error: an example outside the subset fails
+// the check (exit 1), it does not only warn.
+try {
+  execFileSync("node", [checker, path.join(here, "fixtures/bad.example.tsx")], { stdio: "pipe" });
+  problems.push("bad.example.tsx: the check passed — examples/portable-subset must be an error (P2b closed the gate)");
+} catch { /* exit 1: the findings are errors */ }
 // A page Zen Studio made (`// @zen-page` header) writes `overrides`: api/overrides-studio-only stays quiet there.
 const studioReport = run(path.join(here, "fixtures/studio-page.zen.tsx"));
 if (!/Usage rules pass/.test(studioReport) || /\[/.test(studioReport)) problems.push(`studio-page.zen.tsx reported findings:\n${studioReport}`);
