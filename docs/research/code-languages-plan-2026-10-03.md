@@ -1,8 +1,9 @@
 # Code view in other languages: Vue, Svelte, HTML, Swift, Flutter (plan, 2026-10-03)
 
 Status: **P1 and P2 approved (user, 2026-11-12: "Code view: HTML/CSS"); §8 answered the same day.** P1 (the Code view
-base) and P2 (HTML + CSS) are built: see §9–§10. **P2b started 2026-11-13** (session opened by the user, its three
-choices in §11). P3–P9 still need their own approval (Scope lock).
+base) and P2 (HTML + CSS) are built: see §9–§10. **P2b is done** (started 2026-11-13 with the user's three choices,
+seven slices #400–#410 merged by 2026-11-19: 505/505 examples are files, the gate is closed; §11). P3–P9 still need
+their own approval (Scope lock).
 
 ## 1. Where we are
 
