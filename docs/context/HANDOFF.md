@@ -22,15 +22,16 @@ Last updated: 2026-11-13.
 - **Code view P2b, portable examples (2026-11-13, user):** an example is a file, `examples/pages/<page>/<slug>.example.tsx`
   (default export rendered, its `?raw` shown via `examples/exampleCode.ts`; demo import `../../data` shows as `./demo`,
   Code header copies demo.ts). Imports only react, `@zen-ds/react`, the demo world; phone examples on `AppShell`, the
-  page draws `PlatformPhone`. Gate `npm run examples:check` (baseline 492 still strings), harness
-  `examples/portable-subset` (warn), vectors `platforms/tests/demo-vectors.json`. PR1 (#400) = foundation + Link, Badge;
+  page draws `PlatformPhone`. Gate `npm run examples:check` (baseline 0: no example is a code string any more), harness
+  `examples/portable-subset` (error), vectors `platforms/tests/demo-vectors.json`. PR1 (#400) = foundation + Link, Badge;
   PR2 = display and text (14 pages, 88/505 moved, baseline 417; photos in `./demo`; phone examples take `scrollRef`,
   drawn by `PlatformPhoneApp`); PR3 = controls and forms (15 pages, 180/505 moved, baseline 325; `videos` and
   `calendarEvents` in `./demo`); PR5 = overlays and feedback (8 pages, 230/505 moved, baseline 275; `leaveHistory` in
-  `./demo`); PR4 = navigation and structure (15 pages, 334/505 moved, baseline 171; `videos.canyonPortrait`); PR7 =
-  Chat, AI Chat, AI UI, Widgets, App Shell + its five layout pages (408/505 moved, baseline 97 = PR6's pages; examples
-  may import `@zen-ds/react/ai-ui`, the catalog is a prop). PR6 (data) follows; the last of the two closes the gate
-  (baseline 0, rule to error) (plan §11, guide `docs/guides/example-patterns.md` §8b).
+  `./demo`); PR4 = navigation and structure (15 pages, 334/505 moved, baseline 171; `videos.canyonPortrait`); PR6 = data
+  (9 pages, 431/505 moved, baseline 74; chart, schedule and timeline data in `./demo`); PR7 = Chat, AI Chat, AI UI,
+  Widgets, App Shell + its five layout pages (505/505 moved, baseline 0; examples may also import `@zen-ds/react/ai-ui`,
+  the AI UI catalog is a prop) closed the gate: `examples/portable-subset` is an error. P2b is done (plan §11, guide
+  `docs/guides/example-patterns.md` §8b).
 - **Code view in other languages, P1 (2026-11-13, user 2026-11-12):** every snippet (classic + Studio Code tab) has a
   language picker (`src/platform/code/SnippetCode.tsx`): all six languages with honest states, one choice per viewer +
   `?code=`; only React has code. Status per component: `src/platform/code-languages.generated.json` (built with the

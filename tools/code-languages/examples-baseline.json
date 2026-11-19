@@ -1,15 +1,5 @@
 {
   "$comment": "Examples still written as a code string beside their render, per page file: P2b moves them to *.example.tsx files (plan docs/research/code-languages-plan-2026-10-03.md §11). A count may only go down. Written by npm run examples:check -- --write.",
-  "total": 97,
-  "pages": {
-    "src/platform/examples/pages/chart.tsx": 30,
-    "src/platform/examples/pages/curve-preview.tsx": 6,
-    "src/platform/examples/pages/metric.tsx": 16,
-    "src/platform/examples/pages/schedule.tsx": 6,
-    "src/platform/examples/pages/shape.tsx": 12,
-    "src/platform/examples/pages/sheet-table.tsx": 5,
-    "src/platform/examples/pages/table.tsx": 8,
-    "src/platform/examples/pages/timeline.tsx": 7,
-    "src/platform/examples/pages/voice.tsx": 7
-  }
+  "total": 0,
+  "pages": {}
 }
