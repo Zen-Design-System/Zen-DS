@@ -1,8 +1,0 @@
-/* Date Picker examples (docs/research/example-rebuild-brief-2026-09-30.md). Tokens only; class prefix .px-date-picker-. */
-
-/* A calendar anchored to its own trigger (the issue-date Chip) is placed against this box. */
-.px-date-picker-anchor { position: relative; }
-
-/* Time off: the request takes the room beside the calendar and wraps under it below 240px (a flex basis that may still
-   shrink, which no Zen size prop is). */
-.px-date-picker-split > :last-child { min-width: 0; flex: 1 1 240px; }

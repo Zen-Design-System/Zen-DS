@@ -8,14 +8,14 @@
 import path from "node:path";
 import { createRequire } from "node:module";
 
-/** examples/data.ts as a module Node can run: types stripped and its photos left out (esbuild, in memory). */
+/** examples/data.ts as a module Node can run: types stripped and its photos and videos left out (esbuild, in memory). */
 async function loadDemo(root) {
   const require = createRequire(path.join(root, "package.json"));
   const esbuild = require("esbuild");
   const out = await esbuild.build({
     entryPoints: [path.join(root, "src/platform/examples/data.ts")],
     bundle: true, write: false, format: "esm", platform: "neutral", logLevel: "silent",
-    loader: { ".webp": "empty", ".jpg": "empty", ".png": "empty" },
+    loader: { ".webp": "empty", ".jpg": "empty", ".png": "empty", ".webm": "empty" },
   });
   return import(`data:text/javascript;base64,${Buffer.from(out.outputFiles[0].text).toString("base64")}`);
 }

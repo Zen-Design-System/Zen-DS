@@ -1,9 +1,0 @@
-/* Color Selector examples (src/platform/examples/pages/color-selector.tsx). Tokens only; class prefix .px-color-selector-. */
-
-/* A highlight keeps the text colour; with no colour picked it is plain text again (the browser's own yellow is off). */
-.px-color-selector-mark {
-  padding-inline: var(--zen-spacing-padding-3-xsmall, 2px);
-  border-radius: var(--zen-corner-radius-2-xsmall, 4px);
-  background: transparent;
-  color: inherit;
-}

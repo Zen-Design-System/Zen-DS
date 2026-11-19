@@ -28,6 +28,10 @@ How to maintain it:
   88 of 505 examples so far. The sample photos are in `./demo` (`photos`). A phone example takes `scrollRef` for its
   Top Navigation ("window" in your app), so its large title folds into the bar again as the screen scrolls (lost in
   the first slice).
+- Docs and Zen Studio: the controls and forms pages' examples are files too (Button, Input, Checkbox, Radio Button,
+  Toggle, Slider, Slider Field, Segmented, Search, Color Picker, Color Selector, Uploader, Form, Date Picker, Calendar):
+  180 of 505 so far. `./demo` adds `videos` and `calendarEvents`. Simulated uploads and imports run from the action
+  that starts them ("Search during an import" opens on the finished import, with a button that runs it again).
 - Zen Studio: a picture read from the shared photo library (`photos` in `./demo`) is never changed there; a new picture
   on that layer is the layer's own, as before the photos moved (it would have changed every page's photo). A data edit
   in the Studio no longer reloads its panels and loses the session (since the photos moved).

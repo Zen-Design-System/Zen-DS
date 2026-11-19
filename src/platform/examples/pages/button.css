@@ -1,6 +1,0 @@
-/* Button examples (src/platform/examples/pages/button.tsx). Tokens only. */
-
-/* Photo viewer: the photo zooms inside the frame (Box radius="lg" clip); the controls are Box/Stack layers pinned with
-   position="absolute" and constraints, so only the zoom stays here. */
-.px-button-viewer__photo { transform: scale(var(--px-button-zoom, 1)); }
-
