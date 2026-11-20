@@ -839,6 +839,9 @@ async function panelFits(page) {
       for (const row of body.children) {
         if (row.matches(".studio-component-property")) continue;
         for (const field of row.querySelectorAll(".zen-input-field")) {
+          // The code view's language picker sits in its own header (CodeView, the same view as on the docs pages), not
+          // on a property row.
+          if (field.closest(".studio-code__header")) continue;
           // A chart's numbers share the second field column (ChartDataSection: a value and its target, two series): the
           // last of them ends on its line, the others inside it.
           const values = field.closest(".studio-chart-data__values");
