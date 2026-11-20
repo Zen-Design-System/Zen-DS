@@ -37,11 +37,14 @@ export type DropTarget = {
    *  name too): before / after one of the layers the instance puts there, or at `index` among its main's own. */
   slot?: string;
   index?: number;
+  /** It floats at these px in the frame without auto layout it goes into (Figma's drop into a frame; edit/reparent.ts). */
+  at?: { x: number; y: number };
 };
 
 /** Where in its parent an op puts a layer (moveTo, pasteCode): before / after a child, or into a slot of an instance. */
-export function placeOf(target: DropTarget): { before?: string; after?: string; slot?: string; index?: number } {
-  const place: { before?: string; after?: string; slot?: string; index?: number } = target.slot ? { slot: target.slot } : {};
+export function placeOf(target: DropTarget): { before?: string; after?: string; slot?: string; index?: number; at?: { x: number; y: number } } {
+  const place: { before?: string; after?: string; slot?: string; index?: number; at?: { x: number; y: number } } = target.slot ? { slot: target.slot } : {};
+  if (target.at && !target.slot) place.at = target.at;
   if (target.before) place.before = parseSrc(target.before)?.loc;
   else if (target.after) place.after = parseSrc(target.after)?.loc;
   else if (target.slot && target.index !== undefined) place.index = target.index;

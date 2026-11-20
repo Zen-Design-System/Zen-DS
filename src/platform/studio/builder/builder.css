@@ -15,6 +15,9 @@
   overflow: visible;
 }
 .studio-builder-board__frames > .studio-frame[data-kind="layer"]:is([data-hovered="true"], [data-selected="true"]) { outline: none; }
+/* A layer dragged out of its frame (edit/drag.ts outOfFrame) shows past the frame's edges, above the frames beside it,
+   on its way to the canvas or another frame (Figma's reparent). */
+.studio-builder-board__frames > .studio-frame[data-studio-drag-out] { z-index: 2; overflow: visible; }
 /* Without a width (a Button, a Card), as wide as its layer; with one, its layer fills it (a Top Navigation, a chart). */
 .studio-builder-board__frames > .studio-frame[data-kind="layer"][data-hug] { width: max-content; }
 /* A frame gesture (frameMove.ts), in screen space over the frame chrome: Figma's red smart guides, the copy a ⌥-drag

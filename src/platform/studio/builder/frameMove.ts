@@ -11,6 +11,9 @@ import { pageFile } from "./store/pageStore";
 import { zoomToFrame } from "../board/presentFrame";
 import { copyFrame, moveFrames } from "./frameEdit";
 import { looseLayerHit } from "./looseLayer";
+import { looseDropAt } from "../edit/reparent";
+import { moveLayer } from "../edit/arrange";
+import { publishDragView } from "../edit/drag";
 import { isLayerFrameId } from "./render/frames";
 import { selectHit } from "../select/picker";
 import { FRAME_GAP, snapBox, SNAP_PX, type FrameBox, type FramePlace, type SnapGuide } from "./render/framePlace";
@@ -234,6 +237,8 @@ export function pressFrame(event: PointerEvent, frameId: string, onClick?: () =>
   let dragging = false;
   let target: FramePlace = start;
   let copy = false;
+  /** A layer on the canvas over a frame: where it goes into it (undefined: not a layer on the canvas). */
+  let into: ReturnType<typeof looseDropAt> | undefined;
   let overlay: Overlay | null = null;
   let origin = originOf(container);
   let stopPan = () => {};
@@ -286,13 +291,19 @@ export function pressFrame(event: PointerEvent, frameId: string, onClick?: () =>
       live.set(frameId, target);
       show(target);
     }
-    overlay?.draw(origin, { ghost: copy ? { ...target, ...size } : null, guides, size: null });
+    // A layer on the canvas over a frame goes into it on release (Figma's; edit/reparent.ts): the frame's drop place
+    // shows instead of the guides.
+    const shownAt = element.getBoundingClientRect();
+    into = loose && !copy ? looseDropAt(frameId, pointer, { x: shownAt.left, y: shownAt.top }) : null;
+    publishDragView(into ? { line: into.at ? null : into.target.line, into: into.target.into, pointer, label: `Move into ${into.target.parentName}`, tone: "info" } : null);
+    overlay?.draw(origin, { ghost: copy ? { ...target, ...size } : null, guides: into ? [] : guides, size: null });
   };
   const finish = () => {
     stop();
     stopPan();
     offCanvas();
     overlay?.remove();
+    if (into !== undefined) publishDragView(null);
     viewport?.removeAttribute("data-studio-dragging");
   };
   const cancel = () => {
@@ -329,6 +340,12 @@ export function pressFrame(event: PointerEvent, frameId: string, onClick?: () =>
       swallowClick();
       if (copy) {
         void copyFrame(localPage, frameId, target, { label: section ? "Duplicate section" : loose ? "Duplicate layer" : "Duplicate frame", heights });
+        return;
+      }
+      if (into) {
+        const { layer, target: drop, at } = into;
+        dropLivePlace(frameId, element, start);
+        void moveLayer(layer, { ...drop, ...(at ? { at } : {}) }, false);
         return;
       }
       if (target.x === start.x && target.y === start.y) { live.delete(frameId); return; }

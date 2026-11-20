@@ -57,6 +57,21 @@ with a <Layer> left in the folder) then DR-02/03/04 work → stall môi trườn
 with an empty folder). The first sharded gate lost shard 2–3 to a Clamshell Sleep (pmset 11:07:50–12:16:23); its re-run:
 461 works, SE-06 (Checkbox row in Layers, a code page) once, alone 27/27 select.
 
+## Layers on the canvas — PR2: drag out of a frame and into one (tier M, branch zen/feat/studio-loose-drag-20261120)
+
+Plan step 2 of "Đủ như Figma" (PR1 #415 merged). Engine: moveTo takes `loose` { id, x, y, width? } (the parent is the
+Board: the code becomes a <Layer>, its place in its frame dropped, a Box that only placed it unwrapped) and `at` { x, y }
+(it floats there in a frame without auto layout); a Layer whose one layer moves away goes with it (slots.mjs removal).
+Canvas (edit/reparent.ts): a flow drag or a floating layer's drag with the pointer over the empty canvas → moveToCanvas
+at the place it shows (a layer that filled its parent keeps its width); a floating layer over another frame → into it
+(at the px in a free frame); a loose layer's frame move over a frame → looseDropAt → moveLayer (frameMove.ts). The source
+frame draws past its edges meanwhile (`data-studio-drag-out`). sameDropScope counts `layer:` as the page's.
+Not in it: Layers-panel row drags out of / into frames, several layers at once.
+E2E FW-275…279 (from Giám sát).
+QA: engine-iso's ENGINE list takes instance-paths (arrange.mjs now imports dialect.mjs for layerCode; instance-paths is
+pure and already in the browser engine's graph). Groups figma/draw/builder/select 313 works; the 10 broken all work
+alone except FW-169, broken on main too (the Code view's language picker off the panel grid; Giám sát fixes it).
+studio:dnd 0 findings. qa --isolated PASS (Studio E2E 462 works, 6 shards); build ✓.
 
 ## FW-169: the Code view's language picker is not a property row (tier XS, Giám sát, branch zen/fix/studio-fw169-code-picker-20261120)
 
