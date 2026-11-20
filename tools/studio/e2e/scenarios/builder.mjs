@@ -463,6 +463,10 @@ async function dragAssetTo(page, label, to) {
 const screensOf = (text) => [...text.matchAll(/<Screen\b([^>]*?)(\/>|>([\s\S]*?)<\/Screen>)/g)].map(([, attrs, , inner]) => ({
   id: /\bid="([^"]+)"/.exec(attrs)?.[1], title: /\btitle="([^"]+)"/.exec(attrs)?.[1], width: Number(/\bwidth=\{(\d+)\}/.exec(attrs)?.[1]), height: Number(/\bheight=\{(\d+)\}/.exec(attrs)?.[1]), inner: (inner ?? "").replace(/\s+/g, " ").trim(),
 }));
+/** The page's layers on the canvas (<Layer>, Figma's layers outside any frame; user 2026-11-20). */
+const layersOf = (text) => [...text.matchAll(/<Layer\b([^>]*?)>([\s\S]*?)<\/Layer>/g)].map(([, attrs, inner]) => ({
+  id: /\bid="([^"]+)"/.exec(attrs)?.[1], x: Number(/\bx=\{(-?\d+)\}/.exec(attrs)?.[1]), y: Number(/\by=\{(-?\d+)\}/.exec(attrs)?.[1]), width: Number(/\bwidth=\{(\d+)\}/.exec(attrs)?.[1] ?? NaN), inner: inner.replace(/\s+/g, " ").trim(),
+}));
 
 export const rows = [
   {
@@ -1712,32 +1716,37 @@ export const rows = [
     },
   },
   {
-    id: "B-55", feature: "A component dragged from Assets onto the empty canvas lands as Figma's loose instance: a new frame at the pointer holds it at X 0 Y 0, the frame takes its size, one ⌘Z takes it all back (user 2026-10-28: kéo component ra canvas trống)", wp: "bug 2026-10-28",
+    id: "B-55", feature: "A component dragged from Assets onto the empty canvas lands as Figma's loose instance: a layer on the canvas at the pointer, outside any frame (a <Layer> holding the Button as it is, no frame or floating Box), its layer selected; one ⌘Z takes it back (user 2026-10-28: kéo component ra canvas trống; 2026-11-20: không đặt ở ngoài frame được)", wp: "bug 2026-10-28, loose layers 2026-11-20",
     async run(ctx) {
       const { page, id } = await emptyPage(ctx);
       const before = (await pageText(page, id)) ?? "";
       const shown = await dragAssetToBoard(page, "Button");
-      if (!/new frame/.test(shown)) throw new Error(`the drag over the empty canvas says "${shown}"`);
-      // The add, then the fit (one undo step): wait for the frame's height to leave the 300px it starts at.
+      if (!/on the canvas/.test(shown)) throw new Error(`the drag over the empty canvas says "${shown}"`);
       let added = null;
       await until(async () => {
-        const text = (await pageText(page, id)) ?? "";
-        added = screensOf(text).find((screen) => !before.includes(`id="${screen.id}"`)) ?? null;
-        return Boolean(added && added.height !== 300);
-      }, { timeout: 6000, message: "a new frame that fits the Button" });
-      if (!/^Frame \d+$/.test(added.title ?? "")) throw new Error(`the new frame is named "${added.title}"`);
-      if (!/^<Box position="absolute" insetLeft=\{0\} insetTop=\{0\}> <Button\b/.test(added.inner)) throw new Error(`the frame holds: ${added.inner.slice(0, 160)}`);
-      const button = await page.locator(`[data-studio-frame="screen:${added.id}"] .zen-button`).first().evaluate((element) => ({ width: element.offsetWidth, height: element.offsetHeight }));
-      const fits = (side, drawn) => side === Math.max(100, Math.round(drawn));
-      if (!fits(added.width, button.width) || !fits(added.height, button.height)) throw new Error(`frame ${added.width} × ${added.height} for a ${button.width} × ${button.height} Button (100 a side at least)`);
+        added = layersOf((await pageText(page, id)) ?? "").find((layer) => !before.includes(`id="${layer.id}"`)) ?? null;
+        return Boolean(added);
+      }, { timeout: 6000, message: "a new layer on the canvas holding the Button" });
+      if (!/^<Button\b[^>]*>[^<]*<\/Button>$/.test(added.inner)) throw new Error(`the Layer holds: ${added.inner.slice(0, 160)}`);
+      if (screensOf((await pageText(page, id)) ?? "").length !== screensOf(before).length) throw new Error("a frame was added too");
+      // No frame of its own: as big as the Button, no fill, no name on the canvas; the Button is selected.
+      const drawn = await page.locator(`[data-studio-frame="layer:${added.id}"]`).evaluate((frame) => {
+        const button = frame.querySelector(".zen-button");
+        return { frame: [frame.offsetWidth, frame.offsetHeight], button: button ? [button.offsetWidth, button.offsetHeight] : null, fill: getComputedStyle(frame).backgroundColor };
+      });
+      if (!drawn.button || drawn.frame[0] !== drawn.button[0] || drawn.frame[1] !== drawn.button[1]) throw new Error(`the layer on the canvas is ${drawn.frame.join(" × ")} for a ${drawn.button?.join(" × ")} Button`);
+      if (!/rgba\(0, 0, 0, 0\)|transparent/.test(drawn.fill)) throw new Error(`the layer on the canvas has a fill: ${drawn.fill}`);
+      if (await page.locator(".studio-frame-label").filter({ hasText: /^Button$/ }).count()) throw new Error("the layer on the canvas shows a frame name");
+      const button = locOfTag((await pageText(page, id)) ?? "", "Button");
+      await until(async () => ((await selectedSrc(page))[0] ?? "").endsWith(`:${button}`), { timeout: 3000, message: `the Button (${button}) selected, a top-level row in Layers` }).catch(async (error) => { throw new Error(`${error.message}, not ${(await selectedSrc(page))[0] ?? "nothing"}`); });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+z");
-      await until(async () => ((await pageText(page, id)) ?? "") === before, { timeout: 4000, message: "one ⌘Z takes the frame and its fit back" });
-      return `"${shown}" · ${added.title} ${added.width} × ${added.height} holds the Button at 0, 0 · one ⌘Z`;
+      await until(async () => ((await pageText(page, id)) ?? "") === before, { timeout: 4000, message: "one ⌘Z takes the layer back" });
+      return `"${shown}" · <Layer ${added.id} x=${added.x} y=${added.y}> holds the Button, ${drawn.frame.join(" × ")}, selected · one ⌘Z`;
     },
   },
   {
-    id: "B-56", feature: "A component that fills its container, dragged onto the empty canvas, lands in a new frame of its own (a loose instance, not a Screen's bar) at its Figma width: a Top Navigation 390, a Line chart 297, not hugging its content (user 2026-10-29: giữ đúng chiều rộng như Figma khi thả ra canvas)", wp: "bug 2026-10-28, 2026-10-29",
+    id: "B-56", feature: "A component that fills its container, dragged onto the empty canvas, lands as a layer on the canvas (not a Screen's bar) at its Figma width: a Top Navigation 390, a Line chart 297, not hugging its content; one ⌘Z for the drop and its width (user 2026-10-29: giữ đúng chiều rộng như Figma khi thả ra canvas)", wp: "bug 2026-10-28, 2026-10-29, loose layers 2026-11-20",
     async run(ctx) {
       const done = [];
       for (const [label, tag, width] of [["Top navigation", "TopNavigation", 390], ["Line chart", "LineChart", 297]]) {
@@ -1746,16 +1755,20 @@ export const rows = [
         const shown = await dragAssetToBoard(page, label);
         let added = null;
         await until(async () => {
-          added = screensOf((await pageText(page, id)) ?? "").find((screen) => !before.includes(`id="${screen.id}"`)) ?? null;
-          return Boolean(added && added.height !== 300);
-        }, { timeout: 6000, message: `a new frame holding the ${label} (the drag said "${shown}")` });
-        if (!new RegExp(`^<Box [^>]*\\bwidth=\\{${width}\\}[^>]*> <${tag}\\b`).test(added.inner)) throw new Error(`the ${label} is not ${width} wide (Figma's): the frame holds ${added.inner.slice(0, 160)}`);
-        if (added.width !== width) throw new Error(`the new frame is ${added.width} wide, not the ${label}'s ${width}`);
-        const drawn = await page.locator(`[data-studio-frame="screen:${added.id}"] .studio-builder-screen [data-position="absolute"] > *`).first().evaluate((element) => element.offsetWidth);
-        if (Math.abs(drawn - width) > 1) throw new Error(`the ${label} draws ${drawn} wide in its ${width} Box`);
-        done.push(`${label} ${added.width} × ${added.height}`);
+          added = layersOf((await pageText(page, id)) ?? "").find((layer) => !before.includes(`id="${layer.id}"`)) ?? null;
+          return Boolean(added && Number.isFinite(added.width));
+        }, { timeout: 6000, message: `a new layer on the canvas holding the ${label}, with a width (the drag said "${shown}")` });
+        if (added.width !== width || !new RegExp(`^<${tag}\\b`).test(added.inner)) throw new Error(`the Layer is ${added.width} wide, not the ${label}'s Figma ${width}, holding ${added.inner.slice(0, 120)}`);
+        const drawn = await page.locator(`[data-studio-frame="layer:${added.id}"]`).evaluate((frame) => [frame.offsetWidth, frame.firstElementChild?.offsetWidth ?? 0]);
+        if (Math.abs(drawn[0] - width) > 1 || Math.abs(drawn[1] - width) > 1) throw new Error(`the ${label} draws ${drawn[1]} wide in a ${drawn[0]} layer, not ${width}`);
+        if (tag === "LineChart") {
+          await page.evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : undefined));
+          await page.keyboard.press("ControlOrMeta+z");
+          await until(async () => ((await pageText(page, id)) ?? "") === before, { timeout: 4000, message: `one ⌘Z takes the ${label} and its width back` });
+        }
+        done.push(`${label} ${drawn[1]}`);
       }
-      return done.join(" · ");
+      return `${done.join(" · ")} · one ⌘Z`;
     },
   },
   {

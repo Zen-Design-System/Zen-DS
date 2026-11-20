@@ -14,6 +14,11 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: layers can sit on the canvas outside any frame, as in Figma. A component dropped from Assets, or ⌘V /
+  Paste here on the empty canvas, lands there as itself (no "Frame N" around it), at its own size (a component that fills
+  its container at its Figma width). It is a top-level row in Layers; click selects it, drag moves it with smart guides
+  to the frames (⌥ copies), the arrows nudge it, ⌘D duplicates it beside it, Delete removes it, X / Y are its place on
+  the canvas. Pages write it as `<Layer id x y>` on the Board. Push to Figma skips it for now (with a note).
 - Zen Studio: ⌘V with nothing selected on the empty canvas (no frame in the middle of the view) pastes there, as Figma
   does: a new frame in the middle of the view holds what you copied or cut. It said "Nothing here takes a paste". A
   copied layer still in view keeps pasting at its place in its frame.

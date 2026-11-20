@@ -104,8 +104,8 @@ export function canStructurallyEdit(selection: StudioSelection | null): Structur
   if (selection.part) return { ok: false, kind: "part", reason: "Parts are read-only — select the component itself" };
   if (inPlayground(selection)) return { ok: false, kind: "scope", reason: "The playground shows the main component, whose slots stay empty — add content in an example" };
   const file = parseSrc(selection.src)?.file ?? "";
-  // An example frame, or a Screen / Overlay of a builder page.
-  const example = selection.frameId !== null && (/^example:\d+$/.test(selection.frameId) || /^(screen|overlay):/.test(selection.frameId));
+  // An example frame, or a Screen / Overlay / layer on the canvas of a builder page.
+  const example = selection.frameId !== null && (/^example:\d+$/.test(selection.frameId) || /^(screen|overlay|layer):/.test(selection.frameId));
   if (!example && !isTemplateFile(file)) return { ok: false, kind: "scope", reason: "Only example and template content changes here" };
   if (!isSlotFile(file) && !isSharedFile(file)) return { ok: false, kind: "scope", reason: `Its code is in ${fileName(file)}, shared beyond this example — change it there` };
   return { ok: true };

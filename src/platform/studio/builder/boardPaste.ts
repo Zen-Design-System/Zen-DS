@@ -1,13 +1,12 @@
 import type { MenuItemData } from "../../../components/Menu";
 import { announceEditStatus, squashEdits } from "../api";
 import { CLIPBOARD_BLOCKED, copiedLayers, readClipboardText, textLayer } from "../edit/clipboard";
-import { fillsLayer } from "../edit/freeFit";
 import { canEdit, studioStore } from "../store";
 import { loadEngine } from "./engine";
 import { copyFrame, setFrameBoxes } from "./frameEdit";
 import { copiedFrame } from "./frameKeys";
-import { boardPlaceAt, deviceFor, FRAME_MAX, FRAME_MIN } from "./frameMove";
-import { addFrame } from "./proto/addFrame";
+import { boardPlaceAt } from "./frameMove";
+import { addLooseLayers, fillsLooseLayer } from "./looseLayer";
 import type { PageVarStarts } from "../types";
 import type { FramePlace } from "./render/framePlace";
 import { getPage } from "./store/pageStore";
@@ -16,17 +15,16 @@ import { getPage } from "./store/pageStore";
  * Figma's Paste here on the empty canvas (the canvas menu, shell/CanvasMenu.tsx), on a page you made: what was copied
  * last lands on the board with its corner at the pointer, one edit and one ⌘Z. A copied frame or Section (⌘C on it,
  * frameKeys.ts) is pasted there as a frame (frameEdit.ts copyFrame). Copied layers (edit/clipboard.ts), or code or text
- * from elsewhere, go into a new empty frame of their size there: a page's Board holds frames only, so Figma's loose
- * layer is a frame here. One layer, or layers that floated, float in it from its top-left corner (a frame without auto
- * layout: X / Y move them); several layers of an auto layout stay in its flow, one under another. The new frame is
- * selected. A component dragged from Assets onto the empty canvas lands the same way (dropOnBoard).
+ * from elsewhere, land as layers on the canvas, outside any frame (Figma's; user 2026-11-20 "Các component vẫn chỉ tạo
+ * và đặt trong frame. Không đặt ở ngoài frame được"): each one a `<Layer>` of the Board (builder/looseLayer.ts) where it
+ * was beside the others. The first one's layer is selected. A component dragged from Assets onto the empty canvas
+ * lands the same way (dropOnBoard).
  */
 
-/** A frame for code or text from elsewhere, whose size is unknown before it renders: room for a card; resize it after. */
+/** Code or text from elsewhere, whose size is unknown before it renders: room for a card around the middle of the view. */
 const UNMEASURED = { width: 400, height: 300 };
 
 const fail = (message: string) => announceEditStatus({ kind: "error", message, at: Date.now() });
-const clamp = (value: number) => Math.min(FRAME_MAX, Math.max(FRAME_MIN, Math.round(value)));
 
 /** The frame or the layers copied last in the Studio (whichever ⌘C came later), or null. */
 function lastCopied() {
@@ -75,42 +73,37 @@ export async function pasteOnBoard(point: { x: number; y: number }, options: { t
   const text = layers ? layers.code : (options.text ?? read?.text ?? "").trim();
   if (!text) { fail("The clipboard is empty — copy a layer first"); return false; }
   const code = text.startsWith("<") ? text : textLayer(text);
-  if (/^<(?:Screen|Overlay|Section)\b/.test(code)) { fail("Select the frame by its name, copy it, then paste it here"); return false; }
-  let content = code;
-  if (!layers?.several || layers.floats) {
-    const engine = await loadEngine();
-    try {
-      content = engine.floatAt(code, { x: 0, y: 0 });
-    } catch {
-      fail("Nothing to paste: the clipboard holds no layers");
-      return false;
-    }
+  if (/^<(?:Screen|Overlay|Section|Slice|Layer)\b/.test(code)) { fail("Select the frame by its name, copy it, then paste it here"); return false; }
+  const engine = await loadEngine();
+  let pieces: Array<{ code: string; x: number; y: number }>;
+  try {
+    pieces = engine.looseLayers(code);
+  } catch {
+    fail("Nothing to paste: the clipboard holds no layers");
+    return false;
   }
+  if (!pieces.length) { fail("Nothing to paste: the clipboard holds no layers"); return false; }
+  // Where each was beside the others on the canvas (layers from auto layout too), else where it floated.
+  const boxes = layers?.boxes?.length === pieces.length ? layers.boxes : null;
   const size = layers?.size ?? UNMEASURED;
   const name = layers?.name ?? (text.startsWith("<") ? "layer" : "text");
-  const at = options.centred ? { x: place.x - Math.round(clamp(size.width) / 2), y: place.y - Math.round(clamp(size.height) / 2) } : place;
-  return Boolean(await frameOnBoard(localPage, at, content, size, options.centred ? `Paste ${name}` : `Paste ${name} here`));
+  const at = options.centred ? { x: place.x - Math.round(size.width / 2), y: place.y - Math.round(size.height / 2) } : place;
+  const items = pieces.map((piece, index) => ({ place: { x: at.x + (boxes ? boxes[index].x : piece.x), y: at.y + (boxes ? boxes[index].y : piece.y) }, content: piece.code }));
+  const label = options.centred ? `Paste ${name}` : `Paste ${name} here`;
+  const before = (await getPage(localPage))?.text;
+  const added = await addLooseLayers(localPage, items, label);
+  // One layer that fills its container keeps the width it had where it was copied.
+  if (added?.length === 1 && layers?.size && before !== undefined) await fitLooseLayer(localPage, added[0], layers.size.width, label, before);
+  return Boolean(added);
 }
-
-/** A new empty frame of `size` (100 to 4096 a side) at `place` on the board, holding `content`: Paste here's, a drop's. */
-function frameOnBoard(localPage: string, place: FramePlace, content: string, size: { width: number; height: number }, label: string, vars?: PageVarStarts) {
-  const width = clamp(size.width);
-  const height = clamp(size.height);
-  return addFrame(localPage, "screen", { place, width, height, device: deviceFor(width), name: "Frame", empty: true, content, label, vars });
-}
-
-/** A component's frame before it renders: a phone's width (a component that fills takes it, one that hugs keeps its
- *  own); the frame then fits what rendered. */
-const DROP_START = { width: 390, height: 300 };
 
 /**
  * Figma's drop of a component on the empty canvas (Assets, edit/assets/assets.ts), on a page you made (user 2026-10-28:
- * "kéo component ra canvas trống như figma"): as Paste here, a new empty frame at the pointer holds it, floating from
- * the frame's top-left corner; once it has rendered, the frame takes its size (Figma's instance on the canvas is its
- * own size; a frame is 100 a side at least). A component that fills its container in code (a Top Navigation, an Input,
- * a chart) would hug its content there: it takes `figmaWidth`, its Figma variant's (user 2026-10-29: "giữ đúng chiều
- * rộng như Figma khi thả ra canvas"; edit/assets/figmaWidths.generated.ts). One ⌘Z takes both writes back. The new
- * frame is selected.
+ * "kéo component ra canvas trống như figma"): a layer on the canvas at the pointer, outside any frame (user 2026-11-20),
+ * at its own size. A component that fills its container in code (a Top Navigation, an Input, a chart) would hug its
+ * content there: once it has rendered it takes `figmaWidth`, its Figma variant's (user 2026-10-29: "giữ đúng chiều rộng
+ * như Figma khi thả ra canvas"; edit/assets/figmaWidths.generated.ts), else a phone's width. One ⌘Z takes both writes
+ * back. Its layer is selected.
  */
 export async function dropOnBoard(code: string, place: FramePlace, label: string, figmaWidth?: number, vars?: PageVarStarts): Promise<boolean> {
   const { localPage } = studioStore.getState();
@@ -118,51 +111,48 @@ export async function dropOnBoard(code: string, place: FramePlace, label: string
   const engine = await loadEngine();
   let content: string;
   try {
-    content = engine.floatAt(code, { x: 0, y: 0 });
+    content = engine.looseLayers(code)[0]?.code ?? "";
   } catch {
-    fail(`${label}: nothing to add`);
-    return false;
+    content = "";
   }
+  if (!content) { fail(`${label}: nothing to add`); return false; }
   const before = (await getPage(localPage))?.text;
-  const frameId = await frameOnBoard(localPage, place, content, DROP_START, label, vars);
+  const [frameId] = (await addLooseLayers(localPage, [{ place, content }], label, vars)) ?? [];
   if (!frameId) return false;
-  const added = studioStore.getState().undo.at(-1);
-  const layer = await renderedLayer(frameId);
-  const size = layer && (await fitOf(layer, figmaWidth));
-  if (!size || before === undefined || !(await setFrameBoxes(localPage, new Map([[frameId, { width: clamp(size.width), height: clamp(size.height), layerWidth: size.layerWidth }]]), label))) return true;
-  const after = (await getPage(localPage))?.text;
-  // One step only while the fit sits right on the add (a ⌘Z in between took the add back: nothing to join).
-  if (after !== undefined && studioStore.getState().undo.at(-2) === added) squashEdits(2, label, before, after);
+  if (before !== undefined) await fitLooseLayer(localPage, frameId, figmaWidth ?? FILL_START, label, before);
   return true;
+}
+
+/** A component that fills its container, without a Figma width, dropped on the canvas: a phone's width. */
+const FILL_START = 390;
+
+/**
+ * A layer just put on the canvas that fills its container in code (a Top Navigation, an Input, a chart) would hug its
+ * content in its Layer: once it has rendered, its Layer takes `width` (Figma's instance width), in the same undo step
+ * as the add (`before`: the page's text before it).
+ */
+async function fitLooseLayer(localPage: string, frameId: string, width: number, label: string, before: string) {
+  const added = studioStore.getState().undo.at(-1);
+  const frame = await renderedFrame(frameId);
+  if (!frame || !fillsLooseLayer(frame)) return;
+  if (!(await setFrameBoxes(localPage, new Map([[frameId, { width: Math.round(width) }]]), label))) return;
+  const after = (await getPage(localPage))?.text;
+  // One step only while the width sits right on the add (a ⌘Z in between took the add back: nothing to join).
+  if (after !== undefined && studioStore.getState().undo.at(-2) === added) squashEdits(2, label, before, after);
 }
 
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
 
-/** What frame `frameId` holds once it has rendered (its floating layer), or null after `timeout`. */
-async function renderedLayer(frameId: string, timeout = 3000): Promise<HTMLElement | null> {
+/** The loose Layer `frameId` once its layer has rendered, or null after `timeout`. */
+async function renderedFrame(frameId: string, timeout = 3000): Promise<HTMLElement | null> {
   const until = Date.now() + timeout;
   while (Date.now() < until) {
-    const layer = document.querySelector<HTMLElement>(`[data-studio-frame="${CSS.escape(frameId)}"] .studio-builder-screen [data-position="absolute"]`);
-    if (layer?.offsetWidth && layer.offsetHeight) return layer;
+    const frame = document.querySelector<HTMLElement>(`[data-studio-frame="${CSS.escape(frameId)}"]`);
+    const layer = frame?.firstElementChild;
+    if (frame && layer instanceof HTMLElement && !layer.matches(".studio-frame__portal") && layer.offsetWidth && layer.offsetHeight) return frame;
     await nextFrame();
   }
   return null;
-}
-
-/**
- * The CSS px box the new frame takes around floating `layer`: its own size, or, for a component that fills its
- * container with a Figma width, that width (`layerWidth`: the layer takes it too) and the height it has there (tried on
- * the canvas for two frames, so what measures its box, a chart, lays out again).
- */
-async function fitOf(layer: HTMLElement, figmaWidth: number | undefined): Promise<{ width: number; height: number; layerWidth?: number }> {
-  if (!figmaWidth || !fillsLayer(layer)) return { width: layer.offsetWidth, height: layer.offsetHeight };
-  const own = layer.style.width;
-  layer.style.width = `${figmaWidth}px`;
-  await nextFrame();
-  await nextFrame();
-  const height = layer.offsetHeight;
-  layer.style.width = own;
-  return { width: figmaWidth, height, layerWidth: figmaWidth };
 }
 
 /** The empty canvas menu's Paste here (Figma's), on a page you made: dimmed with nothing to paste or for a viewer. */

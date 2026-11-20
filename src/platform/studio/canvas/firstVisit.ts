@@ -11,8 +11,8 @@ import { getSafeBox, toWorldRect, viewportFitting, viewportReading } from "./vie
  * saved for the page and stops it when the page changes.
  */
 
-/** A builder page's frames: Screens, Overlays, Sections and Slices (the docs board's frames never wait). */
-const BUILDER_FRAME = /^(?:screen|overlay|section|slice):/;
+/** A builder page's frames: Screens, Overlays, Sections, Slices and layers on the canvas (the docs board's frames never wait). */
+const BUILDER_FRAME = /^(?:screen|overlay|section|slice|layer):/;
 /** How long the board gets to draw its frames before the provisional view stays (a page in the Trash, an empty one). */
 const DEADLINE = 8000;
 

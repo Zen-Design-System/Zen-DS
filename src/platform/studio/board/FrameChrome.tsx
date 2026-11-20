@@ -2,7 +2,7 @@ import { selectFrames, toggleFrame, useFrameSelection } from "../select/frameSel
 import { RenameField } from "../builder/RenameField";
 import { renameFrame } from "../edit/rename";
 import { tip } from "../shell/ShortcutTip";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { BadgeCounter } from "../../../components/Badge";
 import { plural } from "../../../components/Text";
@@ -74,8 +74,12 @@ const overlaps = (a: Rect, b: Rect) => a.x < b.x + b.width && b.x < a.x + a.widt
  * Pan and zoom never read the DOM: frame, section and title boxes are cached in world coordinates (refreshed by a
  * ResizeObserver) and placed with the viewport transform; label, toolbar and tab sizes are cached the same way.
  */
+/** The frames with chrome: a loose layer on the canvas (kind "layer", Figma's) has no name, toolbar or handles. */
+const chromeFrames = () => getStudioFrames().filter((frame) => frame.kind !== "layer");
+
 export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
-  const frames = useStudioFrames();
+  const allFrames = useStudioFrames();
+  const frames = useMemo(() => allFrames.filter((frame) => frame.kind !== "layer"), [allFrames]);
   const sections = useStudioSections();
   const selectedFrame = useStudio((state) => (state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.kind === "node" ? state.selection.frameId : null));
   const frameSelected = useStudio((state) => state.selection?.kind === "frame");
@@ -121,7 +125,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
     const minX = safe.x, maxX = safe.x + safe.width, minY = safe.y, maxY = safe.y + safe.height;
     const screen = (rect: Rect): Rect => ({ x: rect.x * zoom + x, y: rect.y * zoom + y, width: rect.width * zoom, height: rect.height * zoom });
     const sizeOf = (key: string, fallback: Size) => sizes.current.get(key) ?? fallback;
-    const placed = getStudioFrames().flatMap((frame) => {
+    const placed = chromeFrames().flatMap((frame) => {
       const world = frameRects.current.get(frame.id);
       return world ? [{ frame, rect: screen(world) }] : [];
     });
@@ -264,7 +268,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
     const world = canvasApi.getWorldElement();
     if (!world) return;
     frameRects.current.clear();
-    for (const frame of getStudioFrames()) {
+    for (const frame of chromeFrames()) {
       const rect = worldRectOf(frame.element, world);
       if (rect) frameRects.current.set(frame.id, rect);
     }
@@ -362,7 +366,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
       const worldY = (point.y - box.top - y) / zoom;
       const reach = HOVER_REACH / zoom;
       let label: string | null = null;
-      const hit = [...getStudioFrames()].reverse().find((entry) => {
+      const hit = [...chromeFrames()].reverse().find((entry) => {
         const rect = frameRects.current.get(entry.id);
         if (!rect) return false;
         const inside = worldX >= rect.x && worldX <= rect.x + rect.width && worldY >= rect.y - reach && worldY <= rect.y + rect.height;

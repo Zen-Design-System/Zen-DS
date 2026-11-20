@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Self-test of the builder page dialect (tools/studio/dialect.mjs). Run: node tools/studio/dialect.selftest.mjs
-import { boardFrames, boardSections, componentSets, jsxText, localComponents, newPageText, pageHeader, parsePage, resolveInstance, sectionCode, sliceCode, validateDialect } from "./dialect.mjs";
+import { boardFrames, boardLayers, boardSections, componentSets, jsxText, layerCode, localComponents, newPageText, pageHeader, parsePage, resolveInstance, sectionCode, sliceCode, validateDialect } from "./dialect.mjs";
+import { looseLayers } from "./arrange.mjs";
 
 const failures = [];
 let passed = 0;
@@ -187,6 +188,20 @@ check("slices: needs its size", /<Slice> needs height/.test(first(withSlice('<Sl
 check("slices: holds no layers", /A Slice holds no layers/.test(first(withSlice('<Slice id="s" title="S" x={0} y={0} width={40} height={40}><Screen id="x" /></Slice>'))), true);
 check("slices: sliceCode", sliceCode({ id: "slice-2", title: "Hero <A>", x: 10.4, y: -5, width: 320, height: 200 }), '<Slice id="slice-2" title="Hero A" x={10} y={-5} width={320} height={200} />');
 check("slices: the code is a valid Slice", messages(withSlice(sliceCode({ id: "slice-2", title: "Hero", x: 0, y: 0, width: 320, height: 200 }))), []);
+// Loose layers (Figma's layers on the canvas, outside any frame; user 2026-11-20): one layer at x / y, not a frame.
+const withLayer = (layer) => withSection(layer).replace("import { Board, Screen, Section }", "import { Board, Layer, Screen }").replace('from "@zen-ds/react/builder";', 'from "@zen-ds/react/builder";\nimport { Button, Stack, Text } from "@zen-ds/react";');
+const layerPage = withLayer('<Layer id="layer-1" x={-40} y={20}><Button>Go</Button></Layer>');
+check("layers: a Layer on the Board", messages(layerPage), []);
+check("layers: boardLayers reads it", boardLayers(parsePage(layerPage)), [{ id: "layer-1", x: -40, y: 20, loc: "10:6" }]);
+check("layers: not one of the board's frames", boardFrames(parsePage(layerPage)).map((frame) => frame.id), ["home"]);
+check("layers: needs its place", /<Layer> needs x and y/.test(first(withLayer('<Layer id="l"><Button>Go</Button></Layer>'))), true);
+check("layers: holds one layer", [/A <Layer> holds one layer/.test(first(withLayer('<Layer id="l" x={0} y={0}><Button>A</Button><Button>B</Button></Layer>'))), /A <Layer> holds one layer/.test(first(withLayer('<Layer id="l" x={0} y={0} />')))], [true, true]);
+check("layers: no look of its own; a width for a layer that fills", [/<Layer> takes id, x, y and width only, not surface/.test(first(withLayer('<Layer id="l" x={0} y={0} surface="pale"><Button>A</Button></Layer>'))), messages(withLayer('<Layer id="l" x={0} y={0} width={390}><Button>A</Button></Layer>'))], [true, []]);
+check("layers: layerCode with a width", layerCode({ id: "layer-3", x: 0, y: 0, width: 390, content: "<Button>Go</Button>" }), '<Layer id="layer-3" x={0} y={0} width={390}>\n  <Button>Go</Button>\n</Layer>');
+check("layers: layerCode", layerCode({ id: "layer-2", x: 10.4, y: -5, content: '<Stack gap="xs">\n  <Text>Hi</Text>\n</Stack>' }), '<Layer id="layer-2" x={10} y={-5}>\n  <Stack gap="xs">\n    <Text>Hi</Text>\n  </Stack>\n</Layer>');
+check("layers: the code is a valid Layer", messages(withLayer(layerCode({ id: "layer-2", x: 0, y: 0, content: "<Button>Go</Button>" }))), []);
+check("layers: looseLayers drops the place in the frame, keeps the offsets", looseLayers('<Box position="absolute" insetLeft={64} insetTop={60} width={210} />\n<Box position="absolute" insetLeft={20} insetTop={10}>\n  <Button>Go</Button>\n</Box>'), [{ code: "<Box width={210} />", x: 44, y: 50 }, { code: "<Button>Go</Button>", x: 0, y: 0 }]);
+check("layers: looseLayers keeps a layer from auto layout as it is", looseLayers('<Stack gap="none">\n  <Text>Hi</Text>\n</Stack>'), [{ code: '<Stack gap="none">\n  <Text>Hi</Text>\n</Stack>', x: 0, y: 0 }]);
 
 // Prototype variables (W-52 B, docs/research/studio-prototype-variables-2026-10-31.md §2).
 const withVars = (body, vars = '{ dateRange: "Any time", count: 0, signedIn: false }') => withProto(body).replace("export default function Page()", `export const mock = { ranges: ["Any time", "Last 3 months"] };\nexport const vars = ${vars};\n\nexport default function Page()`);

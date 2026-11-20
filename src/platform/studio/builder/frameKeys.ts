@@ -5,6 +5,9 @@ import { canEdit, studioStore } from "../store";
 import { copyFrameWhenRead, frameFigmaClip, isCopyingForFigma } from "./export/figmaClipboard";
 import { copyFrame, frameClip, moveFrames, type FrameClip } from "./frameEdit";
 import { dropLivePlace, livePlace, showLivePlace } from "./frameMove";
+import { looseFrameOfSelection } from "./looseLayer";
+import { isLayerFrameId } from "./render/frames";
+import { multiSelection } from "../select/multiSelection";
 
 /*
  * Keys for a selected frame on a page you made (Figma's): ⌘D duplicates it beside itself, ⌘C / ⌘V copy and paste it
@@ -15,14 +18,16 @@ import { dropLivePlace, livePlace, showLivePlace } from "./frameMove";
 
 const NUDGE_SETTLE_MS = 400;
 
-/** The frame selected on page `localPage` and its element, when its keys apply (Select tool, an admin, focus on the canvas). */
-function selectedFrame(localPage: string, target: EventTarget | null) {
+/** The frame selected on page `localPage` and its element, when its keys apply (Select tool, an admin, focus on the canvas).
+ *  `loose`: a layer on the canvas selected stands for its Layer (the arrows and ⌘D move and copy it as Figma's). */
+function selectedFrame(localPage: string, target: EventTarget | null, { loose = false }: { loose?: boolean } = {}) {
   const state = studioStore.getState();
   if (state.localPage !== localPage || state.tool !== "select" || state.presenting || !canEdit(state)) return null;
-  if (state.selection?.kind !== "frame") return null;
+  const layer = loose && state.selection?.kind === "node" && !state.selection.part && !multiSelection.get().length ? looseFrameOfSelection(state.selection) : null;
+  if (state.selection?.kind !== "frame" && !layer) return null;
   // The canvas has the keys (or nothing focused): never a field, a menu, or a row in a side panel.
   if (isTypingTarget(target) || (target instanceof Element && target !== document.body && !target.closest(".studio-viewport"))) return null;
-  const { frameId } = state.selection;
+  const frameId = layer ?? (state.selection as { frameId: string }).frameId;
   const element = document.querySelector<HTMLElement>(`.studio-builder-board__frames > [data-studio-frame="${CSS.escape(frameId)}"]`);
   return element ? { frameId, element } : null;
 }
@@ -70,7 +75,7 @@ export function useFrameKeys(localPage: string, text: string | undefined) {
       nudge = null;
       if (!done) return;
       window.clearTimeout(done.timer);
-      void moveFrames(localPage, new Map([[done.frameId, done.place]]), "Nudge frame").then((ok) => { if (!ok) dropLivePlace(done.frameId, done.element, done.start); });
+      void moveFrames(localPage, new Map([[done.frameId, done.place]]), isLayerFrameId(done.frameId) ? "Nudge layer" : "Nudge frame").then((ok) => { if (!ok) dropLivePlace(done.frameId, done.element, done.start); });
     };
 
     const onKey = (event: KeyboardEvent) => {
@@ -79,7 +84,7 @@ export function useFrameKeys(localPage: string, text: string | undefined) {
       const arrow = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
       const duplicate = mod && !event.altKey && !event.shiftKey && event.key.toLowerCase() === "d";
       if (!duplicate && !(arrow && !mod && !event.altKey)) return;
-      const frame = selectedFrame(localPage, event.target);
+      const frame = selectedFrame(localPage, event.target, { loose: true });
       if (!frame) return;
       event.preventDefault();
       event.stopImmediatePropagation();

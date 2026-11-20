@@ -3269,6 +3269,29 @@ export default function Page() {
   check("round trip: the Box's fill comes back; the drawn frame's on its content", [back.includes('surface="accent-solid"'), back.includes('surface="support-teal-pale"')], [true, true]);
 }
 
+{
+  // Layers on the canvas (<Layer>, outside any frame; user 2026-11-20): the frames push as before, the Layer is named.
+  const page = `// @zen-page {"format":1,"title":"Loose"}
+import { Board, Layer, Screen } from "@zen-ds/react/builder";
+import { Button, Text } from "@zen-ds/react";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="home" title="Home" frame x={0} y={0} width={400} height={300}>
+        <Text>Hello</Text>
+      </Screen>
+      <Layer id="layer-1" x={500} y={0}>
+        <Button>Go</Button>
+      </Layer>
+    </Board>
+  );
+}
+`;
+  const { pkg, notes } = figmaPackage(page, { mapping, nestedLayers: NESTED_LAYERS, page: { id: "loose", title: "Loose" } });
+  check("loose layers: the Screen is the one frame pushed; the Layer is named, not pushed", [pkg?.frame?.name, pkg?.frames ?? null, notes.some((note) => /1 layer on the canvas \(outside any frame\): not pushed yet/.test(note))], ["Home", null, true]);
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

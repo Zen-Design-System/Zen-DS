@@ -518,13 +518,13 @@ function onMove(event: PointerEvent) {
   }
   const { target, reason } = dropTargetAt(pointer.x, pointer.y, NOTHING);
   current.target = target;
-  // The board outside every frame: a new frame there holds it (boardDropAt); where it cannot, that is said, never silent.
+  // The board outside every frame: a layer on the canvas there (boardDropAt); where it cannot, that is said, never silent.
   const board = !target && !reason && !overFrame(pointer.x, pointer.y) ? boardDropAt(current.item, pointer) : null;
   current.board = board && typeof board === "object" ? board : null;
   current.refusal = reason ?? (target ? refusalFor(target) : typeof board === "string" ? board : null);
   if (current.board) {
     current.free = null;
-    publishDragView({ line: null, into: null, pointer, label: `${current.item.label} · new frame`, tone: "info" });
+    publishDragView({ line: null, into: null, pointer, label: `${current.item.label} · on the canvas`, tone: "info" });
     return;
   }
   const free = target && !current.refusal ? freeDropAt(target, pointer, event.metaKey || event.ctrlKey, current.item.root, current.item.figmaWidth) : null;
@@ -594,8 +594,8 @@ function shellAt(x: number, y: number): (DropTarget & { into: { x: number; y: nu
 
 /**
  * Where `item` dropped at the client point lands on the board's empty space, Figma's loose instance (user 2026-10-28:
- * "kéo component ra canvas trống như figma"): a new frame there, its corner at the pointer, on a page you made
- * (builder/boardPaste.ts dropOnBoard, as Paste here). Why not otherwise: a component page's board holds its frames
+ * "kéo component ra canvas trống như figma"; 2026-11-20 outside any frame): a layer on the canvas, its corner at the
+ * pointer, on a page you made (builder/boardPaste.ts dropOnBoard, as Paste here). Why not otherwise: a component page's board holds its frames
  * only, and an App shell is a whole page that goes on a Screen.
  */
 function boardDropAt(item: Insertable, pointer: { x: number; y: number }): FramePlace | string {
@@ -604,7 +604,7 @@ function boardDropAt(item: Insertable, pointer: { x: number; y: number }): Frame
   return boardPlaceAt(pointer) ?? "Drop it into a frame";
 }
 
-/** `item` in a new frame at `place` on the board of the page you made (one ⌘Z). */
+/** `item` as a layer on the canvas at `place` on the board of the page you made (one ⌘Z). */
 async function dropItemOnBoard(item: Insertable, place: FramePlace) {
   const { localPage } = studioStore.getState();
   if (!localPage) return;
@@ -617,8 +617,9 @@ async function dropItemOnBoard(item: Insertable, place: FramePlace) {
 /** Whether (x, y) is on a frame of the board (a Screen or an Overlay), not the board's empty space. */
 function overFrame(x: number, y: number) {
   const world = canvasApi.getWorldElement();
-  // A Section (F4) is the board under the frames, not a frame to drop into.
-  return document.elementsFromPoint(x, y).some((element) => world?.contains(element) && element !== world && Boolean(element.closest("[data-studio-frame]:not([data-kind='section'])")));
+  // A Section (F4) is the board under the frames, not a frame to drop into; nor is a layer on the canvas (Figma drops
+  // beside it, on the canvas, unless it is a container that takes the drop: dropTargetAt).
+  return document.elementsFromPoint(x, y).some((element) => world?.contains(element) && element !== world && Boolean(element.closest("[data-studio-frame]:not([data-kind='section'], [data-kind='layer'])")));
 }
 
 function onUp() { stop(true); }

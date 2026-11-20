@@ -207,7 +207,7 @@ function buildTree(world: Element, page: PlatformPage, showAll: boolean, local =
     if (group.frameId !== MAIN_FRAME) {
       // A page you made: its Screen or Overlay element is the frame's own row (Figma has one frame layer).
       const element = local && group.children.length === 1 ? group.children[0] : null;
-      if (element?.kind === "node" && (element.name === "Screen" || element.name === "Overlay")) {
+      if (element?.kind === "node" && (element.name === "Screen" || element.name === "Overlay" || element.name === "Layer")) {
         aliases.set(element.id, group.id);
         group.children = element.children;
       }
@@ -219,6 +219,16 @@ function buildTree(world: Element, page: PlatformPage, showAll: boolean, local =
     }
     group.children.forEach((child) => relink(child, group));
   }
+  // A layer on the canvas (<Layer>, Figma's; user 2026-11-20) is a top-level row of its own: its one layer, no frame row.
+  groups.forEach((group, index) => {
+    if (!local || !group.frameId.startsWith("layer:") || group.children.length !== 1) return;
+    const [only] = group.children;
+    aliases.set(group.id, only.id);
+    const lift = (node: LayerNode, depth: number) => { node.depth = depth; node.children.forEach((child) => lift(child, depth + 1)); };
+    only.parent = null;
+    lift(only, 0);
+    groups[index] = only;
+  });
   if (local) nestInSections(groups);
   return { groups, byId, total, aliases, figma: !showAll, front: local };
 }

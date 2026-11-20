@@ -32,6 +32,9 @@ export function freeFrameId(base: string, taken: Iterable<string>): string;
 export function boardSections(tree: unknown): Array<{ id: string; title: string; x: number; y: number; width: number; height: number; loc: string }>;
 export function sectionCode(options: { id: string; title?: string; x: number; y: number; width: number; height: number }): string;
 export function sliceCode(options: { id: string; title?: string; x: number; y: number; width: number; height: number }): string;
+/** Figma's layers on the canvas, outside any frame (dialect.mjs boardLayers, layerCode; user 2026-11-20). */
+export function boardLayers(tree: unknown): Array<{ id: string; x: number; y: number; width?: number; loc: string }>;
+export function layerCode(options: { id: string; x: number; y: number; width?: number; content: string }): string;
 export function frameCode(options: { kind: "screen" | "overlay"; id: string; title?: string; device?: string; layout?: string; chrome?: boolean; empty?: boolean; /** A plain frame: `<Screen frame>`, desktop. */ plain?: boolean; x?: number; y?: number; width?: number; height?: number; holds?: "dialog" | "sheet" | "panel" | "card" }): string;
 export function protoCode(action: string, arg?: string): string;
 /** The builder page as a JSON document (doc.mjs): the dialect's neutral tree with a stable id on every element. */
@@ -54,6 +57,8 @@ export function editDoc(doc: PageDoc, text: string, request: { file: string; loc
 
 /** Pasted layers placed at `at` px in a frame without auto layout: the corner of the box around them there, offsets kept (arrange.mjs). */
 export function floatAt(code: string, at: { x: number; y: number }): string;
+/** Pasted layers as layers on the canvas: each element without its place in its frame, its offset where it floated (arrange.mjs). */
+export function looseLayers(code: string): Array<{ code: string; x: number; y: number }>;
 
 /** Figma's Add / Remove auto layout as one element's new code (relayout.mjs). */
 /** Another page's main written into this page: each `<Use>` in it without a `page` names that page (use-page.mjs). */

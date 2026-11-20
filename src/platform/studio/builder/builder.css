@@ -6,6 +6,17 @@
 .studio-builder-board__frames > .studio-frame { position: absolute; top: 0; left: 0; }
 /* A Screen shown on another breakpoint (screenViews.ts) keeps its left edge and draws above the frames next to it. */
 .studio-builder-board__frames > .studio-frame[data-view] { z-index: 1; }
+/* Figma's layer on the canvas (<Layer>, BuilderBoard.tsx LayerFrame; user 2026-11-20): no frame of its own (no fill, edge,
+   corner or clip), as high as its one layer, which draws itself. Its hover and selection are its layer's
+   outlines (select.css), not a frame's. */
+.studio-builder-board__frames > .studio-frame[data-kind="layer"] {
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+}
+.studio-builder-board__frames > .studio-frame[data-kind="layer"]:is([data-hovered="true"], [data-selected="true"]) { outline: none; }
+/* Without a width (a Button, a Card), as wide as its layer; with one, its layer fills it (a Top Navigation, a chart). */
+.studio-builder-board__frames > .studio-frame[data-kind="layer"][data-hug] { width: max-content; }
 /* A frame gesture (frameMove.ts), in screen space over the frame chrome: Figma's red smart guides, the copy a ⌥-drag
    drops or the box the Frame tool draws, and that box's size under it. */
 .studio-frame-move { position: absolute; z-index: 25; inset: 0; overflow: hidden; pointer-events: none; }

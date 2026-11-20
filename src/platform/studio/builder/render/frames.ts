@@ -5,8 +5,9 @@ import type { PageNode } from "./renderPage";
 
 /*
  * A builder page's frames (spec docs/research/studio-builder-pages-spec-2026-10-06.md §3 2b): one per Screen
- * ("screen:<id>[:<state>]") and Overlay ("overlay:<id>") at its device width, and one per Section ("section:<id>",
- * Figma's section, F4) at its own size. The board and the HTML export read them.
+ * ("screen:<id>[:<state>]") and Overlay ("overlay:<id>") at its device width, one per Section ("section:<id>",
+ * Figma's section, F4) at its own size, and one per loose Layer ("layer:<id>", Figma's layer on the canvas) at its layer's
+ * size. The board and the HTML export read them.
  */
 
 export const literalOf = (node: PageNode, prop: string) => { const value = node.props[prop]; return value?.kind === "literal" ? value.value : undefined; };
@@ -16,12 +17,17 @@ export const literalOf = (node: PageNode, prop: string) => { const value = node.
  * `width`: a drawn Screen's own width, else its device's; `height`: a Section's (a Screen grows to its content past its
  * own). `loc`: the frame's element in the page text.
  */
-export type PageFrame = { id: string; label: string; width: number; height?: number; kind: "screen" | "overlay" | "section" | "slice"; device: PageDevice; place: { x: number; y: number } | null; loc: string };
+export type PageFrame = { id: string; label: string; width: number; height?: number; kind: "screen" | "overlay" | "section" | "slice" | "layer"; device: PageDevice; place: { x: number; y: number } | null; loc: string };
 
 /** Whether a Board child is a Section (Figma's section: drawn behind the frames, never a frame of the flow). */
 export const isSectionNode = (node: PageNode) => node.name === "Section";
 /** Whether a Board child is a Slice (Figma's slice: an area exported as a picture, drawn above the frames, never a frame of the flow). */
 export const isSliceNode = (node: PageNode) => node.name === "Slice";
+
+/** Whether a Board child is a loose layer (Figma's layer on the canvas, outside any frame; user 2026-11-20). */
+export const isLayerNode = (node: PageNode) => node.name === "Layer";
+/** Whether a board frame id is a loose layer's (`layer:<id>`). */
+export const isLayerFrameId = (id: string | null | undefined) => Boolean(id?.startsWith("layer:"));
 
 const numberOf = (node: PageNode, prop: string) => { const value = literalOf(node, prop); return typeof value === "number" && Number.isFinite(value) ? value : undefined; };
 
@@ -42,6 +48,12 @@ export function frameOf(node: PageNode, device: PageDevice = "desktop"): PageFra
   // Named by the person (data-name), else by what it shows (its Dialog's title, a Card's first text), as the Prototype tab
   // lists it; else by its id.
   if (node.name === "Slice") return { id: `slice:${id}`, label: givenNameOf(node) ?? String(literalOf(node, "title") ?? id), width: numberOf(node, "width") ?? 100, height: numberOf(node, "height") ?? 100, kind: "slice", device: "desktop", place: place ?? { x: 0, y: 0 }, loc: node.loc };
+  // A loose layer is named by its one layer (the Layer itself has no name or look); its size is that layer's, or its
+  // `width` for a layer that fills its container (0: it hugs).
+  if (node.name === "Layer") {
+    const only = node.children.find((child): child is PageNode => child.kind === "element");
+    return { id: `layer:${id}`, label: (only && givenNameOf(only)) ?? only?.name.split(".").pop() ?? "Layer", width: numberOf(node, "width") ?? 0, kind: "layer", device: "desktop", place: place ?? { x: 0, y: 0 }, loc: node.loc };
+  }
   if (node.name === "Section") return { id: `section:${id}`, label: givenNameOf(node) ?? String(literalOf(node, "title") ?? id), width: numberOf(node, "width") ?? 100, height: numberOf(node, "height") ?? 100, kind: "section", device: "desktop", place: place ?? { x: 0, y: 0 }, loc: node.loc };
   if (node.name === "Overlay") return { id: `overlay:${id}`, label: givenNameOf(node) ?? overlayTitleOf(node) ?? `Overlay · ${id}`, width: device === "desktop" ? DEVICE_WIDTH.desktop / 2 : DEVICE_WIDTH[device], kind: "overlay", device, place, loc: node.loc };
   const state = literalOf(node, "state");

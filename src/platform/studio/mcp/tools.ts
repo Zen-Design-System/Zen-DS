@@ -10,6 +10,7 @@ import { openLocalPage } from "../shell/navigation";
 import { studioStore } from "../store";
 import type { EditOp, EditResponse, EditValue } from "../types";
 import { childLayers, FRAME_NAMES, findLayer, frameOf, layerLine, outline, type DocNode } from "./tree";
+import { selectLooseLayerWhenShown } from "../builder/looseLayer";
 import { withHeaderProject } from "../builder/store/pageModel";
 import { activeProjectId } from "../project/activeProject";
 
@@ -61,10 +62,12 @@ const literal = (node: DocNode, name: string): unknown => {
 
 const frames = (board: DocNode) => board.children.filter((child): child is DocNode => child.kind === "element" && FRAME_NAMES.has(child.name));
 
-/** The canvas's id for a frame layer (builder/render/frames.ts frameOf): "screen:<id>[:<state>]" or "overlay:<id>". */
+/** The canvas's id for a frame layer (builder/render/frames.ts frameOf): "screen:<id>[:<state>]", "overlay:<id>" or
+ *  "layer:<id>" (a layer on the canvas). */
 function canvasFrameId(node: DocNode): string {
   const id = String(literal(node, "id") ?? "untitled");
   if (node.name === "Overlay") return `overlay:${id}`;
+  if (node.name === "Layer") return `layer:${id}`;
   const state = literal(node, "state");
   return `screen:${id}${typeof state === "string" ? `:${state}` : ""}`;
 }
@@ -161,9 +164,9 @@ async function getStudioState(tab: string): Promise<ToolAnswer> {
   }
   const frameList = frames(page.board).map((node) => ({
     id: node.id,
-    kind: node.name === "Overlay" ? "overlay" : "screen",
-    title: String(literal(node, "title") ?? literal(node, "id") ?? node.id),
-    device: literal(node, "device") ?? (node.name === "Overlay" ? undefined : "desktop"),
+    kind: node.name === "Overlay" ? "overlay" : node.name === "Layer" ? "layer" : "screen",
+    title: String(literal(node, "title") ?? (node.name === "Layer" ? node.children.find((child): child is DocNode => child.kind === "element")?.name : undefined) ?? literal(node, "id") ?? node.id),
+    device: literal(node, "device") ?? (node.name === "Screen" ? "desktop" : undefined),
     ...(typeof literal(node, "x") === "number" ? { x: literal(node, "x"), y: literal(node, "y") } : {}),
     ...(typeof literal(node, "width") === "number" ? { width: literal(node, "width"), height: literal(node, "height") } : {}),
   }));
@@ -520,6 +523,8 @@ function selectIds(page: OpenPage, ids: string[]): string | null {
   const [first] = layers;
   if (FRAME_NAMES.has(first.node.name) || first.node.name === "Board") {
     if (first.node.name === "Board") return "The Board is not selectable: pick a frame or a layer";
+    // A layer on the canvas is selected as its one layer (the <Layer> has no selection of its own).
+    if (first.node.name === "Layer") { selectLooseLayerWhenShown(canvasFrameId(first.node)); return null; }
     studioStore.setState({ selection: { kind: "frame", frameId: canvasFrameId(first.node) } });
     return null;
   }

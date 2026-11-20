@@ -591,6 +591,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   if (sections) notes.push(`${sections} Section${sections > 1 ? "s" : ""} (areas of the board): not pushed`);
   const slices = boardElements.filter((child) => child.name === "Slice").length;
   if (slices) notes.push(`${slices} Slice${slices > 1 ? "s" : ""} (export areas of the board): not pushed`);
+  // Layers on the canvas (<Layer>, outside any frame; user 2026-11-20): the importer places frames only, so far.
+  const loose = boardElements.filter((child) => child.name === "Layer").length;
+  if (loose) notes.push(`${loose} layer${loose > 1 ? "s" : ""} on the canvas (outside any frame): not pushed yet`);
   const drawnAt = perBreakpoint.get(boardFrameId(screen));
   if (drawnAt?.resolved || drawnAt?.hidden) {
     const label = drawnAt.breakpoint[0].toUpperCase() + drawnAt.breakpoint.slice(1);

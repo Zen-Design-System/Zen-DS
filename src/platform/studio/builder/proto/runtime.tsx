@@ -473,6 +473,12 @@ export function Slice(_props: { id?: string; title?: string; x?: number; y?: num
   return null;
 }
 
+/** Figma's layer on the canvas, outside any frame (user 2026-11-20): its one layer, drawn as itself. The Studio's board
+ *  places it at its x / y (builder/BuilderBoard.tsx LayerFrame); outside the Studio it is that layer. */
+export function Layer({ children }: { id?: string; x?: number; y?: number; children?: ReactNode }) {
+  return <>{children}</>;
+}
+
 /** The page root: the board lays its children out; rendered alone it shows them in a column. */
 export function Board({ children }: { children?: ReactNode }) {
   return <>{children}</>;

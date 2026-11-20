@@ -5,7 +5,7 @@
 export { applyOps, changedRange, describeElement, sha1 } from "./jsx-source.mjs";
 export { describeSlots, withSlots, requiredFromApi } from "./slots.mjs";
 export { dataFieldEdit, originsOf } from "./data-source.mjs";
-export { boardFrames, boardSections, componentSets, eachElement, frameCode, freeFrameId, sectionCode, sliceCode, localComponents, mainLayerPaths, newPageText, pageHeader, parsePage, protoCode, resolveInstance, validateDialect, variantName } from "./dialect.mjs";
+export { boardFrames, boardLayers, boardSections, componentSets, eachElement, frameCode, freeFrameId, layerCode, sectionCode, sliceCode, localComponents, mainLayerPaths, newPageText, pageHeader, parsePage, protoCode, resolveInstance, validateDialect, variantName } from "./dialect.mjs";
 export { phoneChromeCode, phoneLinkedOf, planPhoneSync, playMoreSheet, PHONE_LINKED_PROP } from "./responsive-header.mjs";
 export { ID_PROP, carryIds, docFromText, editDoc, elementText, locMap, locsOf, newDocId, printPage, withoutIds } from "./doc.mjs";
 export { migrateScreenFrame } from "./screen-frame.mjs";
@@ -13,4 +13,4 @@ export { relayoutCode } from "./relayout.mjs";
 export { withUsePage } from "./use-page.mjs";
 export { booleanResult, flattenResult, outlineStrokeResult, planBooleans } from "./path-ops.mjs";
 export { planGroups } from "./group-fit.mjs";
-export { floatAt } from "./arrange.mjs";
+export { floatAt, looseLayers } from "./arrange.mjs";

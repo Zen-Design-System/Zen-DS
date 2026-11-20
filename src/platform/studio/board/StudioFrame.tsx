@@ -18,7 +18,7 @@ import "./board.css";
  * ZenPortal (Popover, Tooltip, the toast stack). Both sit in the world, so they zoom with the frame and take its theme;
  * the components place them in the frame's own px (layer-space.ts, Menu, useAnchoredPosition).
  */
-export function StudioFrame({ id, kind, label, width, example, breakpoint, primaryBreakpoint, view, children }: { id: string; kind: StudioFrameKind; label: string; width: number; example?: StudioExample; breakpoint?: string; primaryBreakpoint?: string; view?: number; children: ReactNode }) {
+export function StudioFrame({ id, kind, label, width, hug, example, breakpoint, primaryBreakpoint, view, children }: { id: string; kind: StudioFrameKind; label: string; width: number; /** As wide as what it holds (a layer on the canvas without a width). */ hug?: boolean; example?: StudioExample; breakpoint?: string; primaryBreakpoint?: string; view?: number; children: ReactNode }) {
   const key = useStudio((state) => pageKey(state.page, state.collection, state.localPage));
   const override = useStudio((state) => state.frameOverrides[key]?.[id]);
   const primary = useStudio((state) => state.selection?.kind === "frame" && state.selection.frameId === id);
@@ -49,6 +49,7 @@ export function StudioFrame({ id, kind, label, width, example, breakpoint, prima
       data-studio-frame={id}
       data-selected={selected ? "true" : undefined}
       data-width-override={viewWidth && viewWidth !== "auto" ? "true" : undefined}
+      data-hug={hug ? "" : undefined}
       data-view={view ? "" : undefined}
       // A Screen's breakpoint (its view's, else its own) on the frame too: what opens in the frame's portal and overlay
       // root (a Menu, a modal Side Panel, a Dialog) is outside the Screen and takes it from here.

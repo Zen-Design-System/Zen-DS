@@ -329,6 +329,8 @@ export function childRefusal(name, parentName, { screenContent = false, parentHa
   if (bar) return `<${name}> is the Screen's ${bar} bar: drop it on the ${bar} of the Screen, not into its content.`;
   // An App shell is a whole page (a Screen's master layout): it goes on a Screen, never inside a layer of one.
   if (screenContent && lastSegment(name) === "AppShell" && (target !== "Screen" || parentHasChildren)) return target === "Screen" ? "<AppShell> is a whole page: drop it on an empty Screen." : `<AppShell> is a whole page: drop it on an empty Screen, not inside <${parentName}>.`;
+  // A layer on the canvas (<Layer>, user 2026-11-20) is one layer: another goes on the canvas as a layer of its own.
+  if (target === "Layer" && parentHasChildren) return "A layer on the canvas stands alone: put the other one on the canvas or in a frame.";
   const into = cloning.parents[target];
   if (into) {
     if (!Array.isArray(into.only)) return `<${target}> takes one child, which it clones; drop beside it instead.`;
@@ -456,6 +458,42 @@ export function floatAt(raw, at) {
     edits.push({ start: element.start, end: element.end, text: `<Box ${place}>\n${body}\n${indent}</Box>` });
   }
   return applyEdits(wrapped, edits).slice(3, -4);
+}
+
+/**
+ * Pasted layers as layers on the canvas (Figma's, outside any frame; builder/looseLayer.ts): each element on its own,
+ * without the props that placed it in its frame (position, constraints, insets), with its offset from the box around
+ * them all where it floated (its insetLeft / insetTop; none: 0). A Box that only floated one layer gives that layer.
+ * `raw`: the pasted elements' code. Returns [{ code, x, y }] in their order.
+ */
+export function looseLayers(raw) {
+  const wrapped = `<>\n${raw}\n</>`;
+  const fragment = parseExpression(wrapped, { plugins: ["jsx", "typescript"], sourceType: "module" });
+  const own = fragment.children.filter((child) => child.type === "JSXElement").map((element) => {
+    const attributes = element.openingElement.attributes.filter((attribute) => attribute.type === "JSXAttribute");
+    const named = (name) => attributes.find((attribute) => jsxName(attribute.name) === name);
+    return { element, attributes, x: pxOf(named("insetLeft")) ?? 0, y: pxOf(named("insetTop")) ?? 0 };
+  });
+  const left = Math.min(...own.map((entry) => entry.x));
+  const top = Math.min(...own.map((entry) => entry.y));
+  return own.map(({ element, attributes, x, y }) => {
+    const kids = element.children.filter((child) => child.type === "JSXElement" || (child.type === "JSXText" ? child.value.trim() : child.type !== "JSXExpressionContainer" || child.expression.type !== "JSXEmptyExpression"));
+    const wrapper = jsxName(element.openingElement.name) === "Box" && kids.length === 1 && kids[0].type === "JSXElement" && attributes.every((attribute) => POSITION_PROPS.has(jsxName(attribute.name)));
+    const target = wrapper ? kids[0] : element;
+    const edits = [];
+    if (!wrapper) {
+      for (const attribute of attributes) {
+        if (!POSITION_PROPS.has(jsxName(attribute.name))) continue;
+        let start = attribute.start;
+        while (start > 0 && /[ \t]/.test(wrapped[start - 1])) start -= 1;
+        edits.push({ start: start - target.start, end: attribute.end - target.start, text: "" });
+      }
+    }
+    const lineStart = wrapped.lastIndexOf("\n", target.start - 1) + 1;
+    const indent = /^[ \t]*/.exec(wrapped.slice(lineStart))[0];
+    const code = applyEdits(wrapped.slice(target.start, target.end), edits).split("\n").map((line, index) => (index && line.startsWith(indent) ? line.slice(indent.length) : line)).join("\n");
+    return { code, x: Math.round(x - left), y: Math.round(y - top) };
+  });
 }
 
 /** Names pasted code may read without a binding where it lands. */

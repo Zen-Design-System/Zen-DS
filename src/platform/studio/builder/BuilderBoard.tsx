@@ -9,7 +9,7 @@ import { zoomToFrame } from "../board/presentFrame";
 import { usePageTree } from "./usePageTree";
 import { ProtoLinks } from "./proto/ProtoLinks";
 import { PageOsContext, pageOsOf, ProtoContext, ScreenCanvasContext, SimulatedDeviceContext, type ProtoActions, type ScreenCanvasEdit } from "./proto/runtime";
-import { frameOf, isSectionNode, isSliceNode, literalOf, pageDeviceOf, type PageFrame } from "./render/frames";
+import { frameOf, isLayerNode, isSectionNode, isSliceNode, literalOf, pageDeviceOf, type PageFrame } from "./render/frames";
 import { viewDevice } from "../../../../tools/studio/screen-devices.mjs";
 import { shownBreakpoint, useScreenView } from "./screenViews";
 import { addScreenPart, isChildScreen } from "./screenParts";
@@ -147,14 +147,15 @@ export function BuilderBoard({ id }: { id: string }) {
     // The page's OS goes with each frame, so Present (outside the board) draws its Screens' bars and picks their device
     // as the canvas does.
     const os = pageOsOf(tree.header);
+    // Screens, Overlays and loose Layers (Figma's layers on the canvas), in the page's order: a later one draws above.
     const nodes = tree.board.children.filter((child): child is PageNode => child.kind === "element" && !isSectionNode(child) && !isSliceNode(child));
-    const device = pageDeviceOf(nodes);
+    const device = pageDeviceOf(nodes.filter((node) => !isLayerNode(node)));
     return nodes.map((node) => {
       const frame = frameOf(node, device);
       const height = literalOf(node, "height");
       const versionOf = literalOf(node, "versionOf");
       const shape = frame.kind === "screen" ? { device: frame.device, width: frame.width, height: typeof height === "number" ? height : undefined, os, id: String(literalOf(node, "id") ?? ""), versionOf: typeof versionOf === "string" ? versionOf : undefined, plain: literalOf(node, "frame") === true || undefined } : undefined;
-      const example: StudioExample = { title: frame.label, description: "", code: text ?? "", screen: true, shape, render: () => <PageOsContext value={os}>{renderFrame(node, ctx)}</PageOsContext> };
+      const example: StudioExample = { title: frame.label, description: "", code: text ?? "", screen: frame.kind !== "layer", shape, render: () => <PageOsContext value={os}>{renderFrame(node, ctx)}</PageOsContext> };
       return { ...frame, example };
     });
   }, [tree, file, text, proto, places, library]);
@@ -174,7 +175,7 @@ export function BuilderBoard({ id }: { id: string }) {
   useEffect(() => {
     if (!tree?.board || tree.errors.length) return;
     const selection = studioStore.getState().selection;
-    if (selection?.kind !== "frame" || !/^(screen|overlay|section|slice):/.test(selection.frameId) || frames.some((frame) => frame.id === selection.frameId) || [...sections, ...slices].some((area) => area.id === selection.frameId)) return;
+    if (selection?.kind !== "frame" || !/^(screen|overlay|section|slice|layer):/.test(selection.frameId) || frames.some((frame) => frame.id === selection.frameId) || [...sections, ...slices].some((area) => area.id === selection.frameId)) return;
     const wait = arrivingFor(selection.frameId);
     if (!wait) { studioStore.setState({ selection: null }); return; }
     const timer = window.setTimeout(() => setRecheck((n) => n + 1), wait + 50);
@@ -238,7 +239,7 @@ export function BuilderBoard({ id }: { id: string }) {
         ) : null}
         <div ref={framesRef} className="studio-builder-board__frames">
           {sections.map((section) => <SectionFrame key={section.id} id={section.id} label={section.label} width={section.width} height={section.height ?? 100} />)}
-          {frames.map((frame) => <BuilderFrame key={frame.id} frame={frame} edit={screenEdit} />)}
+          {frames.map((frame) => (frame.kind === "layer" ? <LayerFrame key={frame.id} frame={frame} /> : <BuilderFrame key={frame.id} frame={frame} edit={screenEdit} />))}
           {slices.map((slice) => <SliceFrame key={slice.id} id={slice.id} label={slice.label} width={slice.width} height={slice.height ?? 100} />)}
         </div>
         {showLinks ? <ProtoLinks tree={tree} file={file} boardRef={boardRef} /> : null}
@@ -246,6 +247,16 @@ export function BuilderBoard({ id }: { id: string }) {
       </PageOsContext>
     </ProtoContext>
   );
+}
+
+/**
+ * A loose layer of the page (Figma's layer on the canvas, outside any frame; user 2026-11-20) as a Studio frame of kind
+ * "layer": no frame of its own (no name label, fill, edge or clip, builder.css), as big as its one layer (as wide as its
+ * `width` for a layer that fills its container: a Top Navigation, a chart). A click selects
+ * that layer; a drag on it moves the Layer on the board (select/SelectionLayer.tsx, frameMove.ts).
+ */
+function LayerFrame({ frame }: { frame: PageFrame & { example: StudioExample } }) {
+  return <StudioFrame id={frame.id} kind="layer" label={frame.label} width={frame.width} hug={!frame.width} example={frame.example}>{frame.example.render()}</StudioFrame>;
 }
 
 /**
