@@ -6,6 +6,7 @@ import { expectRender, renderedNow } from "../select/remap";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { EditOp, StudioSelection } from "../types";
 import { localOf, screenOf, targetAt, type DrawTarget } from "./drawTool";
+import { addLooseLayers } from "../builder/looseLayer";
 import { pencilCommands, penCommands, smoothPoint, snap45, vectorCode, vectorLayer, type PenPoint } from "./penModel";
 import "./pen.css";
 
@@ -92,8 +93,11 @@ class PenOverlay {
   }
 }
 
-/** Writes a drawn vector into its frame (one edit, "Draw vector") and selects it. */
-async function writeVector(target: DrawTarget, code: string) {
+/** Writes a drawn vector into its frame, or on the empty canvas as a layer on the canvas at `place` (one edit, "Draw
+ *  vector"), and selects it. */
+async function writeVector(target: DrawTarget, { code, place }: { code: string; place: Point }) {
+  const { localPage } = studioStore.getState();
+  if (target.mode === "board" || !target.parent) { if (localPage) await addLooseLayers(localPage, [{ place, content: code }], "Draw vector"); return; }
   const from = target.flow ? target.flow.parentSrc : target.parent.src;
   const at = parseSrc(from);
   if (!at) return;
@@ -112,10 +116,12 @@ async function writeVector(target: DrawTarget, code: string) {
   flushStudioStore();
 }
 
-/** The code of `commands` drawn in `target`, or null when they draw nothing. */
-function codeOf(commands: PathCommand[], target: DrawTarget): string | null {
+/** The code of `commands` drawn in `target` and its corner (a layer on the canvas goes there), or null when they draw
+ *  nothing. On the canvas the vector is in no frame: its Layer places it. */
+function codeOf(commands: PathCommand[], target: DrawTarget): { code: string; place: Point } | null {
   const layer = vectorLayer(commands, vectorBounds(commands));
-  return layer && (layer.width > 0 || layer.height > 0) ? vectorCode(layer, vectorPathData(layer.commands), target.mode) : null;
+  if (!layer || !(layer.width > 0 || layer.height > 0)) return null;
+  return { code: vectorCode(layer, vectorPathData(layer.commands), target.mode === "board" ? "flow" : target.mode), place: { x: layer.x, y: layer.y } };
 }
 
 let armed: { stop: () => void } | null = null;

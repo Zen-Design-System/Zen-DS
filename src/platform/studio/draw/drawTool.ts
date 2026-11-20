@@ -17,6 +17,7 @@ import { CLICK_TRAVEL, clickBox, drawBox, drawCode, drawLabels, drawLine, isLine
 import { dropPictures, nextPicture, picturesLeft, placingHint, tookPicture } from "./placeImage";
 import { editNewText, editTextAt } from "../edit/textCreate";
 import { holdKeysForText } from "../edit/textEdit";
+import { addLooseLayers, looseLayerLoc } from "../builder/looseLayer";
 import "./draw.css";
 
 /*
@@ -25,10 +26,14 @@ import "./draw.css";
  * its X / Y in px; a Stack, Grid, Card…: auto layout, the layer joins the flow where the insertion line shows). The
  * shape follows the pointer (⇧ equal sides / 45° lines, ⌥ from the centre, Space held moves it, ⌘ held: no snapping),
  * its size under it; Esc cancels. Release writes it (one edit, one ⌘Z), selects it, and the tool goes back to Move.
- * A press outside every Screen says where to draw and keeps the tool (the Frame tool draws a Screen there instead:
- * builder/frameMove.ts).
+ * A press on the empty canvas of a page you made draws a layer on the canvas there, outside any frame (Figma's; a
+ * <Layer> of the Board, builder/looseLayer.ts; user 2026-11-20, loose layers PR3), its corner snapping to the frames'
+ * edges. Elsewhere (a component page's board) a press says where to draw and keeps the tool (the Frame tool draws a
+ * Screen on the empty canvas instead: builder/frameMove.ts).
  */
 
+/** The largest a picture is placed on the canvas (a frame's largest side, dialect FRAME_SIZE). */
+const FRAME_LIMIT = 4096;
 const NOTHING: DropContext = { hosts: [], frame: undefined, parentHost: null, origin: null, layerSrc: null, copy: false };
 const CHROME = ".studio-chrome, .studio-chrome-portal";
 const EDGE = 32;
@@ -36,9 +41,10 @@ const EDGE = 32;
 const FLOAT_PROPS = new Set(["position", "constraintX", "constraintY", "insetTop", "insetRight", "insetBottom", "insetLeft", "children", "key"]);
 
 export type DrawTarget = {
-  mode: "free" | "flow";
-  /** The frame the layer goes into. */
-  parent: FiberHit;
+  /** `board`: the empty canvas of a page you made: the layer goes on the canvas (no parent; `host` the board's frames). */
+  mode: "free" | "flow" | "board";
+  /** The frame the layer goes into (none on the canvas). */
+  parent: FiberHit | null;
   /** Its first DOM node: a free layer's X / Y count from its padding box. */
   host: HTMLElement;
   frameId: string | null;
@@ -56,8 +62,31 @@ function floatsOneLayer(hit: FiberHit): boolean {
   return own.length === 0 && childHits(hit).length === 1;
 }
 
-/** The frame a draw starting at (x, y) goes into, a reason it cannot, or null (no Screen there). */
+/** The board's frames of a page you made (where its frames and layers on the canvas sit, in board px). */
+const BOARD = ".studio-builder-board__frames";
+
+/**
+ * The empty canvas of a page you made at (x, y) (a Section's area too, or a layer on the canvas that takes no layer):
+ * a draw there makes a layer on the canvas. Null elsewhere (a frame, a component page's board, outside the canvas).
+ */
+function boardAt(x: number, y: number): DrawTarget | null {
+  const state = studioStore.getState();
+  const world = canvasApi.getWorldElement();
+  const board = document.querySelector<HTMLElement>(BOARD);
+  if (!state.localPage || !canEdit(state) || !world || !board) return null;
+  for (const element of document.elementsFromPoint(x, y)) {
+    if (!world.contains(element) || element.closest(".studio-draw")) continue;
+    if (element.closest("[data-studio-frame]:not([data-kind='section'], [data-kind='layer'])")) return null;
+  }
+  return { mode: "board", parent: null, host: board, frameId: null, panelId: null, flow: null };
+}
+
+/** The frame a draw starting at (x, y) goes into, the empty canvas (`board`), a reason it cannot, or null. */
 export function targetAt(x: number, y: number): DrawTarget | string | null {
+  return frameTargetAt(x, y) ?? boardAt(x, y);
+}
+
+function frameTargetAt(x: number, y: number): DrawTarget | string | null {
   const world = canvasApi.getWorldElement();
   let hit: FiberHit | null = null;
   for (const element of document.elementsFromPoint(x, y)) {
@@ -67,7 +96,8 @@ export function targetAt(x: number, y: number): DrawTarget | string | null {
   }
   if (!hit) return null;
   const frame = hit.hosts[0]?.closest("[data-studio-frame]") ?? null;
-  if (!frame || !/^screen:/.test(frame.getAttribute("data-studio-frame") ?? "")) return null;
+  // A Screen, or a layer on the canvas that is a frame (a Box) or auto layout (a Stack): it takes the layer as a frame does.
+  if (!frame || !/^(screen|layer):/.test(frame.getAttribute("data-studio-frame") ?? "")) return null;
   for (let step: FiberHit | null = hit; step; step = parentHit(step, frame)) {
     const name = nameOfHit(step);
     if (name === "Board") break;
@@ -107,6 +137,8 @@ export function screenOf(host: HTMLElement, local: Point): Point {
  * drawn corner snaps to (Figma's smart guides). A Screen with bars holds its layers in its content box.
  */
 export function snapTargets(host: HTMLElement): FrameBox[] {
+  // The empty canvas: the frames and layers on it (Figma's smart guides between top-level layers), not the board's edges.
+  if (host.matches(BOARD)) return Array.from(host.children).flatMap((child) => (child instanceof HTMLElement && child.dataset.studioFrame ? [{ x: child.offsetLeft, y: child.offsetTop, width: child.offsetWidth, height: child.offsetHeight }] : []));
   const own: FrameBox = { x: 0, y: 0, width: host.clientWidth, height: host.clientHeight };
   const { zoom } = getViewport();
   const origin = host.getBoundingClientRect();
@@ -214,8 +246,15 @@ function edgePan(pointer: () => Point, follow: () => void) {
 
 const fail = (message: string) => announceEditStatus({ kind: "error", message, at: Date.now() });
 
-/** Writes what was drawn into `target` (one edit, labelled "Draw <shape>") and selects it. */
-async function write(kind: DrawKind, target: DrawTarget, code: string, keys?: ReturnType<typeof holdKeysForText>) {
+/** What a draw is called in History. */
+const labelOf = (kind: DrawKind) => (kind === "text" ? "Add text" : kind === "image" ? "Place image" : `Draw ${drawLabels[kind].toLowerCase()}`);
+
+/**
+ * Writes what was drawn into `target` (one edit, labelled "Draw <shape>") and selects it. On the empty canvas
+ * (`board`), `place` is where it goes: a layer on the canvas there.
+ */
+async function write(kind: DrawKind, target: DrawTarget, code: string, keys?: ReturnType<typeof holdKeysForText>, place?: Point) {
+  if (target.mode === "board" || !target.parent) { await writeOnCanvas(kind, code, place ?? { x: 0, y: 0 }, keys); return; }
   const from = target.flow ? target.flow.parentSrc : target.parent.src;
   const at = parseSrc(from);
   if (!at) return;
@@ -225,7 +264,7 @@ async function write(kind: DrawKind, target: DrawTarget, code: string, keys?: Re
   if (target.flow?.before) op.before = parseSrc(target.flow.before)?.loc;
   else if (target.flow?.after) op.after = parseSrc(target.flow.after)?.loc;
   const before = renderedNow(canvasApi.getWorldElement());
-  const response = await applyEdit({ file: at.file, loc: at.loc, name: parent.name, ops: [op], hash: parent.hash }, kind === "text" ? "Add text" : kind === "image" ? "Place image" : `Draw ${drawLabels[kind].toLowerCase()}`);
+  const response = await applyEdit({ file: at.file, loc: at.loc, name: parent.name, ops: [op], hash: parent.hash }, labelOf(kind));
   if (!response.ok || !response.inserted) return;
   const frameId = target.flow?.frameId ?? target.frameId;
   const panelId = target.flow?.panelId ?? target.panelId;
@@ -236,6 +275,17 @@ async function write(kind: DrawKind, target: DrawTarget, code: string, keys?: Re
   expectRender(next, before, () => undefined, 1500);
   studioStore.setState({ selection: next });
   flushStudioStore();
+}
+
+/** What was drawn on the empty canvas, a layer on the canvas at `place` (board px): selected, a Text edited at once. */
+async function writeOnCanvas(kind: DrawKind, code: string, place: Point, keys?: ReturnType<typeof holdKeysForText>) {
+  const { localPage } = studioStore.getState();
+  if (!localPage) return;
+  const before = renderedNow(canvasApi.getWorldElement());
+  const [frameId] = (await addLooseLayers(localPage, [{ place, content: code }], labelOf(kind), undefined, { select: kind !== "text" })) ?? [];
+  if (!frameId || kind !== "text") return;
+  const layer = await looseLayerLoc(localPage, frameId);
+  if (layer) void editNewText(layer.file, layer.loc, true, { frameId, panelId: null }, before, keys);
 }
 
 let armed: { kind: DrawKind; stop: () => void } | null = null;
@@ -298,14 +348,16 @@ export function armDraw(kind: Exclude<DrawKind, "frame">): boolean {
  */
 export function startDraw(kind: DrawKind, event: PointerEvent): boolean {
   const found = targetAt(event.clientX, event.clientY);
-  if (found === null) return false;
+  // The Frame tool on the empty canvas draws a frame of the Board there (builder/frameMove.ts), not a layer on the canvas.
+  if (found === null || (kind === "frame" && typeof found === "object" && found.mode === "board")) return false;
   if (typeof found === "string") { fail(found); return true; }
   const target = found;
   const { host } = target;
   // Place image: the picture waiting for this click (draw/placeImage.ts), sized to fit the frame.
   const picture = kind === "image" ? nextPicture() : null;
   if (kind === "image" && !picture) { studioStore.setState({ tool: "select" }); return true; }
-  const limit = { width: host.clientWidth, height: host.clientHeight };
+  // A picture fits the frame it goes into; on the canvas it keeps its size (up to a frame's largest).
+  const limit = target.mode === "board" ? { width: FRAME_LIMIT, height: FRAME_LIMIT } : { width: host.clientWidth, height: host.clientHeight };
   const clicked = (at: Point) => (picture ? pictureBox(picture, at, limit) : clickBox(kind, at));
   const startClient = { x: event.clientX, y: event.clientY };
   let start = localOf(host, startClient);
@@ -315,7 +367,7 @@ export function startDraw(kind: DrawKind, event: PointerEvent): boolean {
   let moving: Point | null = null;
   let box: Box = clicked(start);
   let ends: { from: Point; to: Point } | null = null;
-  const others = target.mode === "free" ? snapTargets(host) : [];
+  const others = target.mode === "free" || target.mode === "board" ? snapTargets(host) : [];
   const ghost = new Ghost(kind === "image" ? "rectangle" : kind);
   ghost.root.hidden = true;
 
@@ -374,10 +426,11 @@ export function startDraw(kind: DrawKind, event: PointerEvent): boolean {
     if (!dragged) drawn = clicked(start);
     else if (isLineKind(kind) && ends) ({ box: drawn, rotation } = lineBox(ends.from, ends.to));
     if (!isLineKind(kind) && kind !== "text" && (drawn.width < 1 || drawn.height < 1)) drawn = { ...drawn, width: Math.max(1, drawn.width), height: Math.max(1, drawn.height) };
+    // On the canvas the layer is in no frame's flow: its Layer takes its place (`board`).
     const placement: DrawPlacement = target.mode === "free" ? { mode: "free", x: drawn.x, y: drawn.y } : { mode: "flow" };
     // The Text tool: what is typed from now on goes into the new text (Figma's typing at once).
     const keys = kind === "text" ? holdKeysForText() : undefined;
-    void write(kind, target, picture ? pictureCode(picture, drawn, placement) : drawCode(kind, drawn, placement, rotation), keys);
+    void write(kind, target, picture ? pictureCode(picture, drawn, placement) : drawCode(kind, drawn, placement, rotation), keys, { x: drawn.x, y: drawn.y });
   };
   const onKey = (key: KeyboardEvent) => {
     if (key.key === "Escape" && key.type === "keydown") {
@@ -428,8 +481,9 @@ export async function placePictureAt(picture: PlacedPicture, client: Point, cent
   const found = targetAt(client.x, client.y);
   if (found === null) return false;
   if (typeof found === "string") { fail(found); return true; }
-  const box = pictureBox(picture, localOf(found.host, client), { width: found.host.clientWidth, height: found.host.clientHeight }, center);
+  const limit = found.mode === "board" ? { width: FRAME_LIMIT, height: FRAME_LIMIT } : { width: found.host.clientWidth, height: found.host.clientHeight };
+  const box = pictureBox(picture, localOf(found.host, client), limit, center);
   const placement: DrawPlacement = found.mode === "free" ? { mode: "free", x: box.x, y: box.y } : { mode: "flow" };
-  await write("image", found, pictureCode(picture, box, placement));
+  await write("image", found, pictureCode(picture, box, placement), undefined, { x: box.x, y: box.y });
   return true;
 }

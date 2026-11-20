@@ -64,10 +64,11 @@ const literal = (node: PageNode, prop: string) => { const value = node.props[pro
 /**
  * New loose Layers on the board, each at its `place` (board frame px, its top-left corner) holding its `content` (one
  * layer's code, in the flow: not floated), last on the Board so they draw above the frames; the first one's layer is
- * selected. One edit and one undo step (frames still in the row are pinned first, as a placed frame does). Resolves to
+ * selected (unless `select` is false: the caller selects it, a new Text it edits). One edit and one undo step (frames
+ * still in the row are pinned first, as a placed frame does). Resolves to
  * their frame ids (`layer:<id>`), or null.
  */
-export async function addLooseLayers(localPage: string, items: ReadonlyArray<{ place: FramePlace; content: string }>, label: string, vars?: PageVarStarts): Promise<string[] | null> {
+export async function addLooseLayers(localPage: string, items: ReadonlyArray<{ place: FramePlace; content: string }>, label: string, vars?: PageVarStarts, { select = true }: { select?: boolean } = {}): Promise<string[] | null> {
   const read = async () => {
     const [engine, page] = await Promise.all([loadEngine(), getPage(localPage)]);
     if (!page) return null;
@@ -90,8 +91,18 @@ export async function addLooseLayers(localPage: string, items: ReadonlyArray<{ p
   joinPin(pinned, response, label);
   if (!response.ok) return null;
   const frameIds = ids.map((id) => `layer:${id}`);
-  selectLooseLayerWhenShown(frameIds[0]);
+  if (select) selectLooseLayerWhenShown(frameIds[0]);
   return frameIds;
+}
+
+/** The page file and the "line:column" of the loose Layer `frameId` (`layer:<id>`) in the page as saved, or null. */
+export async function looseLayerLoc(localPage: string, frameId: string): Promise<{ file: string; loc: string } | null> {
+  const [engine, page] = await Promise.all([loadEngine(), getPage(localPage)]);
+  if (!page) return null;
+  const tree = engine.parsePage(page.text, { components: new Set(zenComponents) }) as unknown as PageTree;
+  const id = frameId.replace(/^layer:/, "");
+  const layer = engine.boardLayers(tree).find((entry) => entry.id === id);
+  return layer ? { file: pageFile(localPage), loc: layer.loc } : null;
 }
 
 /** Whether the one layer of the loose Layer `frame` widens with it (it fills its container: a Top Navigation, an Input),

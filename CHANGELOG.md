@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: the drawing tools work on the empty canvas, as in Figma: a Rectangle, Ellipse, Line, Arrow, Polygon, Star,
+  text (T), Pen or Pencil path, or a picture dropped there lands as a layer on the canvas where it is drawn (its edges
+  snap to the frames and layers beside it). "Draw inside a frame" no longer stops it. On a layer on the canvas that
+  takes layers (a Stack, a Box) the tool draws into it; F on the empty canvas still draws a frame.
 - Zen Studio: drag a layer out of its frame onto the empty canvas and it becomes a layer on the canvas where you let it
   go; drag a layer on the canvas onto a frame and it goes into it (at the line in auto layout, at the spot in a frame
   without auto layout); a floating layer dragged onto another frame moves into that frame. ⌥ copies, ⌘Z takes it back.
