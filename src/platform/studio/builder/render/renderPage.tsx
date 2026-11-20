@@ -11,7 +11,7 @@ import { typographyStyles } from "../../../../tokens/typography.generated";
 import { NestedContext, overridesAt } from "../../../../components/_shared/nested";
 import { resolveMediaDeep } from "../library/media";
 import { filterRows, stepperOf } from "../proto/protoModel";
-import { Board, eventElement, Overlay, PlayMoreTab, protoHandler, Screen, Section, Slice, type PlayLive, type ProtoActions } from "../proto/runtime";
+import { Board, eventElement, Layer, Overlay, PlayMoreTab, protoHandler, Screen, Section, Slice, type PlayLive, type ProtoActions } from "../proto/runtime";
 import { engineNow } from "../engine";
 
 /*
@@ -35,7 +35,7 @@ export type PageNode = { kind: "element"; name: string; loc: string; props: Reco
 export type PageChild = PageNode | { kind: "text"; value: string } | { kind: "ref"; root: string; path: string[] } | { kind: "map"; source: { root: string; path: string[] }; item: string; node: PageNode };
 export type PageTree = { header: Record<string, unknown> | null; mock: Record<string, unknown>; vars?: Record<string, unknown>; board: PageNode | null; errors: Array<{ line: number; column: number; message: string }> };
 
-const BUILDER: Record<string, unknown> = { Board, Screen, Overlay, Section, Slice };
+const BUILDER: Record<string, unknown> = { Board, Screen, Overlay, Section, Slice, Layer };
 
 /** A component by name (`Card.Header` follows the dots); null when the library has none. */
 function componentOf(name: string): unknown {
@@ -683,9 +683,11 @@ function renderChildren(children: PageChild[], scope: Scope, ctx: RenderContext)
   });
 }
 
-/** A Screen or Overlay of the board, with the mock data in scope. An overlay frame shows its overlay open. */
+/** A Screen, Overlay or loose Layer of the board, with the mock data in scope. An overlay frame shows its overlay open. */
 export function renderFrame(node: PageNode, ctx: RenderContext): ReactNode {
   const scope: Scope = { mock: ctx.mock };
+  // A layer on the canvas (<Layer>) is its one layer, on no device: no screen layout around it.
+  if (node.name === "Layer") return renderNode(node, scope, ctx);
   if (node.name !== "Overlay") {
     const literalProp = (name: string) => { const value = node.props[name]; return value?.kind === "literal" && typeof value.value === "string" ? value.value : undefined; };
     return renderNode(node, scope, { ...ctx, layout: screenLayout(literalProp("device") ?? "desktop", literalProp("layout")) as "mobile" | "desktop" });

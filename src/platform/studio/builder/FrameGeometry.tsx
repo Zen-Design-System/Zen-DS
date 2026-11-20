@@ -74,3 +74,23 @@ export function FrameGeometry({ frameId }: { frameId: string }) {
     </>
   );
 }
+
+/**
+ * A layer on the canvas (<Layer>, Figma's; builder/looseLayer.ts): its X and Y are its place on the board (Figma's
+ * Position for a top-level layer), each written as one edit; its size is its layer's own (the Layout section).
+ */
+export function LoosePosition({ frameId }: { frameId: string }) {
+  const localPage = useStudio((state) => state.localPage);
+  const editable = useStudio((state) => canEdit(state));
+  const box = useFrameBox(frameId);
+  const write = (change: FrameBoxChange) => { if (localPage) void setFrameBoxes(localPage, new Map([[frameId, change]]), "Move layer"); };
+  const off = !editable || !localPage;
+  return (
+    <InspectorSection title="Position">
+      <div className="studio-frame-geometry__pair" data-prop="frame-position">
+        <ScrubNumberField label="X" name="X" value={box?.x ?? null} disabled={off} onCommit={(x) => write({ x })} />
+        <ScrubNumberField label="Y" name="Y" value={box?.y ?? null} disabled={off} onCommit={(y) => write({ y })} />
+      </div>
+    </InspectorSection>
+  );
+}

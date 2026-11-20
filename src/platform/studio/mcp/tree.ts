@@ -23,8 +23,8 @@ export type DocChild =
   | { kind: "ref"; root: string; path: string[] }
   | { kind: "map"; source: { root: string; path: string[] } | unknown; item: string; node: DocNode };
 
-/** Layers a frame is made of on the Board (Figma's top-level frames). */
-export const FRAME_NAMES = new Set(["Screen", "Overlay"]);
+/** The Board's top-level layers (Figma's): its frames, and its layers on the canvas outside any frame (<Layer>). */
+export const FRAME_NAMES = new Set(["Screen", "Overlay", "Layer"]);
 
 const MAX_STRING = 80;
 const MAX_LINES = 600;

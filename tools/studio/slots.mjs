@@ -84,7 +84,7 @@ const BOM = "\uFEFF";
 const PACKAGE = "@zen-ds/react";
 const BUILDER_PACKAGE = "@zen-ds/react/builder";
 /** What a builder page's code may use from its runtime besides Zen components (Board is the page's root). */
-const BUILDER_RUNTIME = ["Screen", "Overlay", "Section", "Slice", "proto", "Component", "ComponentSet", "Use"];
+const BUILDER_RUNTIME = ["Screen", "Overlay", "Section", "Slice", "Layer", "proto", "Component", "ComponentSet", "Use"];
 const PLUGINS = ["jsx", "typescript"];
 const LINE_SEPARATOR = /[\u2028\u2029]/;
 const FUNCTION_TYPES = new Set(["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression", "ObjectMethod", "ClassMethod", "ClassPrivateMethod"]);
@@ -1638,6 +1638,9 @@ function removal(ctx, nodePath, at, what) {
   const parent = nodePath[i - 1];
   switch (parent?.type) {
     case "JSXElement":
+      // A builder page's layer on the canvas (<Layer>, Figma's) is its one layer: removing that removes the Layer.
+      if (jsxName(parent.openingElement.name) === "Layer" && nodePath[i - 2]?.type === "JSXElement" && jsxName(nodePath[i - 2].openingElement.name) === "Board") return removal(ctx, nodePath, i - 1, what);
+      return removeChild(ctx, nodePath, i, what);
     case "JSXFragment":
       return removeChild(ctx, nodePath, i, what);
     case "JSXExpressionContainer": {

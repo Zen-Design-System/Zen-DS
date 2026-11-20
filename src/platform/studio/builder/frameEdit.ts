@@ -4,6 +4,7 @@ import type { EditOp, EditResponse } from "../types";
 import { loadEngine, zenComponents } from "./engine";
 import { frameOf, literalOf, pageDeviceOf, type PageFrame } from "./render/frames";
 import { selectFrameWhenShown } from "../board/frames";
+import { selectLooseLayerWhenShown } from "./looseLayer";
 import { boardBoxes, sectionContents } from "../board/sections";
 import { FRAME_GAP, placeFrames, type FramePlace } from "./render/framePlace";
 import type { PageNode, PageTree } from "./render/renderPage";
@@ -83,9 +84,10 @@ export async function setFrameBoxes(localPage: string, changes: ReadonlyMap<stri
     const place = frame.place ?? board.places[index];
     const to = { x: change?.x ?? place.x, y: change?.y ?? place.y };
     if (!same(frame.place, to)) ops.push(...placeOps(to));
+    // An Overlay takes its content's size; a loose Layer its layer's height, and a width only for a layer that fills it.
     if (change && frame.kind !== "overlay") {
-      const limits = frame.kind === "section" ? { min: 100, max: 40000 } : frame.kind === "slice" ? { min: 1, max: 40000 } : { min: 100, max: 4096 };
-      for (const name of ["width", "height"] as const) {
+      const limits = frame.kind === "section" ? { min: 100, max: 40000 } : frame.kind === "slice" || frame.kind === "layer" ? { min: 1, max: frame.kind === "layer" ? 4096 : 40000 } : { min: 100, max: 4096 };
+      for (const name of frame.kind === "layer" ? (["width"] as const) : (["width", "height"] as const)) {
         const value = change[name];
         if (value !== undefined) ops.push(number(name, Math.min(limits.max, Math.max(limits.min, value))));
       }
@@ -140,7 +142,12 @@ export async function setStartScreen(localPage: string, frameId: string, title: 
 
 /** A free spot for a copy of frame `index`: beside it to the right (Figma's Duplicate), past any frame in the way. */
 function besidePlace(board: Board, index: number, heights: ReadonlyMap<string, number>): FramePlace {
-  const boxes = board.frames.map((frame, at) => ({ ...board.places[at], width: frame.width, height: heights.get(frame.id) ?? 900 }));
+  // A loose Layer is as big as its layer: read from the board (its page has no size for it).
+  const shown = (id: string) => document.querySelector<HTMLElement>(`[data-studio-frame="${CSS.escape(id)}"]`);
+  const boxes = board.frames.map((frame, at) => {
+    const layer = frame.kind === "layer" ? shown(frame.id) : null;
+    return { ...board.places[at], width: layer?.offsetWidth ?? frame.width, height: layer?.offsetHeight ?? heights.get(frame.id) ?? 900 };
+  });
   const own = boxes[index];
   const place = { x: own.x + own.width + FRAME_GAP, y: own.y };
   for (let guard = 0; guard < boxes.length; guard += 1) {
@@ -183,14 +190,14 @@ export async function copyFrame(localPage: string, frameId: string, at: FramePla
     const own = frameOf(original).place ?? { x: 0, y: 0 };
     return copySection(localPage, frameId, at ? { dx: at.x - own.x, dy: at.y - own.y } : null, { ...options, label: options.label?.replace("frame", "section") });
   }
-  const kind = original.name === "Overlay" ? "overlay" : original.name === "Slice" ? "slice" : "screen";
+  const kind = original.name === "Overlay" ? "overlay" : original.name === "Slice" ? "slice" : original.name === "Layer" ? "layer" : "screen";
   const ids = board.nodes.map((node) => String(literalOf(node, "id") ?? ""));
   const id = options.as && !ids.includes(options.as.id) ? options.as.id : engine.freeFrameId(kind, ids);
   const place = at ?? (index >= 0 ? besidePlace(board, index, options.heights ?? new Map()) : placeFrames([...board.frames, { width: 0, place: null }]).at(-1)!);
   const where = { id, x: Math.round(place.x), y: Math.round(place.y) };
   const state = literalOf(original, "state");
   const newFrame = `${kind}:${id}${typeof state === "string" ? `:${state}` : ""}`;
-  const label = options.label ?? (kind === "overlay" ? "Duplicate overlay" : kind === "slice" ? "Duplicate slice" : "Duplicate screen");
+  const label = options.label ?? (kind === "overlay" ? "Duplicate overlay" : kind === "slice" ? "Duplicate slice" : kind === "layer" ? "Duplicate layer" : "Duplicate screen");
   // Frames still in the row are pinned first (the same undo step: joinPin).
   const pinned = board.frames.some((frame) => !frame.place) ? { text: board.text, hash: board.hash } : null;
   if (pinned && !(await pinRow(localPage))) return null;
@@ -202,7 +209,9 @@ export async function copyFrame(localPage: string, frameId: string, at: FramePla
   const response = await applyEdit({ file: fresh.file, loc: fresh.tree.board.loc, name: "Board", ops: [{ op: "insertChild", code, ...(after ? { after } : {}) }], hash: fresh.hash }, label);
   joinPin(pinned, response, label);
   if (!response.ok) return null;
-  selectFrameWhenShown(newFrame, (frameId) => studioStore.setState({ selection: { kind: "frame", frameId } }));
+  // A loose Layer's copy: its layer is selected (the Layer has no row or look of its own).
+  if (kind === "layer") selectLooseLayerWhenShown(newFrame);
+  else selectFrameWhenShown(newFrame, (frameId) => studioStore.setState({ selection: { kind: "frame", frameId } }));
   return newFrame;
 }
 
@@ -241,7 +250,7 @@ export async function copySection(localPage: string, sectionId: string, offset: 
   const frames: string[] = [];
   let copied = "";
   for (const part of parts) {
-    const kind = part.node.name === "Section" ? "section" : part.node.name === "Slice" ? "slice" : part.node.name === "Overlay" ? "overlay" : "screen";
+    const kind = part.node.name === "Section" ? "section" : part.node.name === "Slice" ? "slice" : part.node.name === "Overlay" ? "overlay" : part.node.name === "Layer" ? "layer" : "screen";
     const id = engine.freeFrameId(kind, taken);
     taken.push(id);
     if (!copied) copied = `section:${id}`;

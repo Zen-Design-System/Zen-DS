@@ -5,10 +5,11 @@ import { canvasApi, getViewport, getViewportBox } from "../canvas/viewport";
 import { copyFrameForFigma, copyFrameNow, copyFrameWhenRead, frameFigmaClip } from "../builder/export/figmaClipboard";
 import { openQuickInsert } from "../builder/library/quickInsertState";
 import { frameInView, rootSelection } from "../builder/library/target";
+import { looseFrameOf } from "../builder/looseLayer";
 import { nodeKind, propSpecs } from "../inspector/propSchema";
 import { annotatedAt, findBySrc, isTypingTarget, parentHit, rectOf, type FiberHit } from "../select/picker";
 import { wrappedChildLoc } from "../select/resize";
-import { multiSelection, selectedLayers } from "../select/multiSelection";
+import { multiSelection, selectedLayers, sourceOrder } from "../select/multiSelection";
 import { expectRender, mapSrc, renderedNow } from "../select/remap";
 import { canStructurallyEdit, insideWrap, isFloatWrapper, pasteIntoSlot, pasteWarningIn, rememberInsert, removeSelection, selectedSlotOf, slotPasteTarget, slotPasteWarning, studioWrapOf, swapSelection } from "../slots/actions";
 import { canEdit, flushStudioStore, studioStore } from "../store";
@@ -60,7 +61,7 @@ export const clipboardShortcuts = {
  * (zoom undone), whether they all floated and were more than one, for Paste here on the empty canvas
  * (builder/boardPaste.ts); `copiedAt`: when.
  */
-type Clip = { file: string | null; loc: string | null; name: string; tag: string; code: string; cut: boolean; wrapped: boolean; state: StateDecl[]; size: { width: number; height: number } | null; floats: boolean; several: boolean; copiedAt: number };
+type Clip = { file: string | null; loc: string | null; name: string; tag: string; code: string; cut: boolean; wrapped: boolean; state: StateDecl[]; size: { width: number; height: number } | null; boxes: Array<{ x: number; y: number }> | null; floats: boolean; several: boolean; copiedAt: number };
 type PropsClip = { name: string; values: Array<{ name: string; value: EditValue }> };
 
 let clip: Clip | null = null;
@@ -187,20 +188,24 @@ async function copyLayer(selection: NodeSelection, data: DataTransfer | null, cu
   return true;
 }
 
-/** The copied layers' box on the canvas in px (the zoom undone) and whether they all float (Figma's frame without auto
- *  layout): Paste here on the empty canvas makes a frame that size (builder/boardPaste.ts). */
-function measure(layers: readonly StudioNodeRef[]): Pick<Clip, "size" | "floats" | "several"> {
+/** The copied layers' box on the canvas in px (the zoom undone), each copied layer's corner in it (in source order, as
+ *  their code: one inside another copied one goes with it) and whether they all float (Figma's frame without auto
+ *  layout): Paste on the empty canvas puts them there as layers on the canvas, as they were (builder/boardPaste.ts). */
+function measure(layers: readonly StudioNodeRef[]): Pick<Clip, "size" | "boxes" | "floats" | "several"> {
   const world = canvasApi.getWorldElement();
-  const hosts = world ? layers.flatMap((layer) => { const hits = findBySrc(world, layer.src); return (hits[layer.instance] ?? hits[0])?.hosts ?? []; }) : [];
+  const placed = world ? layers.map((layer) => { const hits = findBySrc(world, layer.src); return { layer, hosts: (hits[layer.instance] ?? hits[0])?.hosts ?? [] }; }).filter((entry) => entry.hosts.length) : [];
+  const hosts = placed.flatMap((entry) => entry.hosts);
   const rect = hosts.length ? rectOf(hosts) : null;
   const zoom = getViewport().zoom || 1;
-  return { size: rect ? { width: Math.round(rect.width / zoom), height: Math.round(rect.height / zoom) } : null, floats: hosts.length > 0 && hosts.every(floats), several: layers.length > 1 };
+  const outer = placed.filter((entry) => !placed.some((other) => other !== entry && other.hosts.some((host) => entry.hosts.some((inner) => host !== inner && host.contains(inner))))).sort((a, b) => sourceOrder(a.layer, b.layer));
+  const boxes = rect ? outer.map((entry) => { const own = rectOf(entry.hosts)!; return { x: Math.round((own.left - rect.left) / zoom), y: Math.round((own.top - rect.top) / zoom) }; }) : null;
+  return { size: rect ? { width: Math.round(rect.width / zoom), height: Math.round(rect.height / zoom) } : null, boxes, floats: hosts.length > 0 && hosts.every(floats), several: layers.length > 1 };
 }
 
 /** What ⌘C / ⌘X last copied on the canvas (Paste here on the empty canvas, builder/boardPaste.ts): its code, name, box,
  *  whether it is several layers and whether they float, and when; null before any copy. */
 export function copiedLayers() {
-  return clip ? { code: clip.code, name: selectedName(clip.name), several: clip.several, size: clip.size, floats: clip.floats, copiedAt: clip.copiedAt } : null;
+  return clip ? { code: clip.code, name: selectedName(clip.name), several: clip.several, size: clip.size, boxes: clip.boxes, floats: clip.floats, copiedAt: clip.copiedAt } : null;
 }
 
 /* ── where a paste goes ──────────────────────────────────────────────────────────────────────────────────────────── */
@@ -289,6 +294,14 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
     // holds the selected layer (PageHeader › Actions: after that layer; ⇧⌘R swaps it). A selected layout takes the paste
     // as its child (below), as does a children slot; a wrapped component counts by its Studio wrap Stack.
     const hit = hitOf(selection);
+    // A layer on the canvas selected (<Layer>, Figma's; builder/looseLayer.ts): what goes beside it goes on the canvas, a
+    // layer of its own (a Layer holds one), where the copied one is if it shows (Figma pastes over it), else beside it.
+    const loose = replace ? null : looseFrameOf(hit);
+    if (loose && !(hit && isDropContainer(hit))) {
+      const { pasteOnBoard } = await import("../builder/boardPaste");
+      pasting = false;
+      return await pasteOnBoard(looseOriginalAt(own) ?? besideLoose(loose), own ? {} : { text: raw });
+    }
     // A selected floating wrapper Box (a component's own frame in a free frame) takes nothing inside: beside it, as its component.
     const wrapper = isFloatWrapper(hit?.hosts[0]);
     const intoLayout = !replace && !wrapper && Boolean(hit && isDropContainer(hit)) && !selectedSlotOf(selection);
@@ -436,6 +449,24 @@ function originalInView(copied: Clip): boolean {
   return rect.right > view.left && rect.left < view.left + view.width && rect.bottom > view.top && rect.top < view.top + view.height;
 }
 
+/** Where the layer `copied` was copied from shows (client px, its top-left), when it is a layer on the canvas in view:
+ *  Figma pastes such a layer over it. Null otherwise. */
+function looseOriginalAt(copied: Clip | null): { x: number; y: number } | null {
+  const world = canvasApi.getWorldElement();
+  const hit = copied?.file && copied.loc && world ? findBySrc(world, `${copied.file}:${copied.loc}`)[0] : undefined;
+  if (!hit || !looseFrameOf(hit) || !originalInView(copied!)) return null;
+  const rect = hit.hosts[0].getBoundingClientRect();
+  return { x: rect.left, y: rect.top };
+}
+
+/** Beside the layer on the canvas `frameId` (client px): to its right, as Figma places a new layer next to the selection. */
+function besideLoose(frameId: string): { x: number; y: number } {
+  const rect = document.querySelector(`[data-studio-frame="${CSS.escape(frameId)}"]`)?.getBoundingClientRect();
+  return rect ? { x: rect.right + LOOSE_GAP * (getViewport().zoom || 1), y: rect.top } : { x: 0, y: 0 };
+}
+/** Room between a layer on the canvas and the one pasted beside it (board px). */
+const LOOSE_GAP = 24;
+
 /** The middle of the view when no Screen or Overlay is under it (the board's empty space, or a Section's), else null. */
 function emptyViewMiddle(): { x: number; y: number } | null {
   const world = canvasApi.getWorldElement();
@@ -506,12 +537,23 @@ async function pasteOnCanvas(text: string | null, point: { x: number; y: number 
   const code = raw.startsWith("<") ? raw : textLayer(raw);
   const selection = studioStore.getState().selection;
   // Nothing selected, the copied layer's place out of view (or cut) and no frame in the middle of the view, on a page you
-  // made: Figma's paste lands there, on the canvas; a page's Board holds frames only, so a new frame there holds it
-  // (builder/boardPaste.ts, as Paste here's). A copied layer still in view keeps Figma's paste at its place (spotInView).
+  // made: Figma's paste lands there, on the canvas, as layers on the canvas (builder/boardPaste.ts, as Paste here's). A
+  // copied layer still in view keeps Figma's paste at its place (spotInView).
   const middle = !point && selection?.kind !== "frame" && studioStore.getState().localPage && !(own && originalInView(own)) ? emptyViewMiddle() : null;
   if (middle) {
     const { pasteOnBoard } = await import("../builder/boardPaste");
     return pasteOnBoard(middle, { ...(own ? {} : { text: raw }), centred: true });
+  }
+  // Paste here on a layer on the canvas that takes nothing inside (a Button): on the canvas at the pointer, as Figma's.
+  if (point && studioStore.getState().localPage && !dropTargetAt(point.x, point.y, NO_DRAG).target && document.elementsFromPoint(point.x, point.y).some((element) => element.closest('[data-studio-frame^="layer:"]'))) {
+    const { pasteOnBoard } = await import("../builder/boardPaste");
+    return pasteOnBoard(point, own ? {} : { text: raw });
+  }
+  // A layer copied from the canvas (a <Layer>'s) and still in view: over it, on the canvas (Figma's).
+  const over = !point && selection?.kind !== "frame" ? looseOriginalAt(own) : null;
+  if (over) {
+    const { pasteOnBoard } = await import("../builder/boardPaste");
+    return pasteOnBoard(over);
   }
   const spot = point ? spotAtPoint(point) : spotInView(selection?.kind === "frame" ? selection.frameId : null);
   if (typeof spot === "string") { fail(spot); return false; }

@@ -25,7 +25,7 @@ export type StudioPreviewSettings = PlatformShellSettings;
 
 /** A frame on the board. Ids are stable per page: "playground", "main-component", "docs", "guidelines", "document",
  *  "example:<n>". */
-export type StudioFrameKind = "playground" | "main-component" | "example" | "docs" | "document" | "section" | "slice";
+export type StudioFrameKind = "playground" | "main-component" | "example" | "docs" | "document" | "section" | "slice" | "layer";
 /** "auto" = the rule width; a number = px, a toolbar preset (390…1440) or a free width dragged on the frame's right edge. */
 export type StudioFrameWidth = "auto" | number;
 /** `view`: a builder Screen shown on another breakpoint's device (the view switch on its label; builder/screenViews.ts): a

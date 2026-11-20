@@ -52,6 +52,7 @@ import { MAIN_FRAME, variantKey } from "../mainComponent/model";
 import { pickVariant } from "../mainComponent/select";
 import { variantHover } from "../mainComponent/hover";
 import { pressFrame } from "../builder/frameMove";
+import { looseFrameOf } from "../builder/looseLayer";
 import "./select.css";
 
 /*
@@ -785,6 +786,10 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         choosePart(dataItemOfPart(layer)?.part ?? groupTitlePartOf(layer) ?? layer);
         return;
       }
+      // A layer on the canvas (<Layer>, Figma's; user 2026-11-20) moves on the board as a frame does (its Layer's x / y,
+      // smart guides to the frames beside it, ⌥ a copy: builder/frameMove.ts); a click without moving still selects it.
+      const loose = !event.shiftKey ? looseFrameOf(target) : null;
+      if (loose && pressFrame(event.nativeEvent, loose, () => choose(target, false))) return;
       // A press can drag the layer (Figma; edit/drag.ts): inside the selected layer it drags that one, and a click
       // without moving still selects the layer the click picks.
       if (pressLayer(event.nativeEvent, target, () => choose(target, event.shiftKey))) return;

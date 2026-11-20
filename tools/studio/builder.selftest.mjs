@@ -2,7 +2,7 @@
 // The edit engine on a builder page kept in the browser ("local:<id>.zen.tsx", Studio builder GĐ2 M1): the same ops as
 // on example code, results that stay valid pages. Run: node tools/studio/builder.selftest.mjs
 import { dataFieldEdit } from "./data-source.mjs";
-import { SCREEN_CHROME, boardFrames, frameCode, freeFrameId, newPageText, parsePage, protoCode, screenLayout, validateDialect } from "./dialect.mjs";
+import { SCREEN_CHROME, boardFrames, boardLayers, frameCode, freeFrameId, layerCode, newPageText, parsePage, protoCode, screenLayout, validateDialect } from "./dialect.mjs";
 import { FRAME_PARTS, screenFrameCode } from "./screen-chrome.mjs";
 import { applyOps, describeElement, sha1 } from "./jsx-source.mjs";
 
@@ -248,6 +248,26 @@ export default function Page() {
   check("the moved page stays valid", first.code ? validateDialect(first.code, { components }).length : -1, 0);
   const last = applyOps(three, login.loc, "Screen", [{ op: "moveTo", parent: board.loc, after: home.loc }], options(three));
   check("a frame row dropped last: Login after Home", [last.error ?? null, last.code && ids(last.code)], [null, ["splash@486", "home@972", "login@0"]]);
+}
+
+// Loose layers (Figma's layers on the canvas, user 2026-11-20): a <Layer> goes on the Board with its runtime import; it
+// holds one layer (another is refused there); removing that layer removes the Layer.
+{
+  let board = newPageText({ title: "Canvas", device: "desktop", chrome: false });
+  const boardLoc = () => parsePage(board).board.loc;
+  const added = applyOps(board, boardLoc(), "Board", [{ op: "insertChild", code: layerCode({ id: freeFrameId("layer", []), x: 40, y: -20, content: '<Button level="primary">Go</Button>' }) }], options(board));
+  check("a Layer joins the Board", added.error ?? null, null);
+  board = added.code ?? board;
+  check("its runtime import and a valid page", [/import \{ Board, Layer, Screen, proto \} from "@zen-ds\/react\/builder";|import \{ Board, Layer, Screen \} from "@zen-ds\/react\/builder";/.test(board), validateDialect(board, { components })], [true, []]);
+  const layer = parsePage(board).board.children.find((child) => child.kind === "element" && child.name === "Layer");
+  const button = layer?.children.find((child) => child.kind === "element");
+  check("boardLayers reads it", boardLayers(parsePage(board)).map(({ id, x, y }) => ({ id, x, y })), [{ id: "layer-1", x: 40, y: -20 }]);
+  const second = applyOps(board, layer.loc, "Layer", [{ op: "insertChild", code: "<Button>Two</Button>" }], options(board));
+  check("a Layer takes no second layer", /stands alone/.test(second.error ?? ""), true);
+  const beside = applyOps(board, layer.loc, "Layer", [{ op: "pasteCode", code: "<Button>Two</Button>", after: button.loc }], options(board));
+  check("nothing pastes beside its layer inside it", /stands alone/.test(beside.error ?? ""), true);
+  const gone = applyOps(board, button.loc, "Button", [{ op: "removeElement" }], options(board));
+  check("removing its layer removes the Layer", [gone.error ?? null, gone.code && boardLayers(parsePage(gone.code)).length, gone.code && validateDialect(gone.code, { components })], [null, 0, []]);
 }
 
 if (failures.length) {

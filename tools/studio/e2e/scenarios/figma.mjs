@@ -322,6 +322,79 @@ const shapeTags = (text) => [...text.matchAll(/<Shape\b[^>]*\/>/g)].map(([tag]) 
   const value = (name) => { const match = new RegExp(`\\b${name}=(?:"([^"]*)"|\\{(-?[\\d.]+)\\})`).exec(tag); return match ? match[1] ?? Number(match[2]) : undefined; };
   return { type: value("type"), x: value("insetLeft"), y: value("insetTop"), width: value("width"), height: value("height"), fill: value("fill"), stroke: value("stroke"), strokeWeight: value("strokeWeight"), opacity: value("opacity") };
 });
+/** A desktop page with a plain frame (0, 0, 400 × 300) and two layers on the canvas (<Layer>, user 2026-11-20): a Button
+ *  at 500, 0 and a Stack of two Texts at 500, 160. A fresh page each time (the rows move and remove them). */
+const looseText = (title) => `// @zen-page {"format":1,"title":${JSON.stringify(title)}}
+import { Board, Layer, Screen } from "@zen-ds/react/builder";
+import { Button, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Frame 1" device="desktop" frame x={0} y={0} width={400} height={300}>
+      </Screen>
+      <Layer id="layer-1" x={500} y={0}>
+        <Button>Go</Button>
+      </Layer>
+      <Layer id="layer-2" x={500} y={160}>
+        <Stack gap="xs" padding="md" surface="pale">
+          <Text>One</Text>
+          <Text>Two</Text>
+        </Stack>
+      </Layer>
+    </Board>
+  );
+}
+`;
+async function loosePage(ctx) {
+  const { page, id } = await seededPage(ctx, looseText, /<Layer id="layer-2"/);
+  await showLeftTab(page, "layers");
+  await page.locator('[data-studio-frame="layer:layer-2"]').waitFor({ state: "attached", timeout: 10_000 });
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Shift+1");
+  await sleep(500);
+  await deselect(page);
+  return { page, id, before: (await pageText(page, id)) ?? "" };
+}
+/** The canvas zoom (screen px per board px), read from the frame. */
+async function looseZoom(page) {
+  const element = page.locator('[data-studio-frame="screen:screen-1"]');
+  const box = await element.boundingBox();
+  return box.width / (await element.evaluate((node) => node.offsetWidth));
+}
+/** The "line:column" of the first `tag` inside <Layer id>, in the page's text. */
+function looseLoc(text, layerId, tag) {
+  const lines = text.split("\n");
+  const start = lines.findIndex((line) => line.includes(`<Layer id="${layerId}"`));
+  const at = lines.findIndex((line, index) => index > start && line.includes(`<${tag}`));
+  return start < 0 || at < 0 ? null : `${at + 1}:${lines[at].indexOf(`<${tag}`)}`;
+}
+/** A click in the middle of what `selector` matches inside the layer on the canvas `layerId`. */
+async function clickLoose(page, layerId, selector) {
+  const box = await page.locator(`[data-studio-frame="layer:${layerId}"] ${selector}`).first().boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await sleep(250);
+}
+/** A press at `from`, a move by (dx, dy) screen px in steps, a release; `keys` held throughout. */
+async function dragBy(page, from, dx, dy, keys = []) {
+  for (const key of keys) await page.keyboard.down(key);
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  for (let step = 1; step <= 12; step += 1) await page.mouse.move(from.x + (dx * step) / 12, from.y + (dy * step) / 12);
+  await sleep(150);
+  await page.mouse.up();
+  for (const key of keys) await page.keyboard.up(key);
+  await sleep(300);
+}
+/** The "line:column" of the Shape a layer on the canvas (<Layer id>) holds, in the page's text. */
+function looseShapeLoc(text, layerId) {
+  const lines = text.split("\n");
+  const start = lines.findIndex((line) => line.includes(`<Layer id="${layerId}"`));
+  const at = lines.findIndex((line, index) => index > start && line.includes("<Shape"));
+  return start < 0 || at < 0 ? null : `${at + 1}:${lines[at].indexOf("<Shape")}`;
+}
 const clipShape = (page, id, index) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(index);
 
 
@@ -3973,7 +4046,7 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   {
-    id: "FW-153", feature: "Right-click the empty canvas: Paste here, dimmed with nothing copied; after ⌘C on a shape it makes a frame of its size with its corner at the pointer, the shape at X 0 Y 0 inside, selected; one ⌘Z", wp: "re-measure §2a menus 2026-10-21", timeout: 60_000,
+    id: "FW-153", feature: "Right-click the empty canvas: Paste here, dimmed with nothing copied; after ⌘C on a shape it pastes the shape on the canvas with its corner at the pointer, outside any frame (a <Layer>, user 2026-11-20), selected; one ⌘Z", wp: "re-measure §2a menus 2026-10-21, loose layers 2026-11-20", timeout: 60_000,
     async run(ctx) {
       let { page, id } = await clipPage(ctx);
       await forgetClipboard(page);
@@ -3994,24 +4067,24 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       const paste = menu.getByRole("menuitem", { name: /^Paste here/ });
       await until(async () => !(await paste.isDisabled()), { timeout: 3000, message: "Paste here on" });
       await paste.click();
-      await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a new frame" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      await until(async () => /<Layer id="layer-1"/.test((await pageText(page, id)) ?? ""), { message: "a layer on the canvas" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
       const text = (await pageText(page, id)) ?? "";
-      const frame = boardTag(text, "Screen", "screen-2");
-      const inside = text.slice(text.indexOf('<Screen id="screen-2"'), text.indexOf("</Screen>", text.indexOf('<Screen id="screen-2"')));
+      const layer = boardTag(text, "Layer", "layer-1");
+      const inside = text.slice(text.indexOf('<Layer id="layer-1"'), text.indexOf("</Layer>", text.indexOf('<Layer id="layer-1"')));
       const shape = shapeTags(inside)[0];
       const want = spot.board(numberAttr(boardTag(text, "Screen", "screen-1"), "x"), numberAttr(boardTag(text, "Screen", "screen-1"), "y"));
       const problems = [
-        !/title="Frame 2"/.test(frame) && "not named Frame 2",
-        (numberAttr(frame, "width") !== 100 || numberAttr(frame, "height") !== 100) && `${numberAttr(frame, "width")} × ${numberAttr(frame, "height")} (want 100 × 100: an 80 × 60 shape, a frame is 100 at least)`,
-        (Math.abs(numberAttr(frame, "x") - want.x) > 3 || Math.abs(numberAttr(frame, "y") - want.y) > 3) && `at ${numberAttr(frame, "x")}, ${numberAttr(frame, "y")} (pointer ${want.x}, ${want.y})`,
-        (shape?.type !== "rectangle" || shape.x !== 0 || shape.y !== 0) && `inside: ${shape?.type} at ${shape?.x}, ${shape?.y}`,
+        /<Screen id="screen-2"/.test(text) && "a frame was added",
+        (Math.abs(numberAttr(layer, "x") - want.x) > 3 || Math.abs(numberAttr(layer, "y") - want.y) > 3) && `at ${numberAttr(layer, "x")}, ${numberAttr(layer, "y")} (pointer ${want.x}, ${want.y})`,
+        (shape?.type !== "rectangle" || shape.x !== undefined || shape.y !== undefined || /position=/.test(inside)) && `inside: ${shape?.type} at ${shape?.x}, ${shape?.y}${/position=/.test(inside) ? ", still placed in a frame" : ""}`,
       ].filter(Boolean);
       if (problems.length) throw new Error(problems.join(" · "));
-      await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').getAttribute("data-selected")) === "true", { message: "the new frame selected" });
+      const pasted = looseShapeLoc(text, "layer-1");
+      await until(async () => ((await selectedSrc(page))[0] ?? "").endsWith(`:${pasted}`), { message: `the pasted shape (${pasted}) selected` }).catch(async (error) => { throw new Error(`${error.message}, not ${(await selectedSrc(page))[0] ?? "nothing"}`); });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+z");
-      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z: the frame gone (the row's pin with it)" });
-      return `dimmed · ⌘C → Paste here → Frame 2 at ${numberAttr(frame, "x")}, ${numberAttr(frame, "y")}, 100 × 100, the rectangle at 0, 0 → one ⌘Z`;
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z: the layer gone (the row's pin with it)" });
+      return `dimmed · ⌘C → Paste here → <Layer> at ${numberAttr(layer, "x")}, ${numberAttr(layer, "y")} holding the rectangle, selected → one ⌘Z`;
     },
   },
   {
@@ -5842,7 +5915,7 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   {
-    id: "FW-269", feature: "⌘X on a shape, nothing selected, the view moved to the empty canvas, ⌘V (user 2026-11-20: it said \"Nothing here takes a paste\"): Figma's paste in the middle of the view, a new frame there holds the shape at X 0 Y 0, selected; ⌘Z takes the frame, ⌘Z again brings the shape back", wp: "paste outside a frame 2026-11-20", timeout: 60_000,
+    id: "FW-269", feature: "⌘X on a shape, nothing selected, the view moved to the empty canvas, ⌘V (user 2026-11-20: it said \"Nothing here takes a paste\"; then \"không đặt ở ngoài frame được\"): Figma's paste in the middle of the view, on the canvas outside any frame (a <Layer> holding the shape), selected; ⌘Z takes it, ⌘Z again brings the shape back", wp: "paste outside a frame 2026-11-20, loose layers 2026-11-20", timeout: 60_000,
     async run(ctx) {
       const { page, id } = await clipPage(ctx);
       const before = (await pageText(page, id)) ?? "";
@@ -5867,27 +5940,188 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       const zoom = shown.width / (await element.evaluate((node) => node.offsetWidth));
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+KeyV");
-      await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a new frame" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      await until(async () => /<Layer id="layer-1"/.test((await pageText(page, id)) ?? ""), { message: "a layer on the canvas" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
       const text = (await pageText(page, id)) ?? "";
       const own = boardTag(text, "Screen", "screen-1");
-      const frame = boardTag(text, "Screen", "screen-2");
-      const inside = text.slice(text.indexOf('<Screen id="screen-2"'), text.indexOf("</Screen>", text.indexOf('<Screen id="screen-2"')));
+      const layer = boardTag(text, "Layer", "layer-1");
+      const inside = text.slice(text.indexOf('<Layer id="layer-1"'), text.indexOf("</Layer>", text.indexOf('<Layer id="layer-1"')));
       const shape = shapeTags(inside)[0];
       // The view's middle on the board: from the first frame's written X / Y and where it shows.
       const want = { x: Math.round((numberAttr(own, "x") ?? 0) + (middle.x - shown.x) / zoom), y: Math.round((numberAttr(own, "y") ?? 0) + (middle.y - shown.y) / zoom) };
-      const centre = { x: numberAttr(frame, "x") + numberAttr(frame, "width") / 2, y: numberAttr(frame, "y") + numberAttr(frame, "height") / 2 };
+      const centre = { x: numberAttr(layer, "x") + (shape?.width ?? 0) / 2, y: numberAttr(layer, "y") + (shape?.height ?? 0) / 2 };
       const problems = [
+        /<Screen id="screen-2"/.test(text) && "a frame was added",
         (Math.abs(centre.x - want.x) > 3 || Math.abs(centre.y - want.y) > 3) && `its middle at ${centre.x}, ${centre.y}, the view's at ${want.x}, ${want.y}`,
-        (shape?.type !== "rectangle" || shape.x !== 0 || shape.y !== 0) && `inside: ${shape?.type} at ${shape?.x}, ${shape?.y}`,
+        (shape?.type !== "rectangle" || /position=/.test(inside)) && `inside: ${shape?.type}${/position=/.test(inside) ? ", still placed in a frame" : ""}`,
         /Nothing here/.test(await statusText(page)) && `status "${(await statusText(page)).slice(0, 80)}"`,
       ].filter(Boolean);
       if (problems.length) throw new Error(problems.join(" · "));
-      await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').getAttribute("data-selected")) === "true", { message: "the new frame selected" });
+      const pasted = looseShapeLoc(text, "layer-1");
+      await until(async () => ((await selectedSrc(page))[0] ?? "").endsWith(`:${pasted}`), { message: `the pasted shape (${pasted}) selected` });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+z");
-      await until(async () => (await pageText(page, id)) === cut, { message: "⌘Z: the frame gone" });
+      await until(async () => (await pageText(page, id)) === cut, { message: "⌘Z: the layer gone" });
       await undoTo(page, id, before, 1);
-      return `⌘X → ⌘V on the empty canvas → Frame at ${numberAttr(frame, "x")}, ${numberAttr(frame, "y")} (${numberAttr(frame, "width")} × ${numberAttr(frame, "height")}), its middle the view's · the Rectangle at 0, 0 · ⌘Z, ⌘Z → as before`;
+      return `⌘X → ⌘V on the empty canvas → <Layer> at ${numberAttr(layer, "x")}, ${numberAttr(layer, "y")}, the rectangle's middle the view's · ⌘Z, ⌘Z → as before`;
+    },
+  },
+  {
+    id: "FW-270", feature: "A layer on the canvas (<Layer>, outside any frame; user 2026-11-20) moves as Figma's: a drag on it writes its Layer's X / Y, snaps to a frame's edge (⌘: no snap), keeps it selected; ⌥-drag leaves a copy; ⌘Z takes each back", wp: "loose layers 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await loosePage(ctx);
+      const button = page.locator('[data-studio-frame="layer:layer-1"] .zen-button');
+      const zoom = await looseZoom(page);
+      const box = await button.boundingBox();
+      // 98 board px to the left: its left edge 2 px off the frame's right edge (400): it snaps there.
+      await dragBy(page, { x: box.x + box.width / 2, y: box.y + box.height / 2 }, -98 * zoom, 30 * zoom);
+      let text = "";
+      await until(async () => { text = (await pageText(page, id)) ?? ""; return text !== before; }, { message: "the Layer moved" });
+      const moved = boardTag(text, "Layer", "layer-1");
+      const problems = [
+        (numberAttr(moved, "x") !== 400 || Math.abs(numberAttr(moved, "y") - 30) > 1) && `at ${numberAttr(moved, "x")}, ${numberAttr(moved, "y")} (want 400 snapped to the frame's edge, 30)`,
+        !/<Button>Go<\/Button>/.test(text.slice(text.indexOf('<Layer id="layer-1"'))) && "the Button is no longer in its Layer",
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      const loc = looseLoc(text, "layer-1", "Button");
+      await until(async () => ((await selectedSrc(page))[0] ?? "").endsWith(`:${loc}`), { message: "the Button still selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: back where it was" });
+      // ⌥-drag: a copy where it is dropped, the original stays.
+      const again = await button.boundingBox();
+      await dragBy(page, { x: again.x + again.width / 2, y: again.y + again.height / 2 }, 0, 80 * zoom, ["Alt"]);
+      await until(async () => /<Layer id="layer-3"/.test((await pageText(page, id)) ?? ""), { message: "a copy (layer-3)" });
+      text = (await pageText(page, id)) ?? "";
+      const copy = boardTag(text, "Layer", "layer-3");
+      if (boardTag(text, "Layer", "layer-1") !== boardTag(before, "Layer", "layer-1") || numberAttr(copy, "x") !== 500 || Math.abs(numberAttr(copy, "y") - 80) > 1) throw new Error(`⌥-drag: the original ${boardTag(text, "Layer", "layer-1")}, the copy ${copy}`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: the copy gone" });
+      return `drag → <Layer> at 400 (snapped to the frame's edge), ${numberAttr(moved, "y")}, the Button selected · ⌥-drag → a copy at 500, ${numberAttr(copy, "y")} · ⌘Z each`;
+    },
+  },
+  {
+    id: "FW-271", feature: "A layer on the canvas takes Figma's keys: ← → ↑ ↓ nudge it 1 px (⇧ 10 px) as its Layer's X / Y, ⌘D puts a copy beside it on the canvas (selected), Delete removes it with its Layer", wp: "loose layers 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await loosePage(ctx);
+      await clickLoose(page, "layer-1", ".zen-button");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ArrowRight");
+      await page.keyboard.press("Shift+ArrowDown");
+      await until(async () => { const tag = boardTag((await pageText(page, id)) ?? "", "Layer", "layer-1"); return numberAttr(tag, "x") === 501 && numberAttr(tag, "y") === 10; }, { message: "nudged to 501, 10" }).catch(async (error) => { throw new Error(`${error.message}: ${boardTag((await pageText(page, id)) ?? "", "Layer", "layer-1")}`); });
+      const nudged = (await pageText(page, id)) ?? "";
+      await page.keyboard.press("ControlOrMeta+d");
+      await until(async () => /<Layer id="layer-3"/.test((await pageText(page, id)) ?? ""), { message: "⌘D: a copy (layer-3)" });
+      let text = (await pageText(page, id)) ?? "";
+      const copy = boardTag(text, "Layer", "layer-3");
+      const width = await page.locator('[data-studio-frame="layer:layer-1"]').evaluate((frame) => frame.offsetWidth);
+      if (numberAttr(copy, "x") <= 501 + width || numberAttr(copy, "y") !== 10) throw new Error(`the copy is at ${numberAttr(copy, "x")}, ${numberAttr(copy, "y")}, not beside the ${width}-wide original`);
+      const copied = looseLoc(text, "layer-3", "Button");
+      await until(async () => ((await selectedSrc(page))[0] ?? "").endsWith(`:${copied}`), { message: "the copy's Button selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Delete");
+      await until(async () => (await pageText(page, id)) === nudged, { message: "Delete: the copy and its Layer gone" }).catch(async (error) => { throw new Error(`${error.message}: ${((await pageText(page, id)) ?? "").match(/<Layer id="layer-3"[\s\S]*?<\/Layer>/)?.[0] ?? "no layer-3, the text differs"}`); });
+      // The Stack on the canvas goes the same way, whatever it holds.
+      await clickLoose(page, "layer-2", ".zen-stack");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Delete");
+      await until(async () => !/<Layer id="layer-2"/.test((await pageText(page, id)) ?? ""), { message: "Delete: the Stack and its Layer gone" });
+      text = (await pageText(page, id)) ?? "";
+      if (/<Stack\b/.test(text)) throw new Error("the Stack's Layer went but a Stack stays");
+      await undoTo(page, id, before, 4);
+      return `→ ⇧↓ → 501, 10 · ⌘D → a copy beside it at ${numberAttr(copy, "x")}, selected · Delete → the copy and its Layer gone · the Stack's too · ⌘Z → as before`;
+    },
+  },
+  {
+    id: "FW-272", feature: "A layer on the canvas is a top-level layer: a click on it selects it (a Stack, not the Text inside; a double-click goes in), Layers lists it as a top-level row with no frame row, and the right panel's X / Y are its place on the canvas (typing X moves it)", wp: "loose layers 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await loosePage(ctx);
+      const stack = looseLoc(before, "layer-2", "Stack");
+      const text1 = looseLoc(before, "layer-2", "Text");
+      const word = page.locator('[data-studio-frame="layer:layer-2"] .zen-stack > *').first();
+      const at = await word.boundingBox();
+      await page.mouse.click(at.x + 4, at.y + at.height / 2);
+      await until(async () => ((await selectedSrc(page))[0] ?? "").endsWith(`:${stack}`), { message: `the Stack (${stack}) selected by a click on its Text` }).catch(async (error) => { throw new Error(`${error.message}, not ${(await selectedSrc(page))[0] ?? "nothing"}`); });
+      const row = await page.locator('.studio-layers__tree [role="treeitem"][aria-selected="true"]').first().evaluate((element) => ({ level: element.getAttribute("aria-level"), kind: element.getAttribute("data-kind") }));
+      const frames = await page.locator('.studio-layers__tree [role="treeitem"][data-kind="frame"]').allTextContents();
+      if (row.level !== "1" || row.kind !== "node") throw new Error(`the Stack's row is ${row.kind} at level ${row.level}, not a top-level layer`);
+      if (frames.some((name) => /layer|Button|Stack/i.test(name))) throw new Error(`Layers lists a frame row for a layer on the canvas: ${frames.join(", ")}`);
+      await showDesignTab(page);
+      const x = page.locator('#studio-right [data-prop="frame-position"] input').first();
+      const y = page.locator('#studio-right [data-prop="frame-position"] input').nth(1);
+      await until(async () => (await x.inputValue()) === "500" && (await y.inputValue()) === "160", { message: "X 500, Y 160 in the right panel" }).catch(async (error) => { throw new Error(`${error.message}: X ${await x.inputValue().catch(() => "none")}, Y ${await y.inputValue().catch(() => "none")}`); });
+      await x.fill("520");
+      await x.press("Enter");
+      await until(async () => numberAttr(boardTag((await pageText(page, id)) ?? "", "Layer", "layer-2"), "x") === 520, { message: "X 520 written on its Layer" });
+      await sleep(300);
+      const moved = await word.boundingBox();
+      await page.mouse.dblclick(moved.x + 4, moved.y + moved.height / 2);
+      await until(async () => ((await selectedSrc(page))[0] ?? "").endsWith(`:${text1}`), { message: `a double-click goes in: the Text (${text1})` }).catch(async (error) => { throw new Error(`${error.message}, not ${(await selectedSrc(page))[0] ?? "nothing"} (the Stack ${stack}) · editing text: ${await page.locator("[contenteditable='true']").count()}`); });
+      await undoTo(page, id, before, 2);
+      return "a click → the Stack (a top-level row, no frame row) · X 500, Y 160 → X 520 moves it · a double-click → its Text";
+    },
+  },
+  {
+    id: "FW-273", feature: "With a layer on the canvas selected, ⌘C ⌘V puts the copy over it on the canvas (Figma's), and an Assets click puts the component beside it on the canvas: each a <Layer> of its own, selected (a Layer holds one layer)", wp: "loose layers 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await loosePage(ctx);
+      await clickLoose(page, "layer-1", ".zen-button");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyC");
+      await until(async () => /Copied/i.test(await statusText(page)), { timeout: 3000, message: '"Copied"' });
+      await page.keyboard.press("ControlOrMeta+KeyV");
+      await until(async () => /<Layer id="layer-3"/.test((await pageText(page, id)) ?? ""), { message: "⌘V: a new Layer" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      let text = (await pageText(page, id)) ?? "";
+      const over = boardTag(text, "Layer", "layer-3");
+      if (numberAttr(over, "x") !== 500 || numberAttr(over, "y") !== 0) throw new Error(`the paste is at ${numberAttr(over, "x")}, ${numberAttr(over, "y")}, not over the Button (500, 0)`);
+      const pasted = looseLoc(text, "layer-3", "Button");
+      await until(async () => ((await selectedSrc(page))[0] ?? "").endsWith(`:${pasted}`), { message: "the pasted Button selected" });
+      const pastedText = text;
+      await insertFromAssets(page, id, "Badge", "Badge");
+      text = (await pageText(page, id)) ?? "";
+      const badge = boardTag(text, "Layer", "layer-4");
+      const width = await page.locator('[data-studio-frame="layer:layer-3"]').evaluate((frame) => frame.offsetWidth);
+      if (!badge || !/<Badge\b/.test(text.slice(text.indexOf('<Layer id="layer-4"'))) || numberAttr(badge, "x") !== 500 + width + 24 || numberAttr(badge, "y") !== 0) throw new Error(`the Badge: ${badge || "no layer-4"} (want x ${500 + width + 24}, y 0)`);
+      if (text.slice(text.indexOf('<Layer id="layer-3"'), text.indexOf("</Layer>", text.indexOf('<Layer id="layer-3"'))).includes("<Badge")) throw new Error("the Badge went into the Button's Layer");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === pastedText, { message: "⌘Z: the Badge gone" });
+      await undoTo(page, id, before, 2);
+      return `⌘C ⌘V → <Layer> over the Button at 500, 0, selected · Assets Badge → beside it at ${numberAttr(badge, "x")}, 0 · ⌘Z → as before`;
+    },
+  },
+  {
+    id: "FW-274", feature: "Two shapes copied from a frame and pasted on the empty canvas (Paste here) land as two layers on the canvas, each a <Layer>, as they were beside each other (the ellipse 120, 20 from the rectangle); one ⌘Z takes both", wp: "loose layers 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyC");
+      await until(async () => /Copied 2 layers/i.test(await statusText(page)), { timeout: 3000, message: '"Copied 2 layers"' });
+      await deselect(page);
+      const spot = await emptySpot(page);
+      const menu = await menuOn(page, { x: spot.x, y: spot.y, width: 0, height: 0 });
+      const paste = menu.getByRole("menuitem", { name: /^Paste here/ });
+      await until(async () => !(await paste.isDisabled()), { timeout: 3000, message: "Paste here on" });
+      await paste.click();
+      await until(async () => /<Layer id="layer-2"/.test((await pageText(page, id)) ?? ""), { message: "two layers on the canvas" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const [first, second] = ["layer-1", "layer-2"].map((layer) => boardTag(text, "Layer", layer));
+      const inFirst = text.slice(text.indexOf('<Layer id="layer-1"'), text.indexOf("</Layer>", text.indexOf('<Layer id="layer-1"')));
+      const inSecond = text.slice(text.indexOf('<Layer id="layer-2"'), text.indexOf("</Layer>", text.indexOf('<Layer id="layer-2"')));
+      const want = spot.board(numberAttr(boardTag(text, "Screen", "screen-1"), "x"), numberAttr(boardTag(text, "Screen", "screen-1"), "y"));
+      const problems = [
+        (!/type="rectangle"/.test(inFirst) || !/type="ellipse"/.test(inSecond)) && "not a rectangle then an ellipse, one per Layer",
+        (Math.abs(numberAttr(first, "x") - want.x) > 3 || Math.abs(numberAttr(first, "y") - want.y) > 3) && `the rectangle at ${numberAttr(first, "x")}, ${numberAttr(first, "y")} (pointer ${want.x}, ${want.y})`,
+        (Math.abs(numberAttr(second, "x") - numberAttr(first, "x") - 120) > 2 || Math.abs(numberAttr(second, "y") - numberAttr(first, "y") - 20) > 2) && `the ellipse ${numberAttr(second, "x") - numberAttr(first, "x")}, ${numberAttr(second, "y") - numberAttr(first, "y")} from the rectangle (want 120, 20)`,
+        /position=/.test(inFirst + inSecond) && "a shape is still placed in a frame",
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z: both gone" });
+      return `2 shapes → Paste here → 2 <Layer>s at ${numberAttr(first, "x")}, ${numberAttr(first, "y")} and +120, +20 · one ⌘Z`;
     },
   },
   ...pictureRows,

@@ -17,7 +17,7 @@ export const POPOVER_TRIGGER = "onClick";
 /** Components whose popover is their own prop (no Overlay): Chip's `popoverItems`. */
 export const OWN_POPOVER: Readonly<Record<string, string>> = { Chip: "popoverItems" };
 /** Layers that take a click but are frames (layout, Figma's frames): the option shows on component layers only. */
-const FRAME_LAYERS = new Set(["Board", "Screen", "Overlay", "Section", "Slice", "Stack", "Grid", "Box", "Shape", "Popover", "PopoverItem"]);
+const FRAME_LAYERS = new Set(["Board", "Screen", "Overlay", "Section", "Slice", "Layer", "Stack", "Grid", "Box", "Shape", "Popover", "PopoverItem"]);
 
 /** Does the Popover option show on this layer: it takes a click (`triggers`, protoTriggers.triggersOf) and is not a frame. */
 export const takesPopover = (name: string, triggers: readonly string[]) => !FRAME_LAYERS.has(name.split(".")[0]) && (Boolean(OWN_POPOVER[name]) || triggers.includes(POPOVER_TRIGGER));

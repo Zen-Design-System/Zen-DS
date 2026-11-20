@@ -46,7 +46,7 @@ export function setHiddenLayers(file: string, tree: { board: PageNode | null } |
     const literal = (name: string) => { const value = frame.props[name]; return value?.kind === "literal" ? value.value : undefined; };
     const id = String(literal("id") ?? "untitled");
     const state = literal("state");
-    const frameId = frame.name === "Overlay" ? `overlay:${id}` : `screen:${id}${typeof state === "string" ? `:${state}` : ""}`;
+    const frameId = frame.name === "Overlay" ? `overlay:${id}` : frame.name === "Layer" ? `layer:${id}` : `screen:${id}${typeof state === "string" ? `:${state}` : ""}`;
     const layout = frame.name === "Screen" ? screenLayout(String(literal("device") ?? "desktop"), literal("layout") as string | undefined) as "mobile" | "desktop" : undefined;
     const src = (node: PageNode) => `${file}:${node.loc}`;
     const visitChildren = (children: PageChild[], ancestors: string[], prop?: string) => {

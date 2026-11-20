@@ -31,3 +31,29 @@ User: "ok dọn dẹp đi". BACKLOG-user-and-later.md still listed "Studio proto
 build"; the entry has been in BACKLOG-archive.md since 2026-11-02 (all nine §4 fixes merged, #349–#370), so the stray
 copy goes. 23 worktrees whose branches are merged and clean were removed (`git worktree remove`, branches kept); four
 stay while their sessions or a :5186 Studio server still run in them.
+
+## Layers on the canvas, outside any frame — PR1 (tier L, branch zen/feat/studio-loose-layers-20261120)
+
+User: "Các component vẫn chỉ tạo và đặt trong frame. Không đặt ở ngoài frame được" → asked for the scope: "Đủ như
+Figma", 3 PRs (PR1 loose layers made by drop/paste + moved/selected/copied/deleted; PR2 drag out of / into frames;
+PR3 draw tools on the empty canvas). The Board held Screen/Overlay/Section/Slice only (#346/#413 wrapped in "Frame N").
+- Dialect: `<Layer id x y [width]>` holds one layer (dialect.mjs boardLayers/layerCode; arrange.mjs childRefusal "stands
+  alone"; slots.mjs removal: removing its layer removes the Layer; looseLayers() takes pasted layers out of their frame).
+- Board: frame id `layer:<id>`, a StudioFrame of kind "layer" with no chrome (FrameChrome skips it), `data-hug` unless it
+  has a width (fill components: Top Navigation 390, Line chart 297). builder/looseLayer.ts: add, select, fit.
+- Click selects its layer (clickTarget: the Layer is the content root); a drag/⌥-drag/arrows/⌘D move or copy the Layer
+  (frameMove pressFrame, frameKeys); Delete/⌘X via the engine; Layers promotes it to a top-level row; Inspector Position
+  X / Y = its board place (FrameGeometry LoosePosition); canStructurallyEdit allows `layer:`.
+- Drop/paste: boardPaste dropOnBoard/pasteOnBoard make Layers (several copied layers keep their arrangement: clip
+  `boxes`); ⌘V with a loose layer selected pastes over the copied one or beside it; Paste here on a loose Button too.
+- Not yet: Figma push (the plugin places frames only: notes "N layers on the canvas … not pushed yet") → follow-up PR
+  with the plugin; resize handles on a loose component; PR2/PR3.
+E2E (FW-270…274 from Giám sát): B-55/56 and FW-153/269 rewritten for Layers; FW-270 move/snap/⌥, FW-271 keys, FW-272
+click/Layers/X-Y/double-click, FW-273 ⌘C⌘V + Assets beside, FW-274 two shapes pasted. studio:dnd 0 findings.
+QA notes: a full non-sharded Studio E2E run (09:50–10:47) broke DR-02…15, VA-01…09, BP-09…17, NO-08/19 with "the
+Studio did not load (the tab does not answer)": each a seededPage row (Sync with the folder + reload) late in the run,
+the folder holding hundreds of pages; AG, board and BP-01…08 between them worked. Each group alone works; B-56 (a page
+with a <Layer> left in the folder) then DR-02/03/04 work → stall môi trường, chạy riêng qua (the gate's shards start
+with an empty folder). The first sharded gate lost shard 2–3 to a Clamshell Sleep (pmset 11:07:50–12:16:23); its re-run:
+461 works, SE-06 (Checkbox row in Layers, a code page) once, alone 27/27 select.
+

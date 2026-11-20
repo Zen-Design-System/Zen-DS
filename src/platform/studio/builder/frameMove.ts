@@ -10,6 +10,9 @@ import { isLockedFrame } from "../select/layerMeta";
 import { pageFile } from "./store/pageStore";
 import { zoomToFrame } from "../board/presentFrame";
 import { copyFrame, moveFrames } from "./frameEdit";
+import { looseLayerHit } from "./looseLayer";
+import { isLayerFrameId } from "./render/frames";
+import { selectHit } from "../select/picker";
 import { FRAME_GAP, snapBox, SNAP_PX, type FrameBox, type FramePlace, type SnapGuide } from "./render/framePlace";
 
 /*
@@ -219,6 +222,8 @@ export function pressFrame(event: PointerEvent, frameId: string, onClick?: () =>
   const size = { width: element.offsetWidth, height: element.offsetHeight };
   // A Section carries the frames and Sections inside it (Figma; board/sections.ts); they move by the same amount.
   const section = isSectionId(frameId);
+  // A layer on the canvas (<Layer>, builder/looseLayer.ts) moves as a frame does.
+  const loose = isLayerFrameId(frameId);
   const carriedIds = new Set(section ? sectionContents(frameId, boardBoxes(container)) : []);
   const carried = framesIn(container).filter((other) => carriedIds.has(other.dataset.studioFrame ?? "")).map((other) => ({ id: other.dataset.studioFrame ?? "", element: other, start: { x: other.offsetLeft, y: other.offsetTop } }));
   const siblings = framesIn(container).filter((other) => other !== element && !carriedIds.has(other.dataset.studioFrame ?? ""));
@@ -304,8 +309,10 @@ export function pressFrame(event: PointerEvent, frameId: string, onClick?: () =>
       if (!dragging) {
         if (Math.hypot(pointer.x - startClient.x, pointer.y - startClient.y) < THRESHOLD) return;
         dragging = true;
-        // Figma selects what it moves.
-        studioStore.setState({ selection: { kind: "frame", frameId } });
+        // Figma selects what it moves: a loose Layer's layer (the Layer has no selection of its own).
+        const layer = loose ? looseLayerHit(frameId) : null;
+        if (layer) selectHit(layer, canvasApi.getWorldElement());
+        else studioStore.setState({ selection: { kind: "frame", frameId } });
         overlay = new Overlay();
         viewport?.setAttribute("data-studio-dragging", "");
         origin = originOf(container);
@@ -321,12 +328,12 @@ export function pressFrame(event: PointerEvent, frameId: string, onClick?: () =>
       if (!dragging) { onClick?.(); return; }
       swallowClick();
       if (copy) {
-        void copyFrame(localPage, frameId, target, { label: section ? "Duplicate section" : "Duplicate frame", heights });
+        void copyFrame(localPage, frameId, target, { label: section ? "Duplicate section" : loose ? "Duplicate layer" : "Duplicate frame", heights });
         return;
       }
       if (target.x === start.x && target.y === start.y) { live.delete(frameId); return; }
       const moves = new Map<string, FramePlace>([[frameId, target], ...carried.map((item) => [item.id, { x: item.start.x + target.x - start.x, y: item.start.y + target.y - start.y }] as [string, FramePlace])]);
-      void moveFrames(localPage, moves, section ? "Move section" : "Move frame").then((ok) => {
+      void moveFrames(localPage, moves, section ? "Move section" : loose ? "Move layer" : "Move frame").then((ok) => {
         if (ok) return;
         dropLivePlace(frameId, element, start);
         for (const item of carried) dropLivePlace(item.id, item.element, item.start);

@@ -28,6 +28,8 @@ import {
 } from "./positionModel";
 import "./position.css";
 import { srcAttr } from "../select/srcIds";
+import { LoosePosition } from "../builder/FrameGeometry";
+import { looseFrameOfSelection } from "../builder/looseLayer";
 import { tip } from "../shell/ShortcutTip";
 import { nearestStep, tokenName } from "../inspector/controls/scale";
 
@@ -105,7 +107,8 @@ export function readGeometry(selection: NodeSelection): Geometry {
   if (!hit || !host?.isConnected) return noGeometry;
   const jsxParent = parentHit(hit, frameElement(selection.frameId, world));
   const domParent = layoutParent(host);
-  if (!jsxParent || !domParent) return noGeometry;
+  // A layer on the canvas (<Layer>) sits in no frame: nothing to float in or to pin to.
+  if (!jsxParent || !domParent || jsxParent.name === "Layer") return noGeometry;
   const floating = host.dataset.position === "absolute";
   const display = getComputedStyle(domParent).display;
   const parent = /flex|grid/.test(display) ? "auto" : "flow";
@@ -221,9 +224,13 @@ const alignButtons: { axis: PositionAxis; pin: Pin; icon: IconName; label: strin
 const literal = (value: PropValue) => (value.state === "literal" ? value.value : value.state === "spread" && (typeof value.live === "string") ? value.live : undefined);
 
 export function PositionSection(props: { selection: NodeSelection; element: SourceElement; api: FieldApi; component: string }) {
+  // A layer on the canvas (<Layer>, Figma's): X / Y are its place on the board, nothing places it in a frame.
+  const loose = looseFrameOfSelection(props.selection);
+  if (loose) return <LoosePosition frameId={loose} />;
   // Another selection starts fresh.
   return <Position key={`${props.selection.src}#${props.selection.instance}`} {...props} />;
 }
+
 
 function Position({ selection, element, api, component }: { selection: NodeSelection; element: SourceElement; api: FieldApi; component: string }) {
   const geometry = useGeometry(selection);

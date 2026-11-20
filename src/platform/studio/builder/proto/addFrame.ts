@@ -33,7 +33,7 @@ async function readBoard(localPage: string) {
   return tree.board ? { engine, tree: tree as PageTree & { board: PageNode }, frames: tree.board.children.filter((child): child is PageNode => child.kind === "element"), text: page.text } : null;
 }
 
-const TAGS: Record<string, string> = { screen: "Screen", overlay: "Overlay", section: "Section", slice: "Slice" };
+const TAGS: Record<string, string> = { screen: "Screen", overlay: "Overlay", section: "Section", slice: "Slice", layer: "Layer" };
 
 /** A Board child by its frame id (`screen:<id>[:<state>]`, `overlay:<id>`, `section:<id>`). */
 function boardNode(frames: readonly PageNode[], frameId: string) {
@@ -58,7 +58,8 @@ export async function removeFrames(localPage: string, frameIds: readonly string[
   if (!keepContents) for (const id of frameIds) if (isSectionId(id)) sectionContents(id, boxes).forEach((member) => ids.add(member));
   const nodes = [...ids].map((id) => boardNode(board.frames, id)).filter((node): node is PageNode => Boolean(node));
   if (!nodes.length) return false;
-  const titleOf = (node: PageNode) => String(literal(node, "title") ?? literal(node, "id") ?? node.name);
+  // A loose Layer is named by its one layer (Figma's layer on the canvas).
+  const titleOf = (node: PageNode) => (node.name === "Layer" ? node.children.find((child): child is PageNode => child.kind === "element")?.name.split(".").pop() ?? "layer" : String(literal(node, "title") ?? literal(node, "id") ?? node.name));
   const label = nodes.length === 1 ? `Delete ${titleOf(nodes[0])}` : `Delete ${nodes.length} frames`;
   // A removal names the text it was read from (the server refuses it without the file's hash).
   const hash = board.engine.sha1(page.text);

@@ -86,6 +86,9 @@ function folded(hit: FiberHit, next: FiberHit, parent: FiberHit | undefined): bo
   return Boolean(host && hit.name === "Stack" && hit.isComponent && wrapperCandidate(host) === hit.src);
 }
 
+/** Whether `hit` is the Layer of a loose layer's frame (`layer:<id>`, builder/BuilderBoard.tsx LayerFrame). */
+const loose = (hit: FiberHit | undefined, frame: Element | null) => Boolean(hit && hit.name === "Layer" && frame?.getAttribute("data-studio-frame")?.startsWith("layer:"));
+
 /**
  * The layers under the pointer, from the frame's first layer (or an overlay's owner) down to `deepest`, as Layers lists
  * them; `root`: the index of the content root that stands for the frame (-1 when there is none). Null when `deepest` is
@@ -105,13 +108,16 @@ export function layersAt(deepest: FiberHit, frame: Element | null): { path: Fibe
     if (start < 0) return null;
     if (first.length === 1) {
       let at = start;
-      while (at < chain.length - 1 && sameHosts(chain[at], chain[at + 1])) at += 1;
+      // A layer on the canvas (<Layer>, Figma's; user 2026-11-20) stands for its frame: its one layer is the top level,
+      // though it draws the same box.
+      if (!loose(chain[start], frame)) while (at < chain.length - 1 && sameHosts(chain[at], chain[at + 1])) at += 1;
       root = chain[at];
     }
   }
   const kept = chain.slice(start);
   const path = kept.filter((hit, index) => index === kept.length - 1 || hit === root || !folded(hit, kept[index + 1], kept[index - 1]));
   let at = root ? path.indexOf(root) : -1;
+  if (root && loose(root, frame)) return { path, root: at };
   // The page's app frame and the column that holds the page stand for the frame too, as a Figma frame's own auto layout
   // does: a click lands on the Sidebar, a header item or a section of the page, never on AppShell, its AppShellHeader
   // (the frame's header rows, since 2026-10-19) or the page's body Stack (which the pointer's own empty area still

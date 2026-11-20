@@ -39,6 +39,7 @@ export function frameIdOf(frame: PageNode): string {
   const state = prop(frame, "state");
   if (frame.name === "Overlay") return `overlay:${id}`;
   if (frame.name === "Section") return `section:${id}`;
+  if (frame.name === "Layer") return `layer:${id}`;
   return `screen:${id}${typeof state === "string" ? `:${state}` : ""}`;
 }
 
