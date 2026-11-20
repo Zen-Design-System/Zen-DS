@@ -25,6 +25,13 @@ Found on the way: main's Studio E2E could not open the Studio ("@zen-ds/react/ai
 E2E FW-269 (id from Giám sát). FW-35/36/83/153/154, K-07/21/23–27, ST-04 work.
 QA: qa --isolated PASS (Studio E2E 462 works; B-45 and DA-08 passed on retry: a cut load, the table editor not open in time); build ✓.
 
+## Backlog tidy + worktree clean-up (tier XS, Giám sát, branch zen/docs/backlog-tidy-20261120)
+
+User: "ok dọn dẹp đi". BACKLOG-user-and-later.md still listed "Studio prototype walk 2026-10-29: pick which fixes to
+build"; the entry has been in BACKLOG-archive.md since 2026-11-02 (all nine §4 fixes merged, #349–#370), so the stray
+copy goes. 23 worktrees whose branches are merged and clean were removed (`git worktree remove`, branches kept); four
+stay while their sessions or a :5186 Studio server still run in them.
+
 ## Layers on the canvas, outside any frame — PR1 (tier L, branch zen/feat/studio-loose-layers-20261120)
 
 User: "Các component vẫn chỉ tạo và đặt trong frame. Không đặt ở ngoài frame được" → asked for the scope: "Đủ như

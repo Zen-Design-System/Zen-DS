@@ -21,9 +21,6 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   (not the textarea or the emoji, model and + buttons, so AiChatField's popovers anchor to the whole field),
   ChatConversationItem's is its `li`, and AiChatBubble's actions take none.
   New API (e.g. `actionRef` props): needs approval; until then examples use the nearest reachable target.
-- **P0/P1 · Studio prototype walk 2026-10-29: pick which fixes to build:** hands-on walk (4 pages, ~50 findings: 2 P0, 19
-  P1) in `docs/research/studio-prototype-walk-2026-10-29.md`; §4 lists 9 fixes in order (W-47 Play status-bar band is a
-  #345 regression; W-14 ⇧A on floating layers; W-35/36/41 Back + Dialog actions). Nothing built until approved.
 - **P2 · LICENSE.md is a draft: legal review before selling (2026-10-08):** drafted on PR #5 (Dizai Studio, Vietnam law, subscription, apps-not-kits, per company + member limit); a lawyer must review it and remove its "Draft" note. Was: package.json has no `license` field and the repo no
   LICENSE/EULA; needed before selling (legal text from the user).
 - **P2 · Private registry: the user's steps, then Phase 6 (2026-10-08; rewritten 2026-10-25):** live since 2026-10-14
