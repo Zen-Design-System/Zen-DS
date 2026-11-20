@@ -398,6 +398,12 @@ async function loosePage(ctx) {
   await deselect(page);
   return { page, id, before: (await pageText(page, id)) ?? "" };
 }
+/** The client point of a board point (board frame px) on the loose page: screen-1 sits at 0, 0. */
+async function boardPoint(page, x, y) {
+  const frame = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+  const zoom = await looseZoom(page);
+  return { x: frame.x + x * zoom, y: frame.y + y * zoom };
+}
 /** The canvas zoom (screen px per board px), read from the frame. */
 async function looseZoom(page) {
   const element = page.locator('[data-studio-frame="screen:screen-1"]');
@@ -6291,6 +6297,145 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       await page.keyboard.press("ControlOrMeta+z");
       await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: back in screen-1" });
       return `screen-1 → screen-3 at ${there.x}, ${there.y} · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-280", feature: "R + a click on the empty canvas draws a 100 × 100 Rectangle there as a layer on the canvas (<Layer>, user 2026-11-20 loose layers PR3: no more \"Draw inside a frame\"), selected, the tool back to Move; ⌘Z", wp: "loose layers PR3 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await loosePage(ctx);
+      const at = await boardPoint(page, 420, 340);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("r");
+      await page.mouse.click(at.x, at.y);
+      await until(async () => /<Layer id="layer-3"/.test((await pageText(page, id)) ?? ""), { message: "a layer on the canvas" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const layer = boardTag(text, "Layer", "layer-3");
+      const shape = shapeTags(text.slice(text.indexOf('<Layer id="layer-3"')))[0];
+      const problems = [
+        (Math.abs(numberAttr(layer, "x") - 420) > 2 || Math.abs(numberAttr(layer, "y") - 340) > 2) && `at ${numberAttr(layer, "x")}, ${numberAttr(layer, "y")} (clicked 420, 340)`,
+        (shape?.type !== "rectangle" || shape.width !== 100 || shape.height !== 100 || shape.x !== undefined) && `holds ${JSON.stringify(shape)}`,
+        (await pressedTool(page)) !== "Move" && `the tool is ${await pressedTool(page)}`,
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      const loc = looseLoc(text, "layer-3", "Shape");
+      await until(async () => ((await selectedSrc(page))[0] ?? "").endsWith(`:${loc}`), { message: "the Rectangle selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: gone" });
+      return "R + click on the canvas → <Layer> at 420, 340 holding a 100 × 100 Rectangle, selected, Move · ⌘Z";
+    },
+  },
+  {
+    id: "FW-281", feature: "Shapes dragged on the empty canvas: a Rectangle's edge snaps to a layer beside it (Figma's smart guides between top-level layers), a Line keeps its rotation; each a layer on the canvas; ⌘Z each", wp: "loose layers PR3 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await loosePage(ctx);
+      const from = await boardPoint(page, 410, 320);
+      const to = await boardPoint(page, 497, 380);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("r");
+      await dragBy(page, from, to.x - from.x, to.y - from.y);
+      await until(async () => /<Layer id="layer-3"/.test((await pageText(page, id)) ?? ""), { message: "a Rectangle on the canvas" });
+      let text = (await pageText(page, id)) ?? "";
+      const layer = boardTag(text, "Layer", "layer-3");
+      const rect = shapeTags(text.slice(text.indexOf('<Layer id="layer-3"')))[0];
+      if (Math.abs(numberAttr(layer, "x") - 410) > 2 || rect?.width !== 90 || Math.abs(rect.height - 60) > 2) throw new Error(`<Layer> at ${numberAttr(layer, "x")}, ${numberAttr(layer, "y")} holding ${JSON.stringify(rect)} (want 410 and width 90: its right edge on the layers' 500)`);
+      const drawn = text;
+      const a = await boardPoint(page, 420, 420);
+      const b = await boardPoint(page, 480, 460);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("l");
+      await dragBy(page, a, b.x - a.x, b.y - a.y);
+      await until(async () => /<Layer id="layer-4"/.test((await pageText(page, id)) ?? ""), { message: "a Line on the canvas" });
+      text = (await pageText(page, id)) ?? "";
+      // Figma's rotation turns counterclockwise (down to the right: -33.69°); its box sits around the line's middle (450, 440).
+      const line = /<Layer id="layer-4" x=\{(-?\d+)\} y=\{(-?\d+)\}>\s*<Shape type="line" width=\{(\d+)\} rotation=\{(-?[\d.]+)\} \/>/.exec(text);
+      if (!line || Math.abs(Number(line[3]) - 72) > 3 || Math.abs(Number(line[4]) + 33.69) > 1.5 || Math.abs(Number(line[1]) + Number(line[3]) / 2 - 450) > 3 || Math.abs(Number(line[2]) - 440) > 3) throw new Error(`the Line: ${text.slice(text.indexOf('<Layer id="layer-4"')).split("</Layer>")[0].replace(/\s+/g, " ")}`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === drawn, { message: "⌘Z: the Line gone" });
+      await undoTo(page, id, before, 1);
+      return `R drag → <Layer> at 410, width 90 (snapped) · L drag → a Line ${line[3]} long at ${line[4]}° around 450, 440 · ⌘Z, ⌘Z`;
+    },
+  },
+  {
+    id: "FW-282", feature: "T + a click on the empty canvas makes a text there as a layer on the canvas, edited at once: what is typed is its words; ⌘Z", wp: "loose layers PR3 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await loosePage(ctx);
+      const at = await boardPoint(page, 420, 340);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("t");
+      await page.mouse.click(at.x, at.y);
+      await page.keyboard.type("Hello");
+      await sleep(300);
+      await page.keyboard.press("Escape");
+      await until(async () => /<Layer id="layer-3"[^>]*>\s*<Text wrap=\{false\}>Hello<\/Text>\s*<\/Layer>/.test((await pageText(page, id)) ?? ""), { message: "a Text \"Hello\" on the canvas" }).catch(async (error) => { const text = (await pageText(page, id)) ?? ""; throw new Error(`${error.message}: ${text.includes('<Layer id="layer-3"') ? text.slice(text.indexOf('<Layer id="layer-3"')).split("</Layer>")[0].replace(/\s+/g, " ") : `no layer-3 · status: ${(await statusText(page)).slice(0, 100)}`}`); });
+      const layer = boardTag((await pageText(page, id)) ?? "", "Layer", "layer-3");
+      if (Math.abs(numberAttr(layer, "x") - 420) > 2 || Math.abs(numberAttr(layer, "y") - 340) > 2) throw new Error(`at ${numberAttr(layer, "x")}, ${numberAttr(layer, "y")} (clicked 420, 340)`);
+      await undoTo(page, id, before, 3);
+      return "T + click on the canvas → <Layer> at 420, 340, typed \"Hello\" · ⌘Z → as before";
+    },
+  },
+  {
+    id: "FW-283", feature: "R + a click on a layer on the canvas: into it when it takes layers (a Stack: its flow), beside it on the canvas when it does not (a Button: a layer of its own); ⌘Z each", wp: "loose layers PR3 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await loosePage(ctx);
+      const stack = await page.locator('[data-studio-frame="layer:layer-2"] .zen-stack').first().boundingBox();
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("r");
+      await page.mouse.click(stack.x + stack.width / 2, stack.y + stack.height - 4);
+      await until(async () => /<Shape type="rectangle"/.test((await pageText(page, id)) ?? ""), { message: "a Rectangle drawn" });
+      let text = (await pageText(page, id)) ?? "";
+      const inStack = text.slice(text.indexOf('<Layer id="layer-2"'), text.indexOf("</Layer>", text.indexOf('<Layer id="layer-2"')));
+      if (!/<Shape type="rectangle"/.test(inStack) || /<Layer id="layer-3"/.test(text)) throw new Error(`the Stack's Layer: ${inStack.replace(/\s+/g, " ").slice(0, 200)}`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: out of the Stack" });
+      const button = await page.locator('[data-studio-frame="layer:layer-1"] .zen-button').boundingBox();
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("r");
+      await page.mouse.click(button.x + 8, button.y + 8);
+      await until(async () => /<Layer id="layer-3"/.test((await pageText(page, id)) ?? ""), { message: "a Rectangle on the canvas over the Button" });
+      text = (await pageText(page, id)) ?? "";
+      if (!/<Layer id="layer-1"[^>]*>\s*<Button>Go<\/Button>\s*<\/Layer>/.test(text)) throw new Error("the Button's Layer changed");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: gone" });
+      return "R on the Stack → in its flow · R on the Button → a layer on the canvas of its own · ⌘Z each";
+    },
+  },
+  {
+    id: "FW-284", feature: "A picture file dropped on the empty canvas lands there as a layer on the canvas (its corner at the drop point); the Pen's path drawn on the empty canvas too; ⌘Z each", wp: "loose layers PR3 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await loosePage(ctx);
+      const at = await boardPoint(page, 420, 340);
+      await page.evaluate(({ bytes, at }) => {
+        const transfer = new DataTransfer();
+        transfer.items.add(new File([new Uint8Array(bytes)], "Bridge.webp", { type: "image/webp" }));
+        const target = document.elementFromPoint(at.x, at.y);
+        for (const type of ["dragenter", "dragover", "drop"]) target.dispatchEvent(new DragEvent(type, { bubbles: true, cancelable: true, clientX: at.x, clientY: at.y, dataTransfer: transfer }));
+      }, { bytes: [...PICTURE(ctx)], at: { x: Math.round(at.x), y: Math.round(at.y) } });
+      await until(async () => /<Layer id="layer-3"[^>]*>\s*<Shape image=/.test((await pageText(page, id)) ?? ""), { message: "the picture on the canvas" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      let text = (await pageText(page, id)) ?? "";
+      const layer = boardTag(text, "Layer", "layer-3");
+      if (Math.abs(numberAttr(layer, "x") - 420) > 3 || Math.abs(numberAttr(layer, "y") - 340) > 3) throw new Error(`the picture at ${numberAttr(layer, "x")}, ${numberAttr(layer, "y")} (dropped at 420, 340)`);
+      const dropped = text;
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("p");
+      for (const [x, y] of [[700, 360], [760, 420], [700, 460]]) {
+        const point = await boardPoint(page, x, y);
+        await page.mouse.click(point.x, point.y);
+        await sleep(120);
+      }
+      await page.keyboard.press("Enter");
+      await until(async () => /<Layer id="layer-4"[^>]*>\s*<Shape type="vector"/.test((await pageText(page, id)) ?? ""), { message: "the Pen's vector on the canvas" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      text = (await pageText(page, id)) ?? "";
+      const pen = boardTag(text, "Layer", "layer-4");
+      if (Math.abs(numberAttr(pen, "x") - 700) > 3 || Math.abs(numberAttr(pen, "y") - 360) > 3) throw new Error(`the vector at ${numberAttr(pen, "x")}, ${numberAttr(pen, "y")} (want 700, 360)`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === dropped, { message: "⌘Z: the vector gone" });
+      await undoTo(page, id, before, 1);
+      return "a picture dropped on the canvas → <Layer> at 420, 340 · Pen → a vector <Layer> at 700, 360 · ⌘Z, ⌘Z";
     },
   },
   ...pictureRows,

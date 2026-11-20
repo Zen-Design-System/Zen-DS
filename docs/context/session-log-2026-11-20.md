@@ -80,3 +80,16 @@ Found by Bug while running the figma group for #416: FW-169 broke on main since 
 CodeView's own header (the same view as on the docs pages), not on an Inspector row; `panelFits` (figma.mjs) now skips
 fields inside `.studio-code__header` for the field-line check; its juts-out and cut-off checks still cover it. The figma
 group is opt-in, so neither the gate nor CI ran it. FW-169 works (13 s).
+
+## Layers on the canvas — PR3: draw on the empty canvas (tier M, branch zen/feat/studio-loose-draw-20261120)
+
+Plan step 3 of "Đủ như Figma" (PR1 #415, PR2 #416 merged; user: "đánh thức Bug làm PR3", merge pre-approved once CI is
+green). draw/drawTool.ts: targetAt = frameTargetAt (a Screen, or a `layer:` frame that takes layers) ?? boardAt (the
+empty canvas of a page you made, a Section's area or a loose layer that takes none) → DrawTarget mode "board" (host the
+board's frames, snap targets the frames' boxes); write → writeOnCanvas (addLooseLayers, a Text edited at once via
+looseLayerLoc + editNewText). The Frame tool keeps drawing a frame there (startDraw refuses `board` for "frame").
+draw/penTool.ts: the Pen / Pencil vector on the canvas too. Dropped pictures (canvas/fileDrop.ts placePictureAt) too.
+E2E FW-280…284 (from Giám sát); FW-281's Line: Figma's rotation is counterclockwise (-33.69° down to the right).
+QA: FW-280…284, DR-02…05, FW-82/115/116/118 work. Groups draw + figma (one long run, 1585 s): 227 works, 12 broken, all
+twelve work alone (flake of the long run, mostly 20 s timeouts): FW-197, FW-107, FW-65, FW-83, FW-113 (Studio loaded
+twice), FW-55, FW-93, FW-162, FW-124, FW-184, FW-274, FW-236. qa --isolated PASS (Studio E2E 462 works, 6 shards; B-42 on retry, a cut load); build ✓.
