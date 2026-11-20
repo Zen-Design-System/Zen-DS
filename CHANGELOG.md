@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: drag a layer out of its frame onto the empty canvas and it becomes a layer on the canvas where you let it
+  go; drag a layer on the canvas onto a frame and it goes into it (at the line in auto layout, at the spot in a frame
+  without auto layout); a floating layer dragged onto another frame moves into that frame. ⌥ copies, ⌘Z takes it back.
 - Zen Studio: layers can sit on the canvas outside any frame, as in Figma. A component dropped from Assets, or ⌘V /
   Paste here on the empty canvas, lands there as itself (no "Frame N" around it), at its own size (a component that fills
   its container at its Figma width). It is a top-level row in Layers; click selects it, drag moves it with smart guides

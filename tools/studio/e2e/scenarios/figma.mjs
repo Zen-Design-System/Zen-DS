@@ -322,6 +322,46 @@ const shapeTags = (text) => [...text.matchAll(/<Shape\b[^>]*\/>/g)].map(([tag]) 
   const value = (name) => { const match = new RegExp(`\\b${name}=(?:"([^"]*)"|\\{(-?[\\d.]+)\\})`).exec(tag); return match ? match[1] ?? Number(match[2]) : undefined; };
   return { type: value("type"), x: value("insetLeft"), y: value("insetTop"), width: value("width"), height: value("height"), fill: value("fill"), stroke: value("stroke"), strokeWeight: value("strokeWeight"), opacity: value("opacity") };
 });
+/** A desktop page for drags out of frames and into them (loose layers PR2): screen-1 a frame without auto layout (0, 0,
+ *  400 × 300) holding a rectangle at 20, 20; screen-2 a frame with a Stack (Button "Flow", Text "Two") at 0, 400;
+ *  screen-3 an empty frame at 600, 400; a Button "Go" on the canvas (layer-1) at 600, 0. A fresh page each time. */
+const dragOutText = (title) => `// @zen-page {"format":1,"title":${JSON.stringify(title)}}
+import { Board, Layer, Screen } from "@zen-ds/react/builder";
+import { Button, Shape, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Free" device="desktop" frame x={0} y={0} width={400} height={300}>
+        <Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} />
+      </Screen>
+      <Screen id="screen-2" title="Flow" device="desktop" frame x={0} y={400} width={400} height={300}>
+        <Stack gap="md" padding="md">
+          <Button>Flow</Button>
+          <Text>Two</Text>
+        </Stack>
+      </Screen>
+      <Screen id="screen-3" title="Empty" device="desktop" frame x={600} y={400} width={400} height={300}>
+      </Screen>
+      <Layer id="layer-1" x={600} y={0}>
+        <Button>Go</Button>
+      </Layer>
+    </Board>
+  );
+}
+`;
+async function dragOutPage(ctx) {
+  const { page, id } = await seededPage(ctx, dragOutText, /<Layer id="layer-1"/);
+  await showLeftTab(page, "layers");
+  await page.locator('[data-studio-frame="layer:layer-1"]').waitFor({ state: "attached", timeout: 10_000 });
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Shift+1");
+  await sleep(500);
+  await deselect(page);
+  return { page, id, before: (await pageText(page, id)) ?? "" };
+}
 /** A desktop page with a plain frame (0, 0, 400 × 300) and two layers on the canvas (<Layer>, user 2026-11-20): a Button
  *  at 500, 0 and a Stack of two Texts at 500, 160. A fresh page each time (the rows move and remove them). */
 const looseText = (title) => `// @zen-page {"format":1,"title":${JSON.stringify(title)}}
@@ -6122,6 +6162,132 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       await page.keyboard.press("ControlOrMeta+z");
       await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z: both gone" });
       return `2 shapes → Paste here → 2 <Layer>s at ${numberAttr(first, "x")}, ${numberAttr(first, "y")} and +120, +20 · one ⌘Z`;
+    },
+  },
+  {
+    id: "FW-275", feature: "A shape dragged out of its frame onto the empty canvas leaves the frame (Figma's reparent, loose layers PR2): a layer on the canvas (<Layer>) where it was let go, selected; ⌥ leaves the original and puts a copy there; ⌘Z takes each back", wp: "loose layers PR2 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await dragOutPage(ctx);
+      const zoom = await looseZoom(page);
+      const shape = page.locator('[data-studio-frame="screen:screen-1"] [data-zen-name="Shape"]').first();
+      const box = await shape.boundingBox();
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await sleep(200);
+      // 900 board px right: past the frames' right edge (400 and 1000), over the empty canvas.
+      await dragBy(page, { x: box.x + box.width / 2, y: box.y + box.height / 2 }, 900 * zoom, 30 * zoom);
+      let text = "";
+      await until(async () => { text = (await pageText(page, id)) ?? ""; return /<Layer id="layer-2"/.test(text); }, { message: "a new layer on the canvas" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const layer = boardTag(text, "Layer", "layer-2");
+      const inside = text.slice(text.indexOf('<Layer id="layer-2"'), text.indexOf("</Layer>", text.indexOf('<Layer id="layer-2"')));
+      const frame = text.slice(text.indexOf('<Screen id="screen-1"'), text.indexOf("</Screen>", text.indexOf('<Screen id="screen-1"')));
+      const problems = [
+        /<Shape\b/.test(frame) && "the shape is still in its frame",
+        (!/type="rectangle"/.test(inside) || /position=/.test(inside)) && `the Layer holds ${inside.replace(/\s+/g, " ").slice(0, 120)}`,
+        (Math.abs(numberAttr(layer, "x") - 920) > 3 || Math.abs(numberAttr(layer, "y") - 50) > 3) && `at ${numberAttr(layer, "x")}, ${numberAttr(layer, "y")} (want 920, 50: where it was let go)`,
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      const loc = looseLoc(text, "layer-2", "Shape");
+      await until(async () => ((await selectedSrc(page))[0] ?? "").endsWith(`:${loc}`), { message: "the shape selected on the canvas" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: back in its frame" });
+      const again = await shape.boundingBox();
+      await dragBy(page, { x: again.x + again.width / 2, y: again.y + again.height / 2 }, 900 * zoom, 30 * zoom, ["Alt"]);
+      await until(async () => /<Layer id="layer-2"/.test((await pageText(page, id)) ?? ""), { message: "⌥: a copy on the canvas" });
+      text = (await pageText(page, id)) ?? "";
+      if (!/<Shape\b/.test(text.slice(text.indexOf('<Screen id="screen-1"'), text.indexOf("</Screen>", text.indexOf('<Screen id="screen-1"'))))) throw new Error("⌥-drag took the original out of its frame");
+      await undoTo(page, id, before, 2);
+      return `out → <Layer> at ${numberAttr(layer, "x")}, ${numberAttr(layer, "y")}, selected · ⌥ → a copy, the original stays · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-276", feature: "A layer in auto layout (a Button in a Stack) dragged onto the empty canvas leaves its Stack: a layer on the canvas at the place it was let go; ⌘Z puts it back", wp: "loose layers PR2 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await dragOutPage(ctx);
+      const zoom = await looseZoom(page);
+      const button = page.locator('[data-studio-frame="screen:screen-2"] .zen-button').first();
+      const box = await button.boundingBox();
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await sleep(200);
+      const frame = await page.locator('[data-studio-frame="screen:screen-2"]').boundingBox();
+      const corner = { x: Math.round((box.x - frame.x) / zoom), y: Math.round(400 + (box.y - frame.y) / zoom) };
+      // 450 board px right: the empty canvas between the frames (400 to 600), still in view.
+      await dragBy(page, { x: box.x + box.width / 2, y: box.y + box.height / 2 }, 450 * zoom, 0);
+      await until(async () => /<Layer id="layer-2"/.test((await pageText(page, id)) ?? ""), { message: "a new layer on the canvas" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const layer = boardTag(text, "Layer", "layer-2");
+      const stack = text.slice(text.indexOf("<Stack"), text.indexOf("</Stack>"));
+      const problems = [
+        /<Button>Flow/.test(stack) && "the Button is still in its Stack",
+        !/<Button>Flow<\/Button>/.test(text.slice(text.indexOf('<Layer id="layer-2"'))) && "the Layer does not hold the Button",
+        (Math.abs(numberAttr(layer, "x") - (corner.x + 450)) > 3 || Math.abs(numberAttr(layer, "y") - corner.y) > 3) && `at ${numberAttr(layer, "x")}, ${numberAttr(layer, "y")} (want ${corner.x + 450}, ${corner.y})`,
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: back in its Stack" });
+      return `Stack → <Layer> at ${numberAttr(layer, "x")}, ${numberAttr(layer, "y")} · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-277", feature: "A layer on the canvas dragged into a frame without auto layout goes into it, floating at the px it was let go (its Layer gone); ⌘Z takes it back to the canvas", wp: "loose layers PR2 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await dragOutPage(ctx);
+      const zoom = await looseZoom(page);
+      const button = page.locator('[data-studio-frame="layer:layer-1"] .zen-button');
+      const box = await button.boundingBox();
+      // From 600, 0 to 640, 450: 40, 50 inside screen-3 (at 600, 400).
+      await dragBy(page, { x: box.x + 6, y: box.y + 6 }, 40 * zoom, 450 * zoom);
+      await until(async () => !/<Layer id="layer-1"/.test((await pageText(page, id)) ?? ""), { message: "the Layer gone" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const frame = text.slice(text.indexOf('<Screen id="screen-3"'), text.indexOf("</Screen>", text.indexOf('<Screen id="screen-3"')));
+      const float = /<Box position="absolute" insetLeft=\{(-?\d+)\} insetTop=\{(-?\d+)\}>\s*<Button>Go<\/Button>/.exec(frame);
+      if (!float || Math.abs(Number(float[1]) - 40) > 3 || Math.abs(Number(float[2]) - 50) > 3) throw new Error(`screen-3 holds ${frame.replace(/\s+/g, " ").slice(0, 200)} (want the Button floating at 40, 50)`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: back on the canvas" });
+      return `<Layer> → screen-3 at ${float[1]}, ${float[2]} · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-278", feature: "A layer on the canvas dropped onto auto layout (a Stack) goes into its flow at the line shown (its Layer gone); ⌘Z takes it back", wp: "loose layers PR2 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await dragOutPage(ctx);
+      const button = page.locator('[data-studio-frame="layer:layer-1"] .zen-button');
+      const box = await button.boundingBox();
+      const text2 = await page.locator('[data-studio-frame="screen:screen-2"] .zen-stack > *').nth(1).boundingBox();
+      // Onto the Stack's second layer's lower half: after it.
+      await dragBy(page, { x: box.x + 6, y: box.y + 6 }, text2.x + 10 - (box.x + 6), text2.y + text2.height * 0.75 - (box.y + 6));
+      await until(async () => !/<Layer id="layer-1"/.test((await pageText(page, id)) ?? ""), { message: "the Layer gone" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const stack = text.slice(text.indexOf("<Stack"), text.indexOf("</Stack>"));
+      if (!/<Button>Flow<\/Button>\s*<Text>Two<\/Text>\s*<Button>Go<\/Button>/.test(stack)) throw new Error(`the Stack holds ${stack.replace(/\s+/g, " ").slice(0, 200)}`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: back on the canvas" });
+      return "<Layer> → the Stack, after Two · ⌘Z";
+    },
+  },
+  {
+    id: "FW-279", feature: "A shape dragged from one frame without auto layout into another goes into it (Figma's reparent), floating at the px it was let go; ⌘Z takes it back", wp: "loose layers PR2 2026-11-20", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await dragOutPage(ctx);
+      const zoom = await looseZoom(page);
+      const shape = page.locator('[data-studio-frame="screen:screen-1"] [data-zen-name="Shape"]').first();
+      const box = await shape.boundingBox();
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await sleep(200);
+      // From 20, 20 in screen-1 (at 0, 0) to 640, 470 on the board: 40, 70 in screen-3 (at 600, 400).
+      await dragBy(page, { x: box.x + box.width / 2, y: box.y + box.height / 2 }, 620 * zoom, 450 * zoom);
+      await until(async () => /<Shape\b/.test(((await pageText(page, id)) ?? "").split('<Screen id="screen-3"')[1] ?? ""), { message: "the shape in screen-3" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const own = text.slice(text.indexOf('<Screen id="screen-1"'), text.indexOf("</Screen>", text.indexOf('<Screen id="screen-1"')));
+      const there = shapeTags(text.slice(text.indexOf('<Screen id="screen-3"')))[0];
+      if (/<Shape\b/.test(own) || Math.abs(there.x - 40) > 3 || Math.abs(there.y - 70) > 3) throw new Error(`screen-1 ${/<Shape\b/.test(own) ? "still holds it" : "is empty"}; in screen-3 at ${there?.x}, ${there?.y} (want 40, 70)`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: back in screen-1" });
+      return `screen-1 → screen-3 at ${there.x}, ${there.y} · ⌘Z`;
     },
   },
   ...pictureRows,

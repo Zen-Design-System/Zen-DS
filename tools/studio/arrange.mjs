@@ -3,7 +3,9 @@
 // Phase 2. slots.mjs applySlotOp runs it as the slot op "moveTo" (same rules: example pages and templates only, the
 // file's hash required, docs chrome and playground slots refused) and hands in its helpers.
 //
-//   op "moveTo" { parent, before?, after?, copy? }   on the element that moves (loc/name = that element)
+//   op "moveTo" { parent, before?, after?, copy?, at?, loose? }   on the element that moves (loc/name = that element);
+//     `at` { x, y }: it floats there in a frame without auto layout (floatAt); `loose` { id, x, y, width? }: the parent is
+//     the builder page's Board and it lands as a layer on the canvas, a <Layer> (Figma's drag out of a frame, 2026-11-20)
 //     parent  "<line>:<column>" of the JSX element it goes into (the same parent reorders it)
 //     before  "<line>:<column>" of the child it goes in front of (or of an element inside that child: a .map row, a
 //             condition's element); after: the child it follows; neither: last
@@ -40,6 +42,7 @@
 import cloning from "../../src/platform/studio/cloning.json" with { type: "json" };
 import { parseExpression } from "@babel/parser";
 import { applyEdits, applyOps, findElement, jsxName, parseLoc, parseSource } from "./jsx-source.mjs";
+import { layerCode } from "./dialect.mjs";
 import { UNIT, indentAt, pathTo, piece } from "./source-helpers.mjs";
 import { declaresSlot, shownMain, slotItemOf, slotLayerOf, slotRemoval, slotWrite } from "./slot-fill.mjs";
 
@@ -224,10 +227,15 @@ export function moveToPlan(ctx, nodePath, op, h) {
   }
   if (slot) return slotMovePlan(ctx, h, { op, slot, copy, element, name, what, moving, path, at: block ? unitAt : nodePath.length - 1, inSlot });
 
-  // The code that goes (with detach's marker above it), placed like an inserted element.
+  // The code that goes (with detach's marker above it), placed like an inserted element: floated at `at` in a frame
+  // without auto layout, or a layer on the canvas (`loose`, the Board its parent: Figma's drag out of every frame).
   const marker = holder.type === "ObjectProperty" ? null : h.detachMarker(holder, unit);
   const start = marker && /^\s*$/.test(text.slice(marker.end, unit.start)) ? marker.start : moving.start;
-  const { edit, placed, within } = place(ctx, h, parent, entries, at, { part: piece(text, moving, start, moving.end), name }, name);
+  const part = op.at !== undefined || op.loose !== undefined ? reshaped(text, moving, op, parentName, block, h) : piece(text, moving, start, moving.end);
+  // A Box that only placed its layer gives it up on the canvas: the new place is that layer's.
+  const landed = op.loose !== undefined ? /<Layer\b[^>]*>\s*<([\w.]+)/.exec(part.src)?.[1] ?? name : name;
+  const { edit, placed, within } = place(ctx, h, parent, entries, at, { part, name: landed }, landed);
+  if (op.loose !== undefined) placed.edits.push(...h.builderImportEdits(ctx.ast, ctx.text, ctx.eol, ["Layer"]));
   const removed = copy ? [] : leaving(ctx, h, { inSlot, path, at: block ? unitAt : nodePath.length - 1, what });
   // A const's `{name}`: the element stays where the const writes it; an empty edit there gives its loc.
   const stay = shown ? { start: element.start, end: element.start, text: "" } : null;
@@ -236,12 +244,33 @@ export function moveToPlan(ctx, nodePath, op, h) {
   }
   if (replaced) removed.push(...replacing(ctx, h, replaced));
   if (replaced) removed.push(...tidyImports(ctx, h, [...removed, ...placed.edits], []));
+  // Floated at `at` inside a Box of its own, it needs Box; out of a Box onto the canvas, Box may go unused.
+  else if (op.at !== undefined || op.loose !== undefined) removed.push(...tidyImports(ctx, h, [...removed, ...placed.edits], /^<Box\b/.test(part.src) && name !== "Box" ? ["Box"] : []));
   return {
     edits: stay ? [...removed, ...placed.edits, stay] : [...removed, ...placed.edits],
-    focus: stay ? { edit: stay, within: 0, name } : { edit, within, name },
+    focus: stay ? { edit: stay, within: 0, name } : { edit, within, name: landed },
     answer: copy ? "inserted" : "moved",
     snippet: () => ({ reason: `a ${copy ? (replaced ? "paste" : "copy") : "move"} is not copied into the example snippet; update it by hand (${what})` }),
   };
+}
+
+/**
+ * moveTo's `at` / `loose`: the moving element's code floated at `at` px (floatAt) or as a <Layer> on the Board (its
+ * place in its frame dropped: looseLayers), as a piece at the left margin.
+ */
+function reshaped(text, moving, op, parentName, block, h) {
+  if (block) h.refuse("A list or a condition moves as written: drag it in its frame");
+  const number = (value) => typeof value === "number" && Number.isFinite(value);
+  const raw = (() => { const own = piece(text, moving); return own.src.split("\n").map((line, index) => (index && line.startsWith(own.base) ? line.slice(own.base.length) : line)).join("\n"); })();
+  if (op.loose !== undefined) {
+    const loose = op.loose;
+    if (parentName !== "Board") h.refuse("`loose` puts a layer on the Board: send the Board as `parent`");
+    if (!loose || typeof loose.id !== "string" || !/^[a-z0-9][a-z0-9-]*$/.test(loose.id) || !number(loose.x) || !number(loose.y) || (loose.width !== undefined && !(number(loose.width) && loose.width > 0))) h.refuse("`loose` is { id, x, y, width? }: the new Layer's id and place on the board");
+    const [only] = looseLayers(raw);
+    return { src: layerCode({ id: loose.id, x: loose.x, y: loose.y, width: loose.width, content: only.code }), base: "", protect: new Set() };
+  }
+  if (!op.at || !number(op.at.x) || !number(op.at.y)) h.refuse("`at` is { x, y }: px in the frame it floats in");
+  return { src: floatAt(raw, { x: Math.round(op.at.x), y: Math.round(op.at.y) }), base: "", protect: new Set() };
 }
 
 /**

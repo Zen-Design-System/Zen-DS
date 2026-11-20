@@ -270,6 +270,58 @@ export default function Page() {
   check("removing its layer removes the Layer", [gone.error ?? null, gone.code && boardLayers(parsePage(gone.code)).length, gone.code && validateDialect(gone.code, { components })], [null, 0, []]);
 }
 
+// Drag out of a frame and back (Figma's reparent, loose layers PR2): moveTo `loose` puts the layer on the Board as a
+// <Layer> (its place in its frame dropped), moveTo `at` floats it in a frame without auto layout; moving a Layer's one
+// layer away takes the Layer with it.
+{
+  const start = `// @zen-page {"format":1,"title":"Drag"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Button, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Flow" device="desktop" x={0} y={0}>
+        <Stack gap="md">
+          <Button>Flow</Button>
+        </Stack>
+      </Screen>
+      <Screen id="screen-2" title="Free" device="desktop" frame x={1600} y={0} width={400} height={300}>
+        <Box position="absolute" insetLeft={20} insetTop={30}>
+          <Button>Float</Button>
+        </Box>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const withBox = new Set([...components, "Box"]);
+  const find = (text, test) => { let found = null; const visit = (node) => { if (!found && test(node)) found = node; for (const child of node.children ?? []) if (child.kind === "element") visit(child); }; visit(parsePage(text).board); return found; };
+  const named = (text, name, words) => find(text, (node) => node.name === name && (words === undefined || node.children.some((child) => child.kind === "text" && child.value.trim() === words)));
+  const board = (text) => parsePage(text).board.loc;
+  const flow = named(start, "Button", "Flow");
+  const out = applyOps(start, flow.loc, "Button", [{ op: "moveTo", parent: board(start), loose: { id: "layer-1", x: 500, y: 40 } }], options(start));
+  check("out of auto layout onto the canvas: a <Layer> holding it, the page valid", [out.error ?? null, out.code && boardLayers(parsePage(out.code)).map(({ id, x, y }) => ({ id, x, y })), out.code && /<Layer id="layer-1" x=\{500\} y=\{40\}>\s*<Button>Flow<\/Button>\s*<\/Layer>/.test(out.code), out.code && /import \{ Board, Layer, Screen \}/.test(out.code), out.code && validateDialect(out.code, { components: withBox })], [null, [{ id: "layer-1", x: 500, y: 40 }], true, true, []]);
+  const box = find(start, (node) => node.name === "Box" && node.props.position);
+  const floated = applyOps(start, box.loc, "Box", [{ op: "moveTo", parent: board(start), loose: { id: "layer-1", x: 0, y: 400, width: 120 } }], options(start));
+  check("out of a free frame: the floating Box that only placed it goes, the Layer takes a width", [floated.error ?? null, floated.code && /<Layer id="layer-1" x=\{0\} y=\{400\} width=\{120\}>\s*<Button>Float<\/Button>\s*<\/Layer>/.test(floated.code), floated.code && !/position="absolute"/.test(floated.code)], [null, true, true]);
+  const loose = out.code;
+  const back = named(loose, "Button", "Flow");
+  const stack = named(loose, "Stack");
+  const into = applyOps(loose, back.loc, "Button", [{ op: "moveTo", parent: stack.loc }], options(loose));
+  check("a layer on the canvas into auto layout: the Layer goes with it", [into.error ?? null, into.code && boardLayers(parsePage(into.code)).length, into.code && /<Stack gap="md">\s*<Button>Flow<\/Button>\s*<\/Stack>/.test(into.code), into.code && validateDialect(into.code, { components: withBox })], [null, 0, true, []]);
+  const free = named(loose, "Screen") && find(loose, (node) => node.name === "Screen" && node.props.frame);
+  const dropped = applyOps(loose, back.loc, "Button", [{ op: "moveTo", parent: free.loc, at: { x: 40.4, y: 50 } }], options(loose));
+  check("a layer on the canvas into a frame without auto layout: it floats at the px", [dropped.error ?? null, dropped.code && /<Box position="absolute" insetLeft=\{40\} insetTop=\{50\}>\s*<Button>Flow<\/Button>\s*<\/Box>/.test(dropped.code), dropped.code && boardLayers(parsePage(dropped.code)).length, dropped.code && validateDialect(dropped.code, { components: withBox })], [null, true, 0, []]);
+  const noBox = start.replace("import { Box, Button, Stack }", "import { Button, Stack }").replace(/\s*<Box position="absolute" insetLeft=\{20\} insetTop=\{30\}>\s*<Button>Float<\/Button>\s*<\/Box>/, "");
+  const noBoxOut = applyOps(noBox, named(noBox, "Button", "Flow").loc, "Button", [{ op: "moveTo", parent: find(noBox, (node) => node.name === "Screen" && node.props.frame).loc, at: { x: 10, y: 10 } }], options(noBox));
+  check("floated in a Box of its own on a page without Box: Box joins the import", [noBoxOut.error ?? null, noBoxOut.code && /import \{ Box, Button, Stack \} from "@zen-ds\/react";/.test(noBoxOut.code), noBoxOut.code && validateDialect(noBoxOut.code, { components: withBox })], [null, true, []]);
+  const wrong = applyOps(start, flow.loc, "Button", [{ op: "moveTo", parent: find(start, (node) => node.name === "Screen" && node.props.frame).loc, loose: { id: "layer-1", x: 0, y: 0 } }], options(start));
+  check("`loose` needs the Board as the parent", /`loose` puts a layer on the Board/.test(wrong.error ?? ""), true);
+}
+
 if (failures.length) {
   console.error(`builder selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);
   process.exit(1);

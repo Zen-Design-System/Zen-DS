@@ -403,7 +403,7 @@ export type EditOp =
    * `before` / after the one at `after` (neither: last), same file; `copy` leaves it in place (⌥-drag). `hash`
    * required. Answer: `moved.loc`, or `inserted.loc` for a copy (tools/studio/arrange.mjs).
    */
-  | { op: "moveTo"; parent: string; before?: string; after?: string; copy?: boolean; replace?: string; /** Into this slot of the instance at `parent` (F7c; tools/studio/slot-fill.mjs), at `index` among its layers. */ slot?: string; index?: number }
+  | { op: "moveTo"; parent: string; before?: string; after?: string; copy?: boolean; replace?: string; /** Into this slot of the instance at `parent` (F7c; tools/studio/slot-fill.mjs), at `index` among its layers. */ slot?: string; index?: number; /** Floats there (px) in a frame without auto layout. */ at?: { x: number; y: number }; /** `parent` is the Board: it lands as a layer on the canvas (<Layer>, loose layers). */ loose?: { id: string; x: number; y: number; width?: number } }
   /**
    * ⌘V of code (another file, or after a cut), sent on the element it goes into: one JSX element, before / after /
    * replacing the child at that loc (none: last). Names it reads must exist there or be Zen components (imported), or

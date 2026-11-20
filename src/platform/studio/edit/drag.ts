@@ -17,6 +17,8 @@ import { textEditSession } from "./textEdit";
 import { srcAttr } from "../select/srcIds";
 import { snapBox, SNAP_PX, type FrameBox, type SnapGuide } from "../builder/render/framePlace";
 import { barBoxesIn, layerHolderOf, layerKidsOf } from "./freeBlock";
+import { canvasDropAt, freeDropAt, moveToCanvas } from "./reparent";
+import type { FramePlace } from "../builder/render/framePlace";
 
 /*
  * Drag a layer in auto layout, Figma-like (docs/research/studio-figma-editing-plan-2026-10-03.md, Phase 2).
@@ -67,7 +69,7 @@ const DROP_TAGS = new Set(["div", "section", "article", "aside", "header", "foot
 const THRESHOLD = 4;
 const EDGE = 32;
 
-type Target = DropTarget & { noop: boolean; line: NonNullable<DragView>["line"]; into: NonNullable<DragView>["into"] };
+export type Target = DropTarget & { noop: boolean; line: NonNullable<DragView>["line"]; into: NonNullable<DragView>["into"] };
 
 type Session = {
   layer: NodeSelection;
@@ -95,6 +97,8 @@ type Session = {
   copy: boolean;
   refusal: string | null;
   target: Target | null;
+  /** The pointer over the empty canvas: the layer goes there, a layer on the canvas at this place (edit/reparent.ts). */
+  board: FramePlace | null;
   deferred: (() => void) | null;
   saved: Array<{ host: HTMLElement; name: string; value: string; priority: string }>;
   pan: number;
@@ -159,13 +163,14 @@ export type DropContext = {
 };
 
 /**
- * Whether a layer of frame `from` may land in frame `to`: its own frame, or any Screen or Overlay of a page you made
+ * Whether a layer of frame `from` may land in frame `to`: its own frame, or any Screen, Overlay or layer on the canvas of a page you made
  * (one file, as Figma's frames are one page: a layer drags from one Screen to another; dnd campaign 2026-10-17). An
  * example's frame is its own code.
  */
 export function sameDropScope(from: Element | null, to: Element | null): boolean {
   if (from === to) return true;
-  const builder = (frame: Element | null) => /^(screen|overlay):/.test(frame?.getAttribute("data-studio-frame") ?? "");
+  // A layer on the canvas (`layer:`) is on the page too: it goes into a Screen and out of one.
+  const builder = (frame: Element | null) => /^(screen|overlay|layer):/.test(frame?.getAttribute("data-studio-frame") ?? "");
   return builder(from) && builder(to);
 }
 
@@ -374,7 +379,11 @@ function follow(current: Session) {
   const context: DropContext = { hosts: current.hosts, frame: current.frame, parentHost: current.parentHost, origin: current.origin, layerSrc: current.layer.src, copy: current.copy, origins: current.origins, layers: current.layers?.length ?? 1, slots: true };
   const { target, reason } = current.refusal ? { target: null, reason: current.refusal } : dropTargetAt(current.pointer.x, current.pointer.y, context);
   current.target = target;
-  const label = reason ?? (current.copy ? "Copy" : null);
+  // Over the empty canvas (no frame under the pointer): it leaves its frame for the canvas, where it shows (Figma's).
+  const shown = !target && !reason && !current.layers ? rectOf(current.hosts) : null;
+  current.board = shown ? canvasDropAt(current.pointer, { x: shown.left, y: shown.top }, current.hosts) : null;
+  outOfFrame(current.frame, Boolean(current.board));
+  const label = reason ?? (current.board ? (current.copy ? "Copy to the canvas" : "Move to the canvas") : current.copy ? "Copy" : null);
   publish({
     line: target && !target.noop ? target.line : null,
     into: target ? target.into : null,
@@ -401,6 +410,13 @@ type FloatMove = {
    * axis), and writes px offsets. Inside auto layout it keeps the token ladder.
    */
   free: { others: FrameBox[]; size: { width: number; height: number }; guides: SnapGuide[]; spacing?: SpacingMark[] } | null;
+  /** Its box on the screen at the press. */
+  shown: DOMRect;
+  /**
+   * The pointer outside its own frame (Figma's reparent, loose layers PR2): over the empty canvas it goes there
+   * (`board`), over another frame into it (`target`, floating at `at` px in a frame without auto layout).
+   */
+  out?: { board?: FramePlace; target?: Target; at?: { x: number; y: number } | null } | null;
 };
 
 /** Several floating layers moved together: their items, their shared block (null: in several frames, no snapping). */
@@ -446,7 +462,7 @@ function floatOf(host: HTMLElement, layer: NodeSelection): FloatMove | null {
   const freeFrame = parent?.matches(FREE_FRAME) && !(parent.matches('.zen-box[data-position="absolute"]') && parent.children.length === 1);
   const others = freeFrame ? freeFrameBoxes([floating], block, scale) : [];
   return {
-    target, host: floating, scale,
+    target, host: floating, scale, shown: rect,
     pins: { x: pinOfConstraint("x", floating.dataset.constraintX), y: pinOfConstraint("y", floating.dataset.constraintY) },
     start: { x: left, y: top },
     end: { x: block.clientWidth - left - rect.width / scale, y: block.clientHeight - top - rect.height / scale },
@@ -502,6 +518,7 @@ function freeGuides(float: FloatMove, free: NonNullable<FloatMove["free"]>) {
 }
 
 function followFloat(current: Session, float: FloatMove) {
+  if (followOut(current, float)) return;
   if (float.free) { followFree(current, float, float.free, current.keys); return; }
   const dx = (current.pointer.x - current.start.x) / float.scale;
   const dy = (current.pointer.y - current.start.y) / float.scale;
@@ -526,6 +543,46 @@ function followFloat(current: Session, float: FloatMove) {
   const changed = float.insets.filter((inset) => inset.snap.key !== inset.was.key);
   const clamped = float.insets.some((inset) => inset.snap.clamped);
   publish({ line: null, into: null, pointer: current.pointer, label: current.refusal ?? (changed.length ? `${changed.map(snapText).join(" · ")}${clamped ? ` · offsets stop at ${ladderName("4xl")}` : ""}` : null), tone: current.refusal ? "negative" : "info" });
+}
+
+/**
+ * A floating layer with the pointer outside its own frame (Figma's reparent): it follows the pointer, and goes to the
+ * empty canvas under it or into the frame under it on release. False while the pointer is over its own frame.
+ */
+function followOut(current: Session, float: FloatMove): boolean {
+  const own = float.host.closest("[data-studio-frame]");
+  const frame = own?.getBoundingClientRect();
+  const { pointer } = current;
+  const inside = frame && pointer.x >= frame.left && pointer.x <= frame.right && pointer.y >= frame.top && pointer.y <= frame.bottom;
+  if (inside || current.refusal || !studioStore.getState().localPage) {
+    if (float.out) { float.out = null; outOfFrame(own ?? null, false); }
+    return false;
+  }
+  const dx = pointer.x - current.start.x;
+  const dy = pointer.y - current.start.y;
+  const corner = { x: float.shown.left + dx, y: float.shown.top + dy };
+  float.host.style.setProperty("translate", `${dx / float.scale}px ${dy / float.scale}px`);
+  float.insets = [];
+  const board = canvasDropAt(pointer, corner, [float.host]);
+  let out: FloatMove["out"] = board ? { board } : null;
+  if (!out) {
+    const context: DropContext = { hosts: [float.host], frame: own ?? null, parentHost: null, origin: null, layerSrc: float.target.src, copy: current.copy, layers: 1, slots: true };
+    const { target } = dropTargetAt(pointer.x, pointer.y, context);
+    const host = target ? findBySrc(canvasApi.getWorldElement() ?? document.body, target.parentSrc)[0]?.hosts[0] : undefined;
+    if (target) out = { target: { ...target, reparent: true }, at: freeDropAt(host, corner) };
+  }
+  float.out = out;
+  outOfFrame(own ?? null, true);
+  const into = out?.target && !out.at ? out.target : null;
+  publish({ line: into?.line ?? null, into: out?.target?.into ?? null, pointer, label: out?.board ? (current.copy ? "Copy to the canvas" : "Move to the canvas") : out?.target ? `${current.copy ? "Copy" : "Move"} into ${out.target.parentName}` : null, tone: "info" });
+  return true;
+}
+
+/** The frame a layer is dragged out of draws past its edges meanwhile, so the layer shows where it goes (builder.css). */
+function outOfFrame(frame: Element | null, out: boolean) {
+  if (!(frame instanceof HTMLElement)) return;
+  if (out) frame.setAttribute("data-studio-drag-out", "");
+  else frame.removeAttribute("data-studio-drag-out");
 }
 
 /** Writes the moved insets of a floating layer (one edit; an inset back at `none` is removed). */
@@ -582,15 +639,20 @@ function end(commit: boolean) {
     return;
   }
   drop(current);
+  outOfFrame(current.frame, false);
   if (current.group) {
     const { items, shift } = current.group;
     if (commit && !current.refusal && (shift.x || shift.y)) void writeMoves(items, items.map(() => ({ dx: shift.x, dy: shift.y })), `Move ${items.length} layers · X ${shift.x >= 0 ? "+" : ""}${shift.x}, Y ${shift.y >= 0 ? "+" : ""}${shift.y}`, true);
     return;
   }
   if (current.float) {
+    const out = current.float.out;
+    if (commit && !current.refusal && out?.board) { void moveToCanvas(current.float.target, out.board, current.copy); return; }
+    if (commit && !current.refusal && out?.target) { void moveLayer(current.float.target, { ...out.target, ...(out.at ? { at: out.at } : {}) }, current.copy); return; }
     if (commit && !current.refusal) void dropFloat(current.float);
     return;
   }
+  if (commit && current.board && !current.refusal) { void moveToCanvas(current.layer, current.board, current.copy); return; }
   const target = current.target;
   if (!commit || !target || target.noop || current.refusal) return;
   if (current.layers) void moveLayersTo(target, current.copy, current.layers);
@@ -850,6 +912,7 @@ function begin(event: PointerEvent, from: Pick<Session, "layer" | "layers" | "hi
     copy: false,
     refusal: null,
     target: null,
+    board: null,
     saved: [],
     pan: 0,
   };
