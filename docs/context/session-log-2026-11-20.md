@@ -73,3 +73,10 @@ pure and already in the browser engine's graph). Groups figma/draw/builder/selec
 alone except FW-169, broken on main too (the Code view's language picker off the panel grid; Giám sát fixes it).
 studio:dnd 0 findings. qa --isolated PASS (Studio E2E 462 works, 6 shards); build ✓.
 
+## FW-169: the Code view's language picker is not a property row (tier XS, Giám sát, branch zen/fix/studio-fw169-code-picker-20261120)
+
+Found by Bug while running the figma group for #416: FW-169 broke on main since the Code view's language picker (P1
+2f405263, 2026-11-13) with "Example code: off the field grid: Code language … ends at 87 of 294". The picker sits in
+CodeView's own header (the same view as on the docs pages), not on an Inspector row; `panelFits` (figma.mjs) now skips
+fields inside `.studio-code__header` for the field-line check; its juts-out and cut-off checks still cover it. The figma
+group is opt-in, so neither the gate nor CI ran it. FW-169 works (13 s).
