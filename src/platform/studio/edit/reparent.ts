@@ -1,15 +1,18 @@
 import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../api";
 import { loadEngine, zenComponents } from "../builder/engine";
 import { boardPlaceAt } from "../builder/frameMove";
-import { looseLayerHit, selectLooseLayerWhenShown } from "../builder/looseLayer";
+import { looseFrameOfSelection, looseLayerHit, selectLooseLayersWhenShown, selectLooseLayerWhenShown } from "../builder/looseLayer";
+import { moveFrames } from "../builder/frameEdit";
 import type { FramePlace } from "../builder/render/framePlace";
 import type { PageNode, PageTree } from "../builder/render/renderPage";
-import { getPage } from "../builder/store/pageStore";
+import { getPage, pageFile } from "../builder/store/pageStore";
 import { canvasApi } from "../canvas/viewport";
 import { findBySrc } from "../select/picker";
 import { canStructurallyEdit } from "../slots/actions";
 import { canEdit, studioStore } from "../store";
-import type { NodeSelection } from "./arrange";
+import type { DropTarget, NodeSelection } from "./arrange";
+import type { ExtraLayer } from "../select/multiSelection";
+import { moveLayersTo } from "./multi";
 import { dropTargetAt, type DropContext, type Target } from "./drag";
 import { freeBlock, localTo } from "./freeBlock";
 
@@ -64,32 +67,81 @@ function fillsParent(host: HTMLElement): boolean {
   return host.offsetWidth >= inner - 1 && host.offsetWidth > 0;
 }
 
+/** The page's Board: its loc, and its Layers' ids (a new Layer takes the first free one). */
+async function readBoard(localPage: string) {
+  const [engine, page] = await Promise.all([loadEngine(), getPage(localPage)]);
+  if (!page) return null;
+  const tree = engine.parsePage(page.text, { components: new Set(zenComponents) }) as unknown as PageTree;
+  if (!tree.board) return null;
+  const taken = tree.board.children.filter((child): child is PageNode => child.kind === "element" && child.name === "Layer").map((node) => String(node.props.id?.kind === "literal" ? node.props.id.value : ""));
+  return { engine, boardLoc: tree.board.loc, file: pageFile(localPage), taken };
+}
+
+/** The width a layer keeps on the canvas: its own when it filled its container (a Top Navigation), else none (it hugs). */
+function keptWidth(layer: { src: string; instance: number }): number | undefined {
+  const world = canvasApi.getWorldElement();
+  const host = world ? (findBySrc(world, layer.src)[layer.instance] ?? findBySrc(world, layer.src)[0])?.hosts[0] : undefined;
+  if (!(host instanceof HTMLElement) || !fillsParent(host)) return undefined;
+  const scale = host.offsetWidth ? host.getBoundingClientRect().width / host.offsetWidth || 1 : 1;
+  return Math.round(host.getBoundingClientRect().width / scale);
+}
+
+/** Where among the Board's children a layer moved onto the canvas goes (Layers' order: before / after a frame's or a
+ *  layer on the canvas's element, its loc); none: last, in front. */
+export type BoardOrder = { before?: string; after?: string };
+
 /**
  * Moves `layer` (the element that carries its place: a layer, or the floating Box that places it) onto the canvas of
- * the page you made at `place` (board frame px, its corner), as a <Layer>; one edit, its layer selected. A layer that
- * filled its container keeps its width there.
+ * the page you made at `place` (board frame px, its corner), as a <Layer> (`order`: its place among the Board's
+ * children); one edit, its layer selected. A layer that filled its container keeps its width there.
  */
-export async function moveToCanvas(layer: NodeSelection, place: FramePlace, copy = false): Promise<boolean> {
+export async function moveToCanvas(layer: NodeSelection, place: FramePlace, copy = false, order: BoardOrder = {}): Promise<boolean> {
   const { localPage } = studioStore.getState();
   const check = canStructurallyEdit(layer);
   if (!check.ok) { fail(check.reason); return false; }
   const at = parseSrc(layer.src);
   if (!localPage || !at) return false;
-  const [engine, page, element] = await Promise.all([loadEngine(), getPage(localPage), studioApi.element(at.file, at.loc)]);
-  if (!page || !element) { fail(`${layer.name} is no longer there — select it again`); return false; }
-  const tree = engine.parsePage(page.text, { components: new Set(zenComponents) }) as unknown as PageTree;
-  if (!tree.board) return false;
-  const taken = tree.board.children.filter((child): child is PageNode => child.kind === "element" && child.name === "Layer").map((node) => String(node.props.id?.kind === "literal" ? node.props.id.value : ""));
-  const id = engine.freeFrameId("layer", taken);
-  const world = canvasApi.getWorldElement();
-  const host = world ? (findBySrc(world, layer.src)[layer.instance] ?? findBySrc(world, layer.src)[0])?.hosts[0] : undefined;
-  const scale = host instanceof HTMLElement && host.offsetWidth ? host.getBoundingClientRect().width / host.offsetWidth || 1 : 1;
-  const width = host instanceof HTMLElement && fillsParent(host) ? Math.round(host.getBoundingClientRect().width / scale) : undefined;
+  const [board, element] = await Promise.all([readBoard(localPage), studioApi.element(at.file, at.loc)]);
+  if (!board || !element) { fail(`${layer.name} is no longer there — select it again`); return false; }
+  const id = board.engine.freeFrameId("layer", board.taken);
+  const width = keptWidth(layer);
   const loose = { id, x: Math.round(place.x), y: Math.round(place.y), ...(width ? { width } : {}) };
   const name = layer.name.slice(layer.name.lastIndexOf(".") + 1);
-  const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [{ op: "moveTo", parent: tree.board.loc, loose, ...(copy ? { copy: true } : {}) }], hash: element.hash }, `${copy ? "Copy" : "Move"} ${name} to the canvas`);
+  const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [{ op: "moveTo", parent: board.boardLoc, loose, ...order, ...(copy ? { copy: true } : {}) }], hash: element.hash }, `${copy ? "Copy" : "Move"} ${name} to the canvas`);
   if (!response.ok) return false;
   selectLooseLayerWhenShown(`layer:${id}`);
+  return true;
+}
+
+/**
+ * Several layers onto the canvas, each a <Layer> at its own place (`places[i]` for `layers[i]`, board frame px), in one
+ * edit (op many moveTo `looseByLoc`); all of them selected after. Layers already on the canvas keep their own Layer and
+ * only move (their X / Y), as frames do.
+ */
+export async function moveManyToCanvas(layers: readonly ExtraLayer[], places: readonly FramePlace[], copy = false, order: BoardOrder = {}): Promise<boolean> {
+  const { localPage } = studioStore.getState();
+  if (!localPage || !layers.length) return false;
+  const loose = layers.map((layer) => looseFrameOfSelection(layer));
+  if (!copy && loose.every(Boolean)) return moveFrames(localPage, new Map(loose.map((frameId, k) => [frameId!, { x: Math.round(places[k].x), y: Math.round(places[k].y) }])), `Move ${layers.length} layers`);
+  const board = await readBoard(localPage);
+  if (!board) return false;
+  const taken = [...board.taken];
+  const ids: string[] = [];
+  const looseByLoc: Record<string, { id: string; x: number; y: number; width?: number }> = {};
+  layers.forEach((layer, k) => {
+    const loc = parseSrc(layer.src)?.loc;
+    if (!loc) return;
+    const id = board.engine.freeFrameId("layer", taken);
+    taken.push(id);
+    ids.push(id);
+    const width = keptWidth(layer);
+    looseByLoc[loc] = { id, x: Math.round(places[k].x), y: Math.round(places[k].y), ...(width ? { width } : {}) };
+  });
+  const target: DropTarget = { parentSrc: `${board.file}:${board.boardLoc}`, parentName: "Board", frameId: null, panelId: null, reparent: true, ...(order.before ? { before: `${board.file}:${order.before}` } : order.after ? { after: `${board.file}:${order.after}` } : {}) };
+  if (!(await moveLayersTo(target, copy, [...layers], { looseByLoc }))) return false;
+  // Each in its own Layer, in source order as the edit wrote them.
+  const sorted = Object.entries(looseByLoc).sort(([a], [b]) => { const [la, ca] = a.split(":").map(Number); const [lb, cb] = b.split(":").map(Number); return la - lb || ca - cb; });
+  selectLooseLayersWhenShown(sorted.map(([, entry]) => `layer:${entry.id}`));
   return true;
 }
 

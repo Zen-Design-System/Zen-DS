@@ -318,6 +318,16 @@ export default function Page() {
   const noBox = start.replace("import { Box, Button, Stack }", "import { Button, Stack }").replace(/\s*<Box position="absolute" insetLeft=\{20\} insetTop=\{30\}>\s*<Button>Float<\/Button>\s*<\/Box>/, "");
   const noBoxOut = applyOps(noBox, named(noBox, "Button", "Flow").loc, "Button", [{ op: "moveTo", parent: find(noBox, (node) => node.name === "Screen" && node.props.frame).loc, at: { x: 10, y: 10 } }], options(noBox));
   check("floated in a Box of its own on a page without Box: Box joins the import", [noBoxOut.error ?? null, noBoxOut.code && /import \{ Box, Button, Stack \} from "@zen-ds\/react";/.test(noBoxOut.code), noBoxOut.code && validateDialect(noBoxOut.code, { components: withBox })], [null, true, []]);
+  // Several at once (op many moveTo, loose layers PR4): each its own Layer on the canvas, or its own px in a free frame.
+  const twoFlow = start.replace("<Button>Flow</Button>", "<Button>Flow</Button>\n          <Button>Two</Button>");
+  const flows = [named(twoFlow, "Button", "Flow"), named(twoFlow, "Button", "Two")];
+  const both = applyOps(twoFlow, flows[0].loc, "Button", [{ op: "many", action: "moveTo", locs: flows.map((node) => node.loc), parent: board(twoFlow), looseByLoc: { [flows[0].loc]: { id: "layer-1", x: 500, y: 0 }, [flows[1].loc]: { id: "layer-2", x: 500, y: 60 } } }], options(twoFlow));
+  check("several onto the canvas: a Layer each at its own place, the page valid", [both.error ?? null, both.code && boardLayers(parsePage(both.code)).map(({ id, x, y }) => `${id}@${x},${y}`), both.code && validateDialect(both.code, { components: withBox })], [null, ["layer-1@500,0", "layer-2@500,60"], []]);
+  const backIn = both.code;
+  const looseOnes = [named(backIn, "Button", "Flow"), named(backIn, "Button", "Two")];
+  const freeFrame = find(backIn, (node) => node.name === "Screen" && node.props.frame);
+  const intoFree = applyOps(backIn, looseOnes[0].loc, "Button", [{ op: "many", action: "moveTo", locs: looseOnes.map((node) => node.loc), parent: freeFrame.loc, atByLoc: { [looseOnes[0].loc]: { x: 10, y: 20 }, [looseOnes[1].loc]: { x: 10, y: 80 } } }], options(backIn));
+  check("several layers on the canvas into a free frame: each floats at its px, their Layers go", [intoFree.error ?? null, intoFree.code && boardLayers(parsePage(intoFree.code)).length, intoFree.code && /<Box position="absolute" insetLeft=\{10\} insetTop=\{20\}>\s*<Button>Flow<\/Button>\s*<\/Box>\s*<Box position="absolute" insetLeft=\{10\} insetTop=\{80\}>\s*<Button>Two<\/Button>/.test(intoFree.code), intoFree.code && validateDialect(intoFree.code, { components: withBox })], [null, 0, true, []]);
   const wrong = applyOps(start, flow.loc, "Button", [{ op: "moveTo", parent: find(start, (node) => node.name === "Screen" && node.props.frame).loc, loose: { id: "layer-1", x: 0, y: 0 } }], options(start));
   check("`loose` needs the Board as the parent", /`loose` puts a layer on the Board/.test(wrong.error ?? ""), true);
 }
