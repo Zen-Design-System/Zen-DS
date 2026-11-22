@@ -21,7 +21,7 @@ Not published yet: the package builds and ships once the user approves a release
 | --- | --- |
 | `children` | the default slot |
 | a node prop (`startIcon`, `leading`, `tooltip`) | a slot of the same name; an `IconName` prop also takes the name as a string (`start-icon="icon-plus-line"`) |
-| `onRemove`, `onClose`… (component events) | emits: `@remove`, `@close` |
+| `onRemove`, `onClose`… (component events) | `@remove`, `@close`: an emit, or a Function prop where React shows a part only when the handler is given (the close button) |
 | DOM events and attributes (`onClick`, `disabled`, `aria-*`, `data-*`, `id`) | attributes and listeners on the root (`@click`, `disabled`) |
 | `className`, `style` | `class`, `style` (merged with the component's own) |
 | `ref` to the root element | a template ref's `$el` |
@@ -32,5 +32,13 @@ Prop names stay the same (`theme`, `level`, `leadingIcon`; templates may write t
 
 ## Waves
 
-`waves.json` lists each wave's React folders and components. W1 (the 23 stateless folders) is P3; W2 and W3 are P4.
-A component is listed as ready only when its parity is 100%.
+`waves.json` lists each wave's React folders and components. W1 (the 23 stateless folders) is P3: 39 of 39 ready;
+MetricCard and ToggleListItem render a later wave's component (Card, Toggle) and wait for it (`waits`). W2 and W3 are P4.
+A component is listed as ready only when its parity is 100%. React contexts are provide/inject keys read at render time
+(`_shared/context.ts`, `card-content.ts`, `app-shell-chrome.ts`); their providers come with their components.
+
+## In the docs' Code view
+
+`src/platform/code/vue.ts` writes a snippet's Vue from its React code (plan §12, part 3); it reads `code-language.json`
+for what the package exports and each component's props, emits and slots. `npm run vue:check` translates every example
+whose components are all here and type-checks them with vue-tsc.

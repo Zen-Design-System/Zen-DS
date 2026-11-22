@@ -468,7 +468,7 @@ function PageHeaderPlayground() {
         <PlaygroundToggle label="Back" selected={withBack} onChange={setWithBack} />
         <PlaygroundToggle label="Tabs" selected={withTabs} onChange={setWithTabs} />
       </>}
-      code={`import { PageHeader } from "@zen-ds/react";
+      code={`import { ${[...(withBreadcrumbs ? ["Breadcrumbs"] : []), ...(withActions ? ["Button"] : []), "PageHeader", ...(withTabs ? ["Tabs"] : [])].join(", ")} } from "@zen-ds/react";
 
 <PageHeader
   title="Brand refresh"

@@ -3,7 +3,7 @@
 Status: **P1 and P2 approved (user, 2026-11-12: "Code view: HTML/CSS"); §8 answered the same day.** P1 (the Code view
 base) and P2 (HTML + CSS) are built: see §9–§10. **P2b is done** (started 2026-11-13 with the user's three choices,
 seven slices #400–#410 merged by 2026-11-19: 505/505 examples are files, the gate is closed; §11). **P3 (Vue: web core,
-W1, parity harness, emitter) approved 2026-11-22 (user: "Làm codeview")**, in progress (§12). P4–P9 still need their
+W1, parity harness, emitter) approved 2026-11-22 (user: "Làm codeview")**, built (§12: three PRs). P4–P9 still need their
 own approval (Scope lock).
 
 ## 1. Where we are
@@ -488,4 +488,39 @@ its own.
 Link, VisuallyHidden, ZenPortalProvider (9/41 of W1, 202 cases, 100%), with `usePresence`, `ZenPortal` and the icon
 tooltip (`_shared/tooltip.ts`, Tooltip's `model.ts`: hover wait and placement) they need. `visibleBounds` moved to
 `_shared/layer-space.ts` (framework-free; Popover re-exports it).
+
+**Part 2 (W1 rest, 2026-11-22):** AlertBanner, Avatar (+Stack, Status), Box/Stack/Grid/Container, ColorSelector,
+DockIcon, EmptyState (+Illustration), FileIcon, Heading/Text/TextRun, InlineMessage, List/ListBox/ListItem,
+Metric/MetricTrend, PageHeader, ProgressBar/Circle, the Skeletons, Stepper/StepperItem: **W1 39/39 components, 1,254
+cases, 100%.** Four agents (at most three folders each) and this session; reviewed in one pass. Each React move was
+proven by `--react-snapshot` / `--react-compare` (every case unchanged), `guidelines:check` (props docs unchanged) and,
+for Layout, `styles.css` byte-identical with 0 of 235 per-component CSS entries changed (Layout's pure files lost their
+CSS side-effect imports; each `.tsx` that imports them imports the CSS). Decisions in the port:
+- **Waits:** `waves.json` `waits` lists a component that renders a later wave's: MetricCard (Card, W2), ToggleListItem
+  (Toggle, W2). Metric's `hint` is `notPorted` (Tooltip, W3); the emitter refuses a snippet that uses it.
+- **Listener props:** where React shows a part only when a handler is given (AlertBanner/InlineMessage `onClose`,
+  Stepper `onStepClick`, ListItem `onClick`), Vue declares the handler as a Function prop: `@close` still binds to it,
+  and the component can tell it is there (an `emits` listener is invisible to the component and never re-renders it).
+- **Contexts:** React contexts became provide/inject keys read at render time: the grid cell and frame modes (Layout),
+  the card content family (`_shared/card-content.ts`), the AppShell chrome (`_shared/app-shell-chrome.ts`),
+  EmptyState's card context; their providers (Card, AppShell) come with their waves.
+- **Harness:** React 19's server render puts `<link rel="preload" as="image">` before an `<img>`: dropped as a head hint;
+  a list of strings is a value, not content (`hideOn`).
+
+**Part 3 (the emitter, 2026-11-22):** `src/platform/code/vue.ts` turns a React snippet (a playground's code or an example
+file) into a Vue SFC: `useState` → `ref`, a const derived from state → `computed`, `useId` → `useId`, a ref on an element
+→ a template ref (a Zen component's root via `$el`; one row's ref in a list → a function ref), a plain `useRef` →
+`{ current }`, `&&` / ternaries → `v-if` / `v-else`, `.map` / `Array.from` → `v-for` (a list item's local consts read as
+their expressions), node props → slots (conditional slots for `cond && <X/>`), `onX` → `@x` (kebab for a component's
+event, the DOM name otherwise), `setX(v)` → `x = v` (an updater reads the current value), props → `defineProps`, a
+module-level helper or constant holding JSX → drawn where it is used, `<Fragment key>` → `<template :key>`. Anything else
+(an effect, a component of its own, a spread that carries `children`) is "not translatable": the Code view says why.
+What the package has (exports, types, each component's props / emits / slots) is written by `vue-parity.mjs --write`
+into `code-language.json`; hooks count as their component (`useToast` → ToastProvider, `languages.ts libraryHooks`).
+The Code view (`SnippetCode`) loads Babel and the emitter only when Vue is picked; demo.ts for Vue (`vueDemoOf`) takes
+its types from `@zen-ds/vue` and drops the annotations of types not ported yet. Highlighting: `tokenize.ts` `vue`.
+Gates: `vue:check` step 4 (`vue-snippets.mjs`): 10/10 examples whose components are all ported translate and
+type-check with vue-tsc beside demo.ts; `tests/interaction/code-languages.test.tsx` does the same for every such
+playground (vue-tsc runs in Node through a vitest browser command). Three examples spread `{ …, children }` onto an
+Avatar; they now call a JSX helper (same render), and the emitter refuses that spread.
 

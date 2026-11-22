@@ -56,7 +56,7 @@ export type SnippetTree = {
 
 export type SnippetParse = { ok: true; tree: SnippetTree } | { ok: false; error: string };
 
-type Parse = typeof import("@babel/parser").parse;
+export type Parse = typeof import("@babel/parser").parse;
 
 const LIBRARY = "@zen-ds/react";
 
@@ -96,7 +96,7 @@ function tagName(name: JSXElement["openingElement"]["name"]): string {
 }
 
 /** JSX text as React renders it: lines trimmed, line breaks between words become one space, blank lines dropped. */
-function jsxText(raw: string) {
+export function jsxText(raw: string) {
   const lines = raw.split(/\r\n|\n|\r/);
   return lines
     .map((line, index) => {
@@ -198,7 +198,7 @@ function outermostJsx(node: unknown, found: Array<JSXElement | JSXFragment>) {
 const OPTIONS: ParserOptions = { sourceType: "module", plugins: ["jsx", "typescript"] };
 
 /** The snippet as a parse whose JSX positions point into `source` (a wrapped variant shifts them back). */
-function parseShapes(parse: Parse, code: string): { ast: ParseResult<File>; source: string } {
+export function parseShapes(parse: Parse, code: string): { ast: ParseResult<File>; source: string } {
   try {
     return { ast: parse(code, OPTIONS), source: code };
   } catch (first) {
