@@ -2,15 +2,11 @@ import { type AnchorHTMLAttributes, type ComponentPropsWithRef, type ElementType
 import { Icon } from "../Icon";
 import { VisuallyHidden } from "../VisuallyHidden";
 import { useZenLabels } from "../_shared/zen-context";
+import { externalLabelParts, linkModel, type LinkTone, type LinkUnderline } from "./model";
 import "./link.css";
 import "../Icon/core";
 
-export const linkUnderlines = ["hover", "always", "none"] as const;
-/** When the underline shows. */
-export type LinkUnderline = (typeof linkUnderlines)[number];
-export const linkTones = ["hyperlink", "inherit"] as const;
-/** Link colour: the Content/Hyperlink family, or the surrounding text colour. */
-export type LinkTone = (typeof linkTones)[number];
+export { linkTones, linkUnderlines, type LinkTone, type LinkUnderline } from "./model";
 
 export interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "color"> {
   /** Destination URL. Required unless `as` renders a router link that takes its own destination prop (e.g. `to`). */
@@ -57,21 +53,14 @@ export type LinkComponent = {
   displayName?: string;
 };
 
-/** `rel` tokens without duplicates: the caller's own plus the ones a new tab needs. */
-function mergeRel(rel: string | undefined, add: string[]) {
-  return [...new Set([...(rel ?? "").split(/\s+/).filter(Boolean), ...add])].join(" ");
-}
-
 /** The label followed by the external-link glyph. A text label keeps its last word and the glyph on one line (Chrome breaks
  *  before an inline SVG even after a word joiner); very long last words (URLs) may still wrap, so they are left alone. */
 function withExternalGlyph(children: ReactNode) {
   const glyph = <span className="zen-link__external" aria-hidden="true"><Icon name="icon-link-external-line" size="1em" decorative /></span>;
   if (typeof children !== "string") return <>{children}{glyph}</>;
-  const label = children.trimEnd();
-  const at = label.lastIndexOf(" ");
-  const last = label.slice(at + 1);
-  if (last.length > 24) return <>{label}{glyph}</>;
-  return <>{label.slice(0, at + 1)}<span className="zen-link__keep">{last}{glyph}</span></>;
+  const parts = externalLabelParts(children);
+  if (!parts) return <>{children.trimEnd()}{glyph}</>;
+  return <>{parts.lead}<span className="zen-link__keep">{parts.last}{glyph}</span></>;
 }
 
 /**
@@ -89,13 +78,8 @@ export const Link = function Link({ as: Element = "a", href, external = false, t
       {...rest}
       ref={ref}
       href={href}
-      target={external ? "_blank" : target}
-      rel={external || target === "_blank" ? mergeRel(rel, ["noopener", "noreferrer"]) : rel}
+      {...linkModel({ external, tone, underline, visited, target, rel })}
       className={["zen-link", className].filter(Boolean).join(" ")}
-      data-tone={tone}
-      data-underline={underline}
-      data-visited={visited && tone === "hyperlink" ? "true" : undefined}
-      data-external={external ? "true" : undefined}
     >
       {external ? (
         <>

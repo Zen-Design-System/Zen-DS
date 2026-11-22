@@ -14,6 +14,11 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Vue (Code view P3, part 1): `@zen-ds/vue` starts in `platforms/vue` (not published yet). Badge, BadgeCounter, Button,
+  IconButton, Divider, Icon, Link, VisuallyHidden and ZenPortalProvider render the same DOM as React on the same
+  `styles.css`; `npm run vue:parity` proves it case by case (and that no Vue prop is invented), `npm run vue:check` runs
+  in CI. Their shared logic is a framework-free web core (`src/core`; each component's `model.ts`), so React and Vue
+  draw from one source. The Code view shows Vue code once the emitter lands (P3's last part).
 - Zen Studio: the drawing tools work on the empty canvas, as in Figma: a Rectangle, Ellipse, Line, Arrow, Polygon, Star,
   text (T), Pen or Pencil path, or a picture dropped there lands as a layer on the canvas where it is drawn (its edges
   snap to the frames and layers beside it). "Draw inside a frame" no longer stops it. On a layer on the canvas that

@@ -154,6 +154,8 @@
     "ai-ui:check": "node tools/ai-ui/build-catalog.mjs --check",
     "ai-ui:selftest": "node tools/ai-ui/selftest.mjs",
     "html:parity": "node tools/code-languages/html-parity.mjs",
+    "vue:parity": "node tools/code-languages/vue-parity.mjs",
+    "vue:check": "node tools/code-languages/vue-check.mjs",
     "examples:check": "node tools/code-languages/examples-check.mjs",
     "ai-ui:eval": "node tools/ai-ui/eval.mjs",
     "ai-kit:build": "node tools/ai-kit/build.mjs",
@@ -201,10 +203,13 @@
     "react-dom": "19.3.0",
     "storybook": "10.6.0",
     "typescript": "7.0.2",
+    "typescript5": "npm:typescript@5.9.3",
     "uqr": "0.1.3",
     "vite": "8.3.0",
     "vitest": "5.0.2",
-    "vitest-browser-react": "2.3.0"
+    "vitest-browser-react": "2.3.0",
+    "vue": "3.5.45",
+    "vue-tsc": "3.3.14"
   },
   "bin": {
     "zen-ds": "tools/zen-ds.mjs",

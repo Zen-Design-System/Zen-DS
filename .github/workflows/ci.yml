@@ -45,6 +45,8 @@ jobs:
         run: npm run guidelines:check
       - name: Example snippets are portable and compile as copied
         run: npm run examples:check
+      - name: Vue port matches React (web core, DOM and API parity, vue-tsc)
+        run: npm run vue:check
       - name: MCP server
         run: npm run mcp:selftest
       - name: AI UI catalog is up to date and the runtime self-test passes

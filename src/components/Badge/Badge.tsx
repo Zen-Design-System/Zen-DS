@@ -5,18 +5,11 @@ import { renderIcon } from "../_shared/icon";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { scaleKey } from "../_shared/scale";
 import { useZenLabels } from "../_shared/zen-context";
-import { typographyStyles } from "../../tokens/typography.generated";
+import { badgeModel, badgeRemoveName, badgeSizes, type BadgeBackground, type BadgeSize, type BadgeTheme } from "./model";
 import "./badge.css";
 import "../Icon/core";
 
-export const badgeSizes = ["xsmall", "small", "medium"] as const;
-export const badgeThemes = ["accent", "neutral", "yellow", "orange", "red", "crimson", "pink", "plum", "purple", "violet", "indigo", "blue", "cyan", "teal", "green", "brown", "inverse", "on-color", "sky", "mint", "bronze", "golden"] as const;
-/** CSS / Figma key (the `data-size` value). */
-type BadgeSizeKey = (typeof badgeSizes)[number];
-/** Short (canonical) or long Figma spelling — both render the same. */
-export type BadgeSize = "xs" | "sm" | "md" | "xsmall" | "small" | "medium";
-export type BadgeTheme = (typeof badgeThemes)[number];
-export type BadgeBackground = "solid" | "subtle";
+export { badgeSizes, badgeThemes, type BadgeBackground, type BadgeSize, type BadgeTheme } from "./model";
 
 /** Standard HTML attributes (`id`, `data-*`, `aria-*`, `style`…) go to the root `<span>`. */
 export interface BadgeProps extends Omit<HTMLAttributes<HTMLSpanElement>, "color"> {
@@ -52,16 +45,13 @@ export function Badge({ ref, children, size: sizeProp = "md", theme: themeProp, 
   const nest = useNested(overrides);
   const theme = themeProp ?? color ?? "neutral";
   const t = useZenLabels();
-  const size = scaleKey(sizeProp, badgeSizes);
+  const badge = badgeModel(sizeProp);
   const leadingContent = leadingIcon ? renderIcon(leading) ?? <Icon name="icon-circle-small-solid" decorative /> : null;
-  const textStyle = size === "xsmall" ? typographyStyles["Caption/Medium"] : size === "small" ? typographyStyles["Body/Small/Medium"] : typographyStyles["Body/Base/Medium"];
-  // Like Tag: the remove button names what it removes ("Remove Design"); removeLabel names it for a non-text label, which
-  // otherwise falls back to "Remove".
-  const removeName = removeLabel ?? (typeof children === "string" || typeof children === "number" ? t.removeItem(String(children)) : t.remove);
+  const removeName = badgeRemoveName(t, typeof children === "string" || typeof children === "number" ? String(children) : undefined, removeLabel);
   const removeTip = useIconTooltip(remove ? removeName : false);
-  return <span {...rest} ref={ref} className={["zen-badge", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-background={background}>
+  return <span {...rest} ref={ref} className={["zen-badge", className].filter(Boolean).join(" ")} data-size={badge.size} data-tone={theme} data-background={background}>
     {leadingContent ? <span className="zen-badge__leading">{nest("Leading", leadingContent)}</span> : null}
-    <span className={`zen-badge__text ${textStyle}`}>{nest.slot(children)}</span>
+    <span className={badge.textClass}>{nest.slot(children)}</span>
     {remove ? <button className="zen-badge__remove" type="button" aria-label={removeName} {...removeTip.bind({ onClick: onRemove })}><Icon name="icon-x-circle-solid" decorative />{removeTip.tooltip}</button> : null}
   </span>;
 }

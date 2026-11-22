@@ -1,0 +1,15 @@
+{
+  "$comment": "Written by tools/code-languages/vue-parity.mjs --write: the Vue components whose API and DOM match React (the Code view's status manifest reads it).",
+  "ready": [
+    "Badge",
+    "BadgeCounter",
+    "Button",
+    "Divider",
+    "Icon",
+    "IconButton",
+    "Link",
+    "VisuallyHidden",
+    "ZenPortalProvider"
+  ],
+  "markup": []
+}

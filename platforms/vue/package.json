@@ -1,0 +1,10 @@
+{
+  "name": "@zen-ds/vue",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Zen Design System for Vue 3: native components on the same markup and styles.css as @zen-ds/react (Code view P3, wave 1). Not published yet.",
+  "type": "module",
+  "sideEffects": ["**/*.css", "./src/_shared/core-icons.ts"],
+  "exports": { ".": "./src/index.ts" },
+  "peerDependencies": { "vue": "^3.5.0" }
+}
