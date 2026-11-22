@@ -44,8 +44,9 @@ const fixtureFiles = walk(path.join(VUE_DIR, "src")).filter((file) => file.endsW
 const vueEntry = path.join(VUE_DIR, "src/index.ts");
 const cacheDir = path.join(root, "node_modules/.cache/zen-vue-parity");
 fs.mkdirSync(cacheDir, { recursive: true });
-const entryFile = path.join(cacheDir, "entry.ts");
-const outFile = path.join(cacheDir, "bundle.mjs");
+// One pair of files per run: several runs (agents porting different components) may overlap.
+const entryFile = path.join(cacheDir, `entry-${process.pid}.ts`);
+const outFile = path.join(cacheDir, `bundle-${process.pid}.mjs`);
 const lit = (file) => JSON.stringify(file.split(path.sep).join("/"));
 fs.writeFileSync(entryFile, [
   `export * as zenReact from ${lit(path.join(root, "src/index.ts"))};`,
@@ -72,6 +73,8 @@ await esbuild.build({
   logLevel: "error",
 });
 const lib = await import(`${pathToFileURL(outFile).href}?t=${Date.now()}`);
+fs.rmSync(entryFile, { force: true });
+fs.rmSync(outFile, { force: true });
 const React = await import("react");
 const { renderToString: renderReact } = await import("react-dom/server");
 const Vue = await import("vue");
