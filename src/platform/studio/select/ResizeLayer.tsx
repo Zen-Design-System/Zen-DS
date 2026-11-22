@@ -12,10 +12,11 @@ import { ChromePortalContext } from "../shell/ChromeScope";
 import { canEdit, flushStudioStore, studioStore, useStudio } from "../store";
 import type { EditOp, SourceElement, StudioSelection } from "../types";
 import cloning from "../cloning.json";
-import { childHits, nameOf, onSourceUpdate, selectionInstances, type FiberHit } from "./picker";
+import { childHits, nameOf, onSourceUpdate, parentHit, selectionInstances, type FiberHit } from "./picker";
+import { looseFrameOf } from "../builder/looseLayer";
 import { liveSrc, expectRender, mapSrc, noteEditTarget, renderedNow, sameSelectedElement } from "./remap";
 import { breakpointOf, columnsSource, pxTrack, soleColumn, splitTracks, withTrackPx } from "./gridTracks";
-import { axisText, cloneReason, cloningParent, cloningProp, contentWidth, currentMode, layoutParent, lockBound, MIN_SIZE, noCross, pillReason, planFill, planHug, planHugAxis, planResize, reachesParent, refuseWrap, resizeTarget, snapSize, specimenOnly, stackAxes, stackFill, studioWrapper, withColumn, withoutAxes, withWrapper, wrappedChildLoc, wrapperCandidate, wrapRefusal, type AxisMode, type CloningList, type CrossFits, type ResizeAxis, type ResizePlan, type ResizeTarget, type WrapOp } from "./resize";
+import { axisText, cloneReason, cloningParent, cloningProp, contentWidth, currentMode, layoutParent, lockBound, MIN_SIZE, noCross, pillReason, planFill, planHug, planHugAxis, planResize, reachesParent, refuseWrap, resizeTarget, snapSize, specimenOnly, stackAxes, stackFill, studioWrapper, withColumn, withLayer, withoutAxes, withWrapper, wrappedChildLoc, wrapperCandidate, wrapRefusal, type AxisMode, type CloningList, type CrossFits, type ResizeAxis, type ResizePlan, type ResizeTarget, type WrapOp } from "./resize";
 import type { Box } from "./spacing";
 import { instanceSizing, type InstanceAxis, type InstanceSizingInput } from "./instanceSizing";
 import type { ParentLayout } from "../inspector/sizingModel";
@@ -92,6 +93,8 @@ type Drag = {
   zoom: number;
   w0: number;
   h0: number;
+  /** A component on the canvas that fills its <Layer>: the Layer's board X at the press (a left-edge drag moves it). */
+  layerX0: number | null;
   host: HTMLElement;
   hit: FiberHit;
   element: SourceElement;
@@ -770,6 +773,17 @@ function gridCell(host: HTMLElement, wrapperSrc: string | null, props: Record<st
   return { src, element: grid, index: sole.index };
 }
 
+/** The board X (board frame px) of the <Layer> a component on the canvas sits in, as the board draws it now. */
+function layerLeft(hit: FiberHit): number {
+  const frame = hit.hosts[0]?.closest<HTMLElement>("[data-studio-frame]");
+  return frame ? frame.offsetLeft : 0;
+}
+
+/** A component on the canvas widened from its left edge: its Layer's new X, by what it grew (its right edge stays). */
+function layerXOf(drag: Pick<Drag, "layerX0" | "handle" | "w0">, values: Values): number | undefined {
+  return drag.layerX0 !== null && drag.handle.sx < 0 && values.width !== undefined ? Math.round(drag.layerX0 - (values.width - drag.w0)) : undefined;
+}
+
 export function ResizeLayer({ box, hit, interactive, viewport, onPassContextMenu }: Props) {
   const role = useStudio((state) => state.role);
   const server = useStudioServer();
@@ -827,6 +841,12 @@ export function ResizeLayer({ box, hit, interactive, viewport, onPassContextMenu
       if (source && track && pxTrack(track)) target = withColumn(target, { src: gridCellNow.src, index: gridCellNow.index, source });
     }
   }
+  // A component on the canvas that fills its <Layer> (one with a width: a Top Navigation, a chart; loose layers PR5):
+  // its width is the Layer's, as Figma's instance width; one that hugs (a Button) resizes as anywhere else.
+  const looseFrame = target && target.kind === "component" && hit ? looseFrameOf(hit) : null;
+  const looseHost = looseFrame ? hit?.hosts[0]?.parentElement : null;
+  const layerHit = looseHost && !looseHost.hasAttribute("data-hug") && hit ? parentHit(hit, looseHost) ?? parentHit(hit) : null;
+  if (target && layerHit?.name === "Layer") target = withLayer(target, { src: layerHit.src });
   // The server cannot wrap it (a prop value, inside a paragraph…), or the component right above it in the React tree
   // clones it (cloning.json; also a helper's result, which the source cannot see): no wrap handles; own props, fullWidth
   // and its Stack stay.
@@ -1016,7 +1036,8 @@ export function ResizeLayer({ box, hit, interactive, viewport, onPassContextMenu
     const corner = drag.handle.sx !== 0 && drag.handle.sy !== 0;
     const fullWidth = !corner && drag.target.width?.kind === "fullWidth" && values.width !== undefined && reachesParent(values.width, drag.parentWidth);
     if (fullWidth && drag.parentWidth !== null) values.width = Math.round(drag.parentWidth);
-    const plan = planResize(drag.hit.name, drag.target, values, drag.parentWidth, { cross: drag.cross, count: drag.count, corner });
+    const layerX = layerXOf(drag, values);
+    const plan = planResize(drag.hit.name, drag.target, values, drag.parentWidth, { cross: drag.cross, count: drag.count, corner, layerX });
     drag.values = values;
     drag.stack = Boolean(plan && (plan.wrap || plan.wrapper));
     const column = plan?.grid && drag.target.column ? drag.target.column.index + 1 : null;
@@ -1035,10 +1056,10 @@ export function ResizeLayer({ box, hit, interactive, viewport, onPassContextMenu
    * `keep` (the Inspector's Size group) the element inside it; an unwrap selects the element where the Stack was.
    */
   const write = useCallback(async (drag: Pick<Drag, "hit" | "element" | "selection">, plan: ResizePlan, keep = false) => {
-    const parsed = parseSrc(plan.grid ?? plan.wrapper ?? plan.float ?? drag.hit.src);
+    const parsed = parseSrc(plan.grid ?? plan.wrapper ?? plan.float ?? plan.layer ?? drag.hit.src);
     if (!parsed) return false;
     const fresh = await studioApi.element(parsed.file, parsed.loc);
-    if (!fresh || fresh.name !== (plan.grid ? "Grid" : plan.wrapper ? "Stack" : plan.float ? "Box" : drag.element.name)) {
+    if (!fresh || fresh.name !== (plan.grid ? "Grid" : plan.wrapper ? "Stack" : plan.float ? "Box" : plan.layer ? "Layer" : drag.element.name)) {
       inspectorStatus.set("negative", `${drag.hit.name} moved before the change was saved; nothing was written`);
       return false;
     }
@@ -1063,8 +1084,8 @@ export function ResizeLayer({ box, hit, interactive, viewport, onPassContextMenu
       return true;
     }
     if (!plan.wrap) {
-      // Op many on a floating Box and its layer: the layer is the selection that stays.
-      const done = noteEditTarget(plan.float ? drag.hit.src : `${parsed.file}:${parsed.loc}`);
+      // Op many on a floating Box and its layer, or a <Layer>'s width: the layer is the selection that stays.
+      const done = noteEditTarget(plan.float || plan.layer ? drag.hit.src : `${parsed.file}:${parsed.loc}`);
       try {
         const response = await applyEdit(request, plan.label);
         if (response.ok && response.before !== response.after) announce(plan.announce);
@@ -1113,7 +1134,7 @@ export function ResizeLayer({ box, hit, interactive, viewport, onPassContextMenu
     });
     if (!insets.length && (["width", "height"] as const).every((axis) => drag.values[axis] === undefined || drag.values[axis] === start[axis])) { finish(false); return; }
     const corner = drag.handle.sx !== 0 && drag.handle.sy !== 0;
-    const sized = planResize(drag.hit.name, drag.target, drag.values, drag.parentWidth, { cross: drag.cross, count: drag.count, corner });
+    const sized = planResize(drag.hit.name, drag.target, drag.values, drag.parentWidth, { cross: drag.cross, count: drag.count, corner, layerX: layerXOf(drag, drag.values) });
     // A free frame's layer writes px offsets (Figma's X / Y); one in auto layout its token steps.
     const free = drag.float?.free ?? false;
     const insetOps: EditOp[] = insets.map((inset) => (free ? { op: "setProp", name: inset.prop, value: { kind: "number", value: inset.snap.px } }
@@ -1198,7 +1219,7 @@ export function ResizeLayer({ box, hit, interactive, viewport, onPassContextMenu
       : null;
     dragRef.current = {
       pointerId, captor, handle, start: { x: event.clientX, y: event.clientY }, last: { x: event.clientX, y: event.clientY, shift: event.shiftKey, alt: event.altKey, mod: event.metaKey || event.ctrlKey },
-      scale, zoom, w0, h0, host, hit, element, target: shown, selection, parentWidth: contentWidth(parent), mainAxis,
+      scale, zoom, w0, h0, layerX0: shown.layer ? layerLeft(hit) : null, host, hit, element, target: shown, selection, parentWidth: contentWidth(parent), mainAxis,
       values: {}, active: false, saved: new Map(), stack: false, min, cross, count, copies: count > 1 ? copiesOf(host) : [],
       float, insets: [], floatBox: float ? floatBox : null, snap: snapTo, guides: [], guidesShown: false,
       grid: shown.width?.kind === "column" && gridCellNow ? { element: gridCellNow.element, saved: new Map() } : null,

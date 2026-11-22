@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a component on the canvas that fills its layer (a Top Navigation, a chart) resizes as a Figma instance: its
+  side handles set its width (the left one moves it too, its right edge stays), the right panel shows its W, and a
+  double-click on a handle hugs it again. A component that hugs (a Button) resizes as before. A slot's "+" no longer
+  sits on a resize handle.
 - Zen Studio: the drawing tools work on the empty canvas, as in Figma: a Rectangle, Ellipse, Line, Arrow, Polygon, Star,
   text (T), Pen or Pencil path, or a picture dropped there lands as a layer on the canvas where it is drawn (its edges
   snap to the frames and layers beside it). "Draw inside a frame" no longer stops it. On a layer on the canvas that
