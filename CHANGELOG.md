@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio → Figma: layers on the canvas (outside any frame) now go to Figma too, as layers on the Figma page beside the
+  frame they sit by, where the board has them (a component that fills its layer keeps its width); importing again
+  replaces them. New frames land where the board has them, and a drawn frame keeps its drawn width (it was 1440).
+  Needs the Zen plugin's `studio-import` build (4a712ba).
 - Zen Studio: the drawing tools work on the empty canvas, as in Figma: a Rectangle, Ellipse, Line, Arrow, Polygon, Star,
   text (T), Pen or Pencil path, or a picture dropped there lands as a layer on the canvas where it is drawn (its edges
   snap to the frames and layers beside it). "Draw inside a frame" no longer stops it. On a layer on the canvas that
