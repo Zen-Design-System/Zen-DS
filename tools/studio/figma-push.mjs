@@ -236,7 +236,7 @@ const ITEM_ICON = { Segmented: "leading" };
 const TEXT_PROP = { InputConditionItem: "label" };
 /** Components whose `src` is a picture the plugin fills in (the instance's image layer). */
 const PICTURED = new Set(["Avatar", "Image", "Thumbnail", "AppShellAccount"]);
-/** Heading's text style when it sets none (src/components/Text/Text.tsx headingStyleByLevel). */
+/** Heading's text style when it sets none (src/components/Text/model.ts headingStyleByLevel). */
 export const HEADING_STYLE = { 1: "Heading/1", 2: "Heading/4", 3: "Heading/Subheading", 4: "Body/Extra/Bold", 5: "Body/Base/Bold", 6: "Body/Base/Bold" };
 /**
  * Code-only components (no Figma set) are drawn as a frame of their layers named by the component, in the layout their

@@ -8,7 +8,6 @@ import { Icon, type IconName } from "../Icon";
 import { ProgressBar } from "../Progress";
 import { Tooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
-import { scaleKey } from "../_shared/scale";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./metric-widget.css";
@@ -17,18 +16,10 @@ import { useNested, type NestedOverrides } from "../_shared/nested";
 import { formatOf, type ChartFormat } from "../Chart/chartCore";
 import { CategoryBar, SparkBars, Sparkline, useSeriesName, type MetricCategory } from "./MetricMarks";
 import { dataAttributes } from "../_shared/data-attributes";
-import { trendParts } from "./trend";
+import { metricCaptionLabelClass, metricDockSize, metricModel, metricTitleClass, metricTrendModel, metricTrendSubLabelClass, metricTrendText, type MetricSize, type MetricTrendContent, type MetricTrendDirection } from "./model";
 
 export type { MetricCategory } from "./MetricMarks";
-
-export const metricSizes = ["xsmall", "small", "medium", "large", "xlarge"] as const;
-/** CSS / Figma key (the `data-size` value). */
-type MetricSizeKey = (typeof metricSizes)[number];
-/** Short (canonical) or long Figma spelling — both render the same. */
-export type MetricSize = "xs" | "sm" | "md" | "lg" | "xl" | "xsmall" | "small" | "medium" | "large" | "xlarge";
-export type MetricTrendDirection = "positive" | "negative" | "normal";
-/** Figma Metric-Trend Content: the badge's family on the fill under it. */
-export type MetricTrendContent = "default" | "inverse" | "on-color";
+export { metricSizes, type MetricSize, type MetricTrendContent, type MetricTrendDirection } from "./model";
 
 /** A Metric's trend (Figma Trend → .Primitives/Metrics/Metric-Trend, 595:55134): the change, then what it is measured
  *  against. */
@@ -76,34 +67,24 @@ export function MetricTrend({ trend = "normal", content: contentProp, subLabel, 
   const nest = useNested();
   const on = useCardContent();
   const t = useZenLabels();
-  const content = contentProp ?? (on === "inverse" ? "inverse" : on ? "on-color" : "default");
-  const theme = content !== "default" ? content : trend === "positive" ? "green" : trend === "negative" ? "red" : "neutral";
-  const icon: IconName | null = trend === "positive" ? "icon-arrow-circle-up-solid" : trend === "negative" ? "icon-arrow-circle-down-solid" : null;
-  const given = subLabel !== undefined && subLabel !== null && subLabel !== false && subLabel !== "";
+  const look = metricTrendModel(trend, contentProp, on);
   // A one-string label from before the split: its leading figure in the badge, the words after it the Sub-Label.
-  const parts = !given && typeof children === "string" ? trendParts(trend, children) : null;
-  const figure = parts ? parts.label : children;
-  const words = given ? subLabel : parts?.subLabel || null;
+  const { figure, words, signed } = metricTrendText(trend, children, subLabel, typeof children === "string" ? children : undefined);
   // The arrow carries the sign the badge leaves out, so it is named then; a signed figure says it in its text.
-  const signed = typeof figure === "string" && /^[+\-−]/.test(figure.trim());
   // aria-label, not a <title>: the badge's text stays the figure alone.
-  const arrow = icon ? <Icon name={icon} {...(signed ? { decorative: true } : { decorative: false, "aria-label": trend === "positive" ? t.increase : t.decrease })} /> : undefined;
+  const arrow = look.icon ? <Icon name={look.icon} {...(signed ? { decorative: true } : { decorative: false, "aria-label": trend === "positive" ? t.increase : t.decrease })} /> : undefined;
   // `data-*` go on the root: the Badge alone, or the row holding it and the Sub-Label.
   const data = dataAttributes(rest);
-  const badge = nest("Badge", <Badge {...(words ? {} : data)} ref={words ? undefined : ref} size="small" theme={theme} background={content === "default" && trend === "normal" ? "subtle" : "solid"} leading={arrow} leadingIcon={Boolean(icon)}>{figure}</Badge>);
+  const badge = nest("Badge", <Badge {...(words ? {} : data)} ref={words ? undefined : ref} size="small" theme={look.theme} background={look.background} leading={arrow} leadingIcon={Boolean(look.icon)}>{figure}</Badge>);
   if (!words) return badge;
   // The Sub-Label's ink: inside a Solid card the card's re-pointed Neutral/Light (card.css), else the Content asked for.
   return (
-    <span {...data} ref={ref} className="zen-metric-trend" data-content={!on && content !== "default" ? content : undefined}>
+    <span {...data} ref={ref} className="zen-metric-trend" data-content={look.dataContent}>
       {badge}
-      <span className={`zen-metric-trend__sub-label ${typographyStyles["Body/Small/Regular"]}`}>{words}</span>
+      <span className={metricTrendSubLabelClass}>{words}</span>
     </span>
   );
 }
-
-/** Figma Metric-Inline label and number text styles per Size. */
-const labelStyle: Record<MetricSizeKey, keyof typeof typographyStyles> = { xlarge: "Body/Base/Regular", large: "Body/Base/Regular", medium: "Body/Small/Regular", small: "Body/Small/Regular", xsmall: "Caption/Regular" };
-const valueStyle: Record<MetricSizeKey, keyof typeof typographyStyles> = { xlarge: "Display/4", large: "Heading/1", medium: "Heading/3", small: "Heading/4", xsmall: "Heading/Subheading" };
 
 export interface MetricProps {
   /** Figma Metric-Title. */
@@ -176,13 +157,11 @@ function MetricColorDot({ color }: { color: boolean | string }) {
 export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconTheme = "neutral", iconBackground = "subtle", iconEmoji, size: sizeProp = "xl", variant = "icon-highlight", action, iconSize, custom, metricColor = false, counter, labelIcon, hint, className, overrides, ref, ...rest }: MetricProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
-  const size = scaleKey(sizeProp, metricSizes);
+  const { size, stacked, titled, labelClass, valueClass } = metricModel(sizeProp);
   const dot = metricColor ? <MetricColorDot color={metricColor} /> : null;
-  const stacked = size === "xlarge" || size === "large";
   if (variant === "title-highlight") {
     // Figma Title-Highlight: a title row at XLarge–Medium, the Caption label inside the content at Small/XSmall.
-    const titled = size === "xlarge" || size === "large" || size === "medium";
-    const dock = iconSize ? (iconSize === "lg" || iconSize === "large" ? "large" : "medium") : stacked ? "large" : "medium";
+    const dock = metricDockSize(iconSize, stacked);
     const mark = nest("Icon", iconEmoji ? <DockIcon className="zen-metric__icon" theme="emoji" emoji={iconEmoji} background={iconBackground} size={dock} />
       : icon ? <DockIcon className="zen-metric__icon" icon={icon} theme={iconTheme} background={iconBackground} size={dock} /> : null);
     // Figma Hint: 20px (Element-Size/Popular/Base) after the title at XLarge–Medium, 12px (…/XSmall) after the Caption label below.
@@ -202,7 +181,7 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
               <span className="zen-metric__title-row">
                 <span className="zen-metric__title-label">
                   {labelIcon ? <span className="zen-metric__label-icon">{nest("Label-Icon", renderIcon(labelIcon, { size: "md" }))}</span> : null}
-                  <span className={`zen-metric__title ${typographyStyles["Body/Extra/Medium"]}`}>{label}</span>
+                  <span className={metricTitleClass}>{label}</span>
                 </span>
                 {hintMark}
               </span>
@@ -211,8 +190,8 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
           ) : null}
           <div className="zen-metric__content">
             {/* Figma Metric-Title: [Color] Label [Hint], Spacing/Gap/2XSmall apart. */}
-            {titled ? null : <span className="zen-metric__label-row">{dot}<span className={`zen-metric__label ${typographyStyles["Caption/Regular"]}`}>{label}</span>{hintMark}</span>}
-            <span className={`zen-metric__value ${typographyStyles[valueStyle[size]]}`}>{value}</span>
+            {titled ? null : <span className="zen-metric__label-row">{dot}<span className={metricCaptionLabelClass}>{label}</span>{hintMark}</span>}
+            <span className={valueClass}>{value}</span>
             {trend ? nest("Trend", <MetricTrend trend={trend.direction} subLabel={trend.subLabel}>{trend.label}</MetricTrend>) : null}
           </div>
         </div>
@@ -235,10 +214,10 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
           {/* Figma Metric-Title: [Color] Label [Counter], Spacing/Gap/2XSmall apart. */}
           <span className="zen-metric__label-row">
             {dot}
-            <span className={`zen-metric__label ${typographyStyles[labelStyle[size]]}`}>{label}</span>
+            <span className={labelClass}>{label}</span>
             {counter !== undefined && counter !== null && counter !== false ? nest("Counter", <Badge className="zen-metric__counter" size="small" theme="neutral" background="subtle">{counter}</Badge>) : null}
           </span>
-          <span className={`zen-metric__value ${typographyStyles[valueStyle[size]]}`}>{value}</span>
+          <span className={valueClass}>{value}</span>
         </div>
         {trend ? nest("Trend", <MetricTrend trend={trend.direction} subLabel={trend.subLabel}>{trend.label}</MetricTrend>) : null}
       </div>

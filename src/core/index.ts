@@ -18,6 +18,10 @@ export { isPerBreakpoint, resolveAt, type Responsive, type ResponsiveBreakpoint 
 export { fixedLayerSpace, visibleBounds, type LayerSpace } from "../components/_shared/layer-space";
 export { resolveZenLabels, zenLabels, type ZenLabelOverrides, type ZenLabels } from "../components/_shared/labels";
 export { typographyStyles, type TypographyStyleName } from "../tokens/typography.generated";
+export { cornerRadiusValue, cornerSmoothingStyle, type CornerRadiusProps, type CornerSmoothingProps } from "../components/_shared/corners";
+export { gradientStyle, type ZenGradient } from "../components/_shared/gradient";
+export { imageFillMode, imageFillModes, imageFillStyle, knownPictureSize, pictureSizeProbe, shownPicture, type ImageCrop, type ImageFillMode, type ImageFillProps, type PictureSize } from "../components/_shared/image-fill";
+export { frameModeScope, zenModeAttributes, type ZenModeAxis } from "../components/_shared/modes";
 
 // Icons: the registry, the core set components draw, the names
 export { getRegisteredIcon, loadIconBucket, preloadIcons, registerIcons, resolveIconName, warnUnknownIcon } from "../components/Icon/registry";
@@ -32,3 +36,25 @@ export * from "../components/Icon/model";
 export * from "../components/Link/model";
 export * from "../components/Tooltip/model";
 export * from "../components/VisuallyHidden/model";
+export * from "../components/Stepper/model";
+export * from "../components/AlertBanner/model";
+export * from "../components/InlineMessage/model";
+export * from "../components/EmptyState/model";
+export * from "../components/DockIcon/model";
+export * from "../components/FileIcon/model";
+export * from "../components/FileIcon/fileIconData";
+export * from "../components/ColorSelector/model";
+export * from "../components/Avatar/model";
+export * from "../components/Progress/model";
+export * from "../components/Skeleton/model";
+export * from "../components/Layout/model";
+export * from "../components/Layout/sizing";
+export * from "../components/Layout/position";
+export * from "../components/Layout/effects";
+export * from "../components/Layout/appearance";
+export * from "../components/Layout/cell";
+export * from "../components/Layout/mask-outline";
+export * from "../components/Text/model";
+export * from "../components/MetricWidget/model";
+export * from "../components/ListItem/model";
+export * from "../components/PageHeader/model";

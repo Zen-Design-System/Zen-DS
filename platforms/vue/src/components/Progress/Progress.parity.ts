@@ -1,0 +1,57 @@
+import type { ParitySpec } from "../../../parity";
+
+const strong = (text: string) => ({ $: "strong", children: text });
+
+export default {
+  ProgressBar: {
+    base: { value: 40, theme: "accent", label: true, "aria-label": "Upload progress" },
+    cases: [
+      { value: 0 },
+      { value: 50 },
+      { value: 100 },
+      { value: 150 },
+      { value: -5 },
+      { value: 33.3 },
+      { value: Number.NaN },
+      { theme: "status", value: 20 },
+      { theme: "status", value: 50 },
+      { theme: "status", value: 80 },
+      { theme: "status", scale: "quota", value: 80 },
+      { theme: "status", scale: "quota", value: 95 },
+      { "aria-label": undefined },
+      { "aria-label": undefined, label: undefined },
+      { "aria-label": undefined, label: false },
+      { "aria-label": undefined, label: "Uploading files" },
+      { "aria-label": undefined, label: strong("Uploading") },
+      { label: "Uploading files" },
+      { layout: "stacked", label: "Uploading files", "aria-label": undefined },
+      { layout: "stacked", label: "Uploading files" },
+      { layout: "stacked", label: "Uploading files", valueLabel: "3 of 5 files", "aria-label": undefined },
+      { layout: "stacked", label: strong("Uploading"), valueLabel: strong("3 of 5"), "aria-label": undefined },
+      { layout: "stacked", "aria-label": undefined },
+      { layout: "stacked", label: undefined, "aria-label": undefined, value: 0 },
+      { layout: "stacked", label: "Storage", theme: "status", scale: "quota", value: 91, valueLabel: "91 of 100 GB" },
+      { class: "upload", id: "upload", style: { width: "200px" }, "data-testid": "upload", "data-tone": "ignored", "data-layout": "ignored" },
+    ],
+  },
+  ProgressCircle: {
+    base: { value: 40, theme: "accent", label: true, "aria-label": "Task progress" },
+    cases: [
+      { value: 0 },
+      { value: 50 },
+      { value: 100 },
+      { value: 150 },
+      { value: 99.6 },
+      { value: -1 },
+      { "aria-label": undefined },
+      { "aria-label": undefined, label: undefined },
+      { "aria-label": undefined, label: false },
+      { "aria-label": undefined, label: "2 of 5" },
+      { "aria-label": undefined, label: strong("2 of 5") },
+      { decorative: true, label: "2 of 5" },
+      { decorative: true, value: 100, label: undefined },
+      { theme: "green", value: 100 },
+      { class: "task", id: "task", "data-testid": "task", "data-tone": "ignored" },
+    ],
+  },
+} satisfies ParitySpec;

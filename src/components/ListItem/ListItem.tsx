@@ -1,14 +1,16 @@
 import type { CSSProperties, HTMLAttributes, MouseEvent, ReactNode, Ref } from "react";
 import type { IconName } from "../Icon";
-import { contentToneVar, type ContentTone } from "../_shared/contentTone";
+import type { ContentTone } from "../_shared/contentTone";
 import { renderIcon } from "../_shared/icon";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { layoutSizing, withSizingVars, type LayoutWidthProps } from "../Layout/sizing";
-import { useGridCell, type LayoutCellProps } from "../Layout/cell";
-import { typographyStyles } from "../../tokens/typography.generated";
+import "../Layout/layout.css";
+import type { LayoutCellProps } from "../Layout/cell";
+import { useGridCell } from "../Layout/cell-context";
+import { listBoxModel, listInset, listItemCaptionClass, listItemTitleClass, listItemValueCaptionClass, listItemValueClass, listItemValueStyle, type ListBoxColor, type ListBoxSurface, type ListBoxTheme, type ListInset } from "./model";
 import "./list-item.css";
 
-export type ListInset = "auto" | "comfortable" | "compact" | "none";
+export { listBoxColors, listBoxSurfaces, listBoxThemes, type ListBoxColor, type ListBoxSurface, type ListBoxTheme, type ListInset } from "./model";
 
 /** Standard HTML attributes (`id`, `data-*`, `aria-*`, `style`…) go to the root `<ul>`. */
 export interface ListProps extends HTMLAttributes<HTMLUListElement> {
@@ -27,7 +29,7 @@ export interface ListProps extends HTMLAttributes<HTMLUListElement> {
  *  (Figma List-Box Body-Slot); each row pads itself 12px above and below. The container insets the list sideways
  *  (ListBox does): leave at least Padding/Small (12px) at the sides of clickable rows for the fill. */
 export function List({ ref, children, "aria-label": ariaLabel, className, inset = "auto", ...rest }: ListProps) {
-  return <ul {...rest} ref={ref} className={["zen-list", className].filter(Boolean).join(" ")} aria-label={ariaLabel} data-inset={inset === "auto" ? undefined : inset}>{children}</ul>;
+  return <ul {...rest} ref={ref} className={["zen-list", className].filter(Boolean).join(" ")} aria-label={ariaLabel} data-inset={listInset(inset)}>{children}</ul>;
 }
 
 /** Standard HTML attributes (`id`, `data-*`, `aria-*`, `style`…) go to the root row element (`as`). */
@@ -96,24 +98,22 @@ export interface ListItemProps extends Omit<HTMLAttributes<HTMLElement>, "title"
  */
 export function ListItem({ ref, title, titleLines = 1, caption, leading, value, valueCaption, valueTone = "strongest", trailing, children, selected = false, onClick, href, as: Tag = "li", className, overrides, ...rest }: ListItemProps) {
   const nest = useNested(overrides);
-  // The default tone (strongest) is the CSS default; another tone sets the value's colour variable, inherit the parent's.
-  const valueColor = valueTone === "strongest" ? undefined : contentToneVar(valueTone);
-  const valueStyle = valueTone === "strongest" ? undefined : valueColor ? { "--zen-list-item-value-color": `var(${valueColor})` } as CSSProperties : { color: "inherit" };
+  const valueStyle = listItemValueStyle(valueTone) as CSSProperties | undefined;
   const body = (
     <>
       {leading ? <span className="zen-list-item__leading">{typeof leading === "string" ? nest("Leading", renderIcon(leading)) : nest.slot(leading)}</span> : null}
       <span className="zen-list-item__contents">
         {nest.slot(children ?? (
           <>
-            <span className={`zen-list-item__title ${typographyStyles["Body/Base/Bold"]}`}>{title}</span>
-            {caption ? <span className={`zen-list-item__caption ${typographyStyles["Body/Small/Regular"]}`}>{caption}</span> : null}
+            <span className={listItemTitleClass}>{title}</span>
+            {caption ? <span className={listItemCaptionClass}>{caption}</span> : null}
           </>
         ))}
       </span>
       {value != null || valueCaption != null ? (
         <span className="zen-list-item__value">
-          {value != null ? <span className={`zen-list-item__value-text ${typographyStyles["Body/Base/Bold"]}`} style={valueStyle}>{value}</span> : null}
-          {valueCaption != null ? <span className={`zen-list-item__value-caption ${typographyStyles["Body/Small/Regular"]}`}>{valueCaption}</span> : null}
+          {value != null ? <span className={listItemValueClass} style={valueStyle}>{value}</span> : null}
+          {valueCaption != null ? <span className={listItemValueCaptionClass}>{valueCaption}</span> : null}
         </span>
       ) : null}
     </>
@@ -133,20 +133,6 @@ export function ListItem({ ref, title, titleLines = 1, caption, leading, value, 
     </Tag>
   );
 }
-
-/** ListBox elevation: Figma List-Box Theme (Default · Shadow · Pale · Border · Flat-Border · On-Container, the tokens of
- *  Card's Theme; renamed with Card 2026-10-21: Flat → Default, Border × Surface=Flat → Flat-Border). */
-export const listBoxThemes = ["default", "shadow", "pale", "border", "flat-border", "on-container"] as const;
-export type ListBoxTheme = (typeof listBoxThemes)[number];
-/** Figma List-Box Color (14922:75297): the Pale theme's hue, Support/<Hue>/Pale; the other themes are Neutral only. */
-export const listBoxColors = ["neutral", "brand", "cyan", "violet", "green", "yellow", "orange", "blue", "purple"] as const;
-export type ListBoxColor = (typeof listBoxColors)[number];
-/** Figma List-Box Surface: Surface/Default or Surface/Alt. */
-export type ListBoxSurface = "default" | "alt";
-/** The Surfaces each Theme has in Figma (Alt on Default and Border); the others keep their own fill. */
-export const listBoxSurfaces: Readonly<Record<ListBoxTheme, readonly ListBoxSurface[]>> = {
-  default: ["default", "alt"], shadow: ["default"], pale: ["default"], border: ["default", "alt"], "flat-border": ["default"], "on-container": ["default"],
-};
 
 /**
  * Standard HTML attributes (`id`, `data-*`, `aria-*`, `style`…) go to the root element (`as`). `width`, `minWidth`,
@@ -194,12 +180,9 @@ export interface ListBoxProps extends Omit<HTMLAttributes<HTMLElement>, "title">
 export function ListBox({ ref, header, footer, children, theme = "default", color = "neutral", surface = "default", as: Tag = "div", className, width, minWidth, maxWidth, alignSelf, span, rowSpan, style, ...rest }: ListBoxProps) {
   const sizing = layoutSizing({ width, minWidth, maxWidth, alignSelf });
   const cell = useGridCell({ span, rowSpan });
-  // Only Figma's variants: a hue on Pale, Surface/Alt on Default and Border.
-  const hue = theme === "pale" && color !== "neutral" ? color : undefined;
-  const alt = surface === "alt" && listBoxSurfaces[theme]?.includes("alt");
   return (
     // One ref type for both `as` tags (div, section).
-    <Tag {...rest} ref={ref as Ref<HTMLDivElement>} {...sizing.attributes} {...cell.attributes} style={withSizingVars(style, { ...sizing.vars, ...cell.vars })} data-tone={theme} data-color={hue} data-surface={alt ? "alt" : undefined} className={["zen-list-box", className].filter(Boolean).join(" ")}>
+    <Tag {...rest} ref={ref as Ref<HTMLDivElement>} {...sizing.attributes} {...cell.attributes} style={withSizingVars(style, { ...sizing.vars, ...cell.vars })} {...listBoxModel(theme, color, surface)} className={["zen-list-box", className].filter(Boolean).join(" ")}>
       {header ? <div className="zen-list-box__header">{header}</div> : null}
       <div className="zen-list-box__body">{children}</div>
       {footer ? <div className="zen-list-box__footer">{footer}</div> : null}

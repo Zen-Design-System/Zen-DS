@@ -1,5 +1,5 @@
 {
-  "$comment": "The Vue port's waves (plan docs/research/code-languages-plan-2026-10-03.md §1 and §3.C): per wave, each React component folder and the public components it exports. W1 is the 23 stateless folders. tools/code-languages/vue-parity.mjs reports each wave's progress; a component in a folder that renders a later wave's component waits for it (listed under `waits`).",
+  "$comment": "The Vue port's waves (plan docs/research/code-languages-plan-2026-10-03.md §1 and §3.C): per wave, each React component folder and the public components it exports. W1 is the 23 stateless folders. tools/code-languages/vue-parity.mjs reports each wave's progress. A component that renders a later wave's component waits for it (`waits`: the component and what it waits for); it is not counted in its wave until then.",
   "W1": {
     "AlertBanner": ["AlertBanner"],
     "Avatar": ["Avatar", "AvatarStack", "AvatarStatus"],
@@ -24,5 +24,9 @@
     "Stepper": ["Stepper", "StepperItem"],
     "Text": ["Heading", "Text", "TextRun"],
     "VisuallyHidden": ["VisuallyHidden"]
+  },
+  "waits": {
+    "MetricCard": "Card (wave 2): a MetricCard is a Card around a Metric",
+    "ToggleListItem": "Toggle (wave 2): its control is a ToggleButton"
   }
 }
