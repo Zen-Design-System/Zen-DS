@@ -75,7 +75,7 @@ console.log(`Vue examples: ${shown}/${ready} examples whose components are all i
 for (const line of untranslated) console.log(`  ✗ not translatable — ${line}`);
 const demo = vueDemoOf(demoFileOf(fs.readFileSync(path.join(root, "src/platform/examples/data.ts"), "utf8")), status.types ?? []);
 const types = typeCheckVue(emitted, { demo, keep: KEEP });
-if (types.ok) console.log(`✓ vue-tsc: ${Object.keys(emitted).length} emitted example SFCs and demo.ts for Vue type-check`);
-else console.log(`✗ vue-tsc on the emitted examples:\n${types.output.split("\n").map((line) => `  ${line.replace(/snippets\/(\w+\.vue)/, (match, name) => (ids[name] ? `${ids[name]} (${name})` : match))}`).join("\n")}`);
+if (types.ok) console.log(`✓ Vue's compiler and vue-tsc: ${Object.keys(emitted).length} emitted example SFCs (and demo.ts for Vue) compile and type-check`);
+else console.log(`✗ Vue's compiler or vue-tsc on the emitted examples:\n${types.output.split("\n").map((line) => `  ${line.replace(/snippets\/(\w+\.vue)/, (match, name) => (ids[name] ? `${ids[name]} (${name})` : match))}`).join("\n")}`);
 if (KEEP) console.log(`Project kept at ${types.project}`);
 process.exit(untranslated.length || !types.ok ? 1 : 0);

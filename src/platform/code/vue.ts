@@ -251,6 +251,8 @@ class Emitter {
   constructor(private readonly parse: Parse, private readonly code: string, private readonly api: VueApi) {}
 
   private program: AnyNode | null = null;
+  /** Every comment in the snippet (Babel's list), so template expressions can leave them out. */
+  private allComments: AnyNode[] = [];
 
   /** Names read somewhere in the snippet and declared nowhere in it (nor JavaScript's or the browser's own). */
   freeNames(): string[] {
@@ -283,6 +285,7 @@ class Emitter {
     }
     this.source = parsed.source;
     this.program = parsed.ast.program as unknown as AnyNode;
+    this.allComments = ((parsed.ast as unknown as { comments?: AnyNode[] }).comments ?? []);
     const imports: string[] = [];
     const moduleCode: string[] = [];
     const loose: AnyNode[] = [];
@@ -551,6 +554,15 @@ class Emitter {
   private rewrite(node: AnyNode, mode: Mode, context: Context, quote = false): string {
     const edits: Edit[] = [];
     this.collect(node, null, "", mode, context, new Set(), edits, quote);
+    // The template writes an expression on one line: a comment inside it would hide the code after it. (A comment inside
+    // a span already rewritten went with it.)
+    if (mode === "template") {
+      const inside = (start: number, end: number) => edits.some((edit) => start >= edit.start && end <= edit.end);
+      for (const comment of this.allComments) {
+        const [start, end] = [comment.start as number, comment.end as number];
+        if (start >= (node.start as number) && end <= (node.end as number) && !inside(start, end)) edits.push({ start, end, text: "" });
+      }
+    }
     const start = node.start as number;
     let text = this.text(node);
     for (const edit of edits.sort((a, b) => b.start - a.start)) text = text.slice(0, edit.start - start) + edit.text + text.slice(edit.end - start);

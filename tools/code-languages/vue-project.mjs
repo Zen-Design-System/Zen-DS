@@ -3,10 +3,25 @@
 // examples) and by the browser test's `vueTypeCheck` command (the playgrounds, vitest.config.ts).
 import fs from "node:fs";
 import path from "node:path";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { vueTsc } from "./vue-tsc.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const { compileScript, parse } = createRequire(path.join(root, "package.json"))("vue/compiler-sfc");
+
+/** What Vue's SFC compiler says about one file, as a bundler would compile it (empty: it compiles). */
+function compileErrors(code, name) {
+  const { descriptor, errors } = parse(code, { filename: name });
+  if (errors.length) return errors.map((error) => String(error.message ?? error));
+  const found = [];
+  try {
+    compileScript(descriptor, { id: name, inlineTemplate: true, templateOptions: { compilerOptions: { onError: (error) => found.push(error.message) } } });
+  } catch (error) {
+    found.push(error instanceof Error ? error.message.split("\n")[0] : String(error));
+  }
+  return found;
+}
 
 /**
  * Type-checks `files` (`{ "name.vue": code }`) with `demo` as snippets/demo.ts: `{ ok, output, project }`, the output's
@@ -32,7 +47,10 @@ export function typeCheckVue(files, { demo = "", keep = false, excerpts = false 
     include: ["env.d.ts", "snippets/**/*.ts", "snippets/**/*.vue"],
   }, null, 2));
   for (const [name, code] of Object.entries(files)) fs.writeFileSync(path.join(project, "snippets", name), code);
-  const result = Object.keys(files).length ? vueTsc(path.join(project, "tsconfig.json")) : { ok: true, output: "" };
+  // Vue's own compiler first: it rejects template syntax vue-tsc can read past (an expression cut by a comment).
+  const compiled = Object.entries(files).flatMap(([name, code]) => compileErrors(code, name).map((error) => `snippets/${name}: ${error}`));
+  const types = Object.keys(files).length ? vueTsc(path.join(project, "tsconfig.json")) : { ok: true, output: "" };
+  const result = { ok: !compiled.length && types.ok, output: [...compiled, types.output].filter(Boolean).join("\n") };
   if (!keep) fs.rmSync(project, { recursive: true, force: true });
   return { ...result, project };
 }
