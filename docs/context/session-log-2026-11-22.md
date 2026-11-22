@@ -29,4 +29,5 @@ page-level layer; tested with the plugin's real importer in Figma. Branch `zen/f
 - BP-13 times out at 45 s here, and also on main f81c4ff0 (a clean worktree, since removed) under the same load. The
   main run did BP-13…17: 14…17 work there.
 - BP-14…17 broke here only after BP-13's timeout closed the browser; run without BP-13, they work.
+- Earlier gates today (#419, Code view P3, #423) passed all 462 rows, the BP rows too: this run's BP failures come from the machine's load.
 - HO-09/16/11/13 (Export › Figma) work. `npm run build` ✓.
