@@ -146,7 +146,30 @@ function createFilter(id: string, params: GlassParams) {
   return { filter, image, channels };
 }
 
-/** Puts the glass on `element` and keeps its maps in step with its size; returns the cleanup. */
+/**
+ * Each attached glass's redraw. A `data-theme` set on an element around it re-reads its light under the new mode: a
+ * nested ZenProvider re-attaches through useZen, but a mode set on a plain element does not (a Zen Studio frame's own
+ * theme, an app's root), and the glass kept the light mode's white rim there (user 2026-11-23: "Darkmode glass vẫn còn
+ * bị trắng").
+ */
+const redraws = new Map<HTMLElement, () => void>();
+let themeWatch: MutationObserver | null = null;
+
+function watchTheme(element: HTMLElement, redraw: () => void): () => void {
+  redraws.set(element, redraw);
+  if (!themeWatch && typeof MutationObserver !== "undefined" && typeof document !== "undefined") {
+    themeWatch = new MutationObserver((records) => {
+      for (const [node, again] of redraws) if (records.some((record) => record.target.contains(node))) again();
+    });
+    themeWatch.observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ["data-theme"] });
+  }
+  return () => {
+    redraws.delete(element);
+    if (!redraws.size) { themeWatch?.disconnect(); themeWatch = null; }
+  };
+}
+
+/** Puts the glass on `element` and keeps its maps in step with its size and mode; returns the cleanup. */
 function attachGlass(element: HTMLElement, params: GlassParams): () => void {
   serial += 1;
   const id = `zen-liquid-glass-${serial}`;
@@ -174,12 +197,15 @@ function attachGlass(element: HTMLElement, params: GlassParams): () => void {
     element.style.setProperty("background-size", "100% 100%");
     element.style.setProperty("background-repeat", "no-repeat");
   };
-  const observer = new ResizeObserver(() => { if (!frame) frame = requestAnimationFrame(draw); });
+  const schedule = () => { if (!frame) frame = requestAnimationFrame(draw); };
+  const observer = new ResizeObserver(schedule);
   observer.observe(element);
+  const unwatch = watchTheme(element, schedule);
   draw();
   return () => {
     cancelAnimationFrame(frame);
     observer.disconnect();
+    unwatch();
     parts.filter.remove();
     for (const property of ["backdrop-filter", "-webkit-backdrop-filter", "background-image", "background-size", "background-repeat"]) element.style.removeProperty(property);
   };
