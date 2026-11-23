@@ -161,11 +161,17 @@ const sameBinding = (a, b) => {
  * expandSelfClosing, slotEntries, holderOf, guard, bindingOf, detachMarker, patternNames, TS_WRAPPERS, FUNCTION_TYPES,
  * WHERE, isMapCall }.
  */
-export function moveToPlan(ctx, nodePath, op, h) {
+export function moveToPlan(ctx, nodePath, op, h, focusOn = null) {
   const { text, ast, element } = ctx;
   const name = jsxName(element.openingElement.name);
   const what = `<${name}>`;
   const copy = op.copy === true;
+  // A main component's root moves with its <Component>, as Figma moves the main component: moved out alone it would
+  // leave the <Component> empty, which the page refuses (user 2026-11-23: "vẫn chưa kéo component gốc ra khỏi frame
+  // được"). A variant stays in its set; a copy stays a copy of the layer.
+  const main = copy ? null : mainOfRoot(nodePath, element);
+  // The selection stays on the root: the canvas draws the <Component> as it (renderPage), with no element of its own.
+  if (main) return moveToPlan({ ...ctx, element: main.element }, nodePath.slice(0, main.at + 1), op, h, name);
   if (op.copy !== undefined && typeof op.copy !== "boolean") h.refuse("`copy` must be true or false");
   if (typeof op.parent !== "string" || !parseLoc(op.parent)) h.refuse('moveTo needs `parent`: the "<line>:<column>" of the element it goes into');
 
@@ -233,7 +239,7 @@ export function moveToPlan(ctx, nodePath, op, h) {
   const start = marker && /^\s*$/.test(text.slice(marker.end, unit.start)) ? marker.start : moving.start;
   const part = op.at !== undefined || op.loose !== undefined ? reshaped(text, moving, op, parentName, block, h) : piece(text, moving, start, moving.end);
   // A Box that only placed its layer gives it up on the canvas: the new place is that layer's.
-  const landed = op.loose !== undefined ? /<Layer\b[^>]*>\s*<([\w.]+)/.exec(part.src)?.[1] ?? name : name;
+  const landed = focusOn ?? (op.loose !== undefined ? /<Layer\b[^>]*>\s*<([\w.]+)/.exec(part.src)?.[1] ?? name : name);
   const { edit, placed, within } = place(ctx, h, parent, entries, at, { part, name: landed }, landed);
   if (op.loose !== undefined) placed.edits.push(...h.builderImportEdits(ctx.ast, ctx.text, ctx.eol, ["Layer"]));
   const removed = copy ? [] : leaving(ctx, h, { inSlot, path, at: block ? unitAt : nodePath.length - 1, what });
@@ -437,6 +443,25 @@ function tidyImports(ctx, h, edits, needed) {
 
 /** The props that place a floating layer: a paste at a point writes its own. */
 const POSITION_PROPS = new Set(["position", "constraintX", "constraintY", "insetTop", "insetRight", "insetBottom", "insetLeft"]);
+
+/** The <Component> whose one layer `element` is (outside a <ComponentSet>), with its place in `nodePath`; else null. */
+function mainOfRoot(nodePath, element) {
+  const at = nodePath.length - 2;
+  const parent = nodePath[at];
+  if (parent?.type !== "JSXElement" || jsxName(parent.openingElement.name) !== "Component") return null;
+  const layers = parent.children.filter((child) => child.type === "JSXElement" || (child.type === "JSXText" ? child.value.trim() : child.type === "JSXExpressionContainer" && child.expression.type !== "JSXEmptyExpression"));
+  if (layers.length !== 1 || layers[0] !== element) return null;
+  const set = nodePath[at - 1];
+  if (set?.type === "JSXElement" && jsxName(set.openingElement.name) === "ComponentSet") return null;
+  return { element: parent, at };
+}
+
+/** Where an element's place in its frame is written: a <Component>'s on its one layer (the main's root), else its own. */
+function placedOf(element) {
+  if (jsxName(element.openingElement.name) !== "Component") return element;
+  const layers = element.children.filter((child) => child.type === "JSXElement");
+  return layers.length === 1 ? layers[0] : element;
+}
 /** Layers that float themselves; any other floats in a Box of its own (edit/autoLayoutPlan.ts floatingCode). */
 const FLOATS = new Set(["Stack", "Grid", "Box", "Shape"]);
 
@@ -460,17 +485,19 @@ export function floatAt(raw, at) {
   const wrapped = `<>\n${raw}\n</>`;
   const fragment = parseExpression(wrapped, { plugins: ["jsx", "typescript"], sourceType: "module" });
   const elements = fragment.children.filter((child) => child.type === "JSXElement");
+  // A main component floats by its root (placedOf): the <Component> takes no place of its own.
   const own = elements.map((element) => {
-    const attributes = element.openingElement.attributes.filter((attribute) => attribute.type === "JSXAttribute");
+    const placed = placedOf(element);
+    const attributes = placed.openingElement.attributes.filter((attribute) => attribute.type === "JSXAttribute");
     const named = (name) => attributes.find((attribute) => jsxName(attribute.name) === name);
-    return { element, attributes, x: pxOf(named("insetLeft")) ?? 0, y: pxOf(named("insetTop")) ?? 0 };
+    return { element, placed, attributes, x: pxOf(named("insetLeft")) ?? 0, y: pxOf(named("insetTop")) ?? 0 };
   });
   const left = Math.min(...own.map((entry) => entry.x));
   const top = Math.min(...own.map((entry) => entry.y));
   const edits = [];
-  for (const { element, attributes, x, y } of own) {
+  for (const { element, placed, attributes, x, y } of own) {
     const place = `position="absolute" insetLeft={${Math.round(at.x + x - left)}} insetTop={${Math.round(at.y + y - top)}}`;
-    const name = jsxName(element.openingElement.name);
+    const name = jsxName(placed.openingElement.name);
     if (FLOATS.has(name.slice(name.lastIndexOf(".") + 1))) {
       for (const attribute of attributes) {
         if (!POSITION_PROPS.has(jsxName(attribute.name))) continue;
@@ -478,7 +505,7 @@ export function floatAt(raw, at) {
         while (start > 0 && /\s/.test(wrapped[start - 1])) start -= 1;
         edits.push({ start, end: attribute.end, text: "" });
       }
-      edits.push({ start: element.openingElement.name.end, end: element.openingElement.name.end, text: ` ${place}` });
+      edits.push({ start: placed.openingElement.name.end, end: placed.openingElement.name.end, text: ` ${place}` });
       continue;
     }
     const lineStart = wrapped.lastIndexOf("\n", element.start - 1) + 1;
@@ -498,8 +525,9 @@ export function floatAt(raw, at) {
 export function looseLayers(raw) {
   const wrapped = `<>\n${raw}\n</>`;
   const fragment = parseExpression(wrapped, { plugins: ["jsx", "typescript"], sourceType: "module" });
+  // A main component's place in its frame is its root's (placedOf): that root gives it up.
   const own = fragment.children.filter((child) => child.type === "JSXElement").map((element) => {
-    const attributes = element.openingElement.attributes.filter((attribute) => attribute.type === "JSXAttribute");
+    const attributes = placedOf(element).openingElement.attributes.filter((attribute) => attribute.type === "JSXAttribute");
     const named = (name) => attributes.find((attribute) => jsxName(attribute.name) === name);
     return { element, attributes, x: pxOf(named("insetLeft")) ?? 0, y: pxOf(named("insetTop")) ?? 0 };
   });

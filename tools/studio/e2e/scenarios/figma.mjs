@@ -352,6 +352,29 @@ export default function Page() {
   );
 }
 `;
+/** A desktop page whose free frame holds a main component (<Component id="card">: a floating Stack, its root; user
+ *  2026-11-23: "vẫn chưa kéo component gốc ra khỏi frame được"). */
+const mainOutText = (title) => `// @zen-page {"format":1,"title":${JSON.stringify(title)}}
+import { Board, Component, Screen } from "@zen-ds/react/builder";
+import { Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Free" device="desktop" frame x={0} y={0} width={400} height={300}>
+        <Component id="card" name="Card">
+          <Stack position="absolute" insetLeft={20} insetTop={20} padding="md" surface="surface" border="pale">
+            <Text>Card</Text>
+          </Stack>
+        </Component>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
 async function dragOutPage(ctx) {
   const { page, id } = await seededPage(ctx, dragOutText, /<Layer id="layer-1"/);
   await showLeftTab(page, "layers");
@@ -6436,6 +6459,41 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       await until(async () => (await pageText(page, id)) === dropped, { message: "⌘Z: the vector gone" });
       await undoTo(page, id, before, 1);
       return "a picture dropped on the canvas → <Layer> at 420, 340 · Pen → a vector <Layer> at 700, 360 · ⌘Z, ⌘Z";
+    },
+  },
+  {
+    id: "FW-292", feature: "A main component dragged out of its frame onto the empty canvas goes with its <Component> (Figma moves the main component): a layer on the canvas holding the main, its root without its place in the frame, the root selected; ⌘Z takes it back (user 2026-11-23)", wp: "loose layers 2026-11-23", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await seededPage(ctx, mainOutText, /<Component id="card"/);
+      await page.locator('[data-studio-frame="screen:screen-1"] [data-zen-main="card"]').first().waitFor({ state: "visible", timeout: 10_000 });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+1");
+      await sleep(500);
+      await deselect(page);
+      const before = (await pageText(page, id)) ?? "";
+      const zoom = await looseZoom(page);
+      const card = page.locator('[data-studio-frame="screen:screen-1"] [data-zen-main="card"]').first();
+      const box = await card.boundingBox();
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await sleep(200);
+      // 600 board px right: past the frame's right edge (400), over the empty canvas.
+      await dragBy(page, { x: box.x + box.width / 2, y: box.y + box.height / 2 }, 600 * zoom, 0);
+      let text = "";
+      await until(async () => { text = (await pageText(page, id)) ?? ""; return /<Layer id="layer-1"/.test(text); }, { message: "the main on the canvas" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 160)}`); });
+      const inside = text.slice(text.indexOf('<Layer id="layer-1"'), text.indexOf("</Layer>", text.indexOf('<Layer id="layer-1"')));
+      const frame = text.slice(text.indexOf('<Screen id="screen-1"'), text.indexOf("</Screen>", text.indexOf('<Screen id="screen-1"')));
+      const problems = [
+        /<Component\b|<Stack\b/.test(frame) && "the main or its root is still in the frame",
+        !/<Component id="card" name="Card">\s*<Stack\b/.test(inside) && `the Layer holds ${inside.replace(/\s+/g, " ").slice(0, 140)}`,
+        /position=|inset(Left|Top)=/.test(inside) && "the root keeps its place in the frame",
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      const loc = looseLoc(text, "layer-1", "Stack");
+      await until(async () => ((await selectedSrc(page))[0] ?? "").endsWith(`:${loc}`), { message: "the main's root selected on the canvas" }).catch(async (error) => { throw new Error(`${error.message}: ${JSON.stringify(await selectedSrc(page))} (want …:${loc})`); });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: back in its frame" });
+      return "drag out → <Layer> › <Component id=card> › <Stack> (no position), root selected · ⌘Z";
     },
   },
   ...pictureRows,

@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a main component drags out of its frame onto the canvas, or into another frame, as in Figma: the whole
+  main moves (its <Component>), its layer drops the place it had in the old frame, and it stays selected. A click on a
+  main component or an instance selects it, not a layer inside it, and Layers keeps its row (the diamond), also when its
+  layer holds a single child.
 - Zen Studio: the drawing tools work on the empty canvas, as in Figma: a Rectangle, Ellipse, Line, Arrow, Polygon, Star,
   text (T), Pen or Pencil path, or a picture dropped there lands as a layer on the canvas where it is drawn (its edges
   snap to the frames and layers beside it). "Draw inside a frame" no longer stops it. On a layer on the canvas that
