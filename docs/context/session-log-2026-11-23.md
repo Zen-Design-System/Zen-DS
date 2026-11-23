@@ -26,3 +26,8 @@ glass vẫn còn bị trắng". Branch `zen/fix/glass-dark-frame-theme-20261123`
   - Figma contracts, platform audit and dark mode audit: 0 errors.
   - 12 contact sheets opened: no glass on those pages, nothing changed.
 - `npm run build` ✓.
+- **Play (user: "chạy prototype vẫn lỗi darkmode của glass").**
+  - Play's Dark mode sets `data-theme` on `.studio-player`, also a plain element; the user's Studio runs main, without
+    this fix.
+  - Checked on this branch, private server: after "Dark mode" in the Play bar the pill's light is redrawn at 0.05.
+  - The device's bottom corners stay dark: the stage takes the played mode.
