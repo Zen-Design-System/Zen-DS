@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-11-13.
+Last updated: 2026-11-22.
 
 ## Read order
 
@@ -19,6 +19,12 @@ Last updated: 2026-11-13.
 
 ## State in short
 
+- **Code view P3, Vue (2026-11-22, user: "Làm codeview"):** `@zen-ds/vue` in `platforms/vue` (private): `defineComponent`
+  + `h()` on the same markup and `styles.css`; shared logic in the web core `src/core` (each component's `model.ts`).
+  `npm run vue:parity` (SSR React vs Vue in Node, no browser; `--write` → `platforms/vue/code-language.json`) and
+  `npm run vue:check` (core boundary, parity, vue-tsc on TS 5, the examples' Vue) in CI. W1: 39/39 components, 1,254
+  cases (MetricCard, ToggleListItem wait for W2: `waves.json` waits). The Code view writes Vue (`code/vue.ts` emitter,
+  lazy): 10/10 all-ported examples and every all-ported playground type-check. Plan §12; P4–P9 need approval.
 - **Code view P2b, portable examples (2026-11-13, user):** an example is a file, `examples/pages/<page>/<slug>.example.tsx`
   (default export rendered, its `?raw` shown via `examples/exampleCode.ts`; demo import `../../data` shows as `./demo`,
   Code header copies demo.ts). Imports only react, `@zen-ds/react`, the demo world; phone examples on `AppShell`, the

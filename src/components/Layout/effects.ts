@@ -5,9 +5,9 @@
  * The whole Figma effect style is the token, one per layer as in Figma (Text `textStyle` precedent): no effect offset,
  * blur or spread is bound to a variable in the Figma file, so there are no free shadow values. Rendering:
  * `data-effect-style` = the kebab-cased style name (the same suffix as the generated `.zen-effect-*` classes in
- * src/styles/style-effects.css) and `data-clip="true"`; effects.css paints them. Unset props render nothing.
+ * src/styles/style-effects.css) and `data-clip="true"`; effects.css paints them (the frames import it). Unset props
+ * render nothing. Framework-free (the web core, src/core).
  */
-import "./effects.css";
 
 /**
  * Figma effect styles a Box may carry (file 9nZv4uW2LT21yuHabMTCh1, doc page "Effect & Shadow" 7063:62025):

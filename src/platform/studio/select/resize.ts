@@ -30,9 +30,11 @@ export type ResizeAxis = "width" | "height";
 /**
  * How one axis is written. `prop`: setProp <prop> (a number = Fixed; `hug` when its type takes "hug"); `fullWidth`:
  * fullWidth true when an edge drag reaches the parent's content width, else a wrap; `wrap`: a new Stack around the element, which fills it,
- * takes the size; `wrapper`: the Stack the Studio wrapped the element in before (ResizeTarget.wrapper) takes it.
+ * takes the size; `wrapper`: the Stack the Studio wrapped the element in before (ResizeTarget.wrapper) takes it;
+ * `layer`: a component on the canvas that takes no size of its own fills its <Layer>, whose `width` takes it
+ * (ResizeTarget.layer; Figma's instance width on the canvas, loose layers PR5).
  */
-export type AxisRule = { kind: "prop"; prop: string; hug: boolean } | { kind: "fullWidth" } | { kind: "wrap" } | { kind: "wrapper" } | { kind: "column" };
+export type AxisRule = { kind: "prop"; prop: string; hug: boolean } | { kind: "fullWidth" } | { kind: "wrap" } | { kind: "wrapper" } | { kind: "column" } | { kind: "layer" };
 
 /** The Grid column a width drag resizes (AxisRule "column"): the Grid's src, the column (0-based), where its tracks are written. */
 export type ResizeColumn = { src: string; index: number; source: ColumnsSource };
@@ -51,6 +53,8 @@ export type ResizeTarget = {
   wrapper?: ResizeWrapper;
   /** The Grid column the `column` width rule edits. */
   column?: ResizeColumn;
+  /** The <Layer> (its src) a component on the canvas sits in, whose `width` the `layer` width rule edits. */
+  layer?: { src: string };
   /** Why the server cannot wrap the element (SourceElement.wrap): no wrap axes, and a fullWidth drag only fills. */
   noWrap?: string;
   /** Why an axis (or every handle) is missing, in the order the steps removed them: the size pill says it. */
@@ -91,7 +95,7 @@ export const noCross: CrossFits = { width: null, height: null };
  * What else a plan says: the measured fits, how many times the element renders (a .map row: every one changes), and
  * whether a corner handle was dragged (a corner never writes fullWidth: it wraps both axes).
  */
-export type PlanOptions = { cross?: CrossFits; count?: number; corner?: boolean; stretched?: boolean };
+export type PlanOptions = { cross?: CrossFits; count?: number; corner?: boolean; stretched?: boolean; /** A layer on the canvas widened from its left edge: its Layer's new X. */ layerX?: number };
 
 /** The sizing modes the canvas shows ("Hug · 312"); null = the element's usual size (or a component's own). */
 export type AxisMode = "hug" | "fill" | "fixed" | null;
@@ -109,6 +113,8 @@ export type ResizePlan = {
   grid?: string;
   /** The ops go to the floating Box that holds the element (this src, a Box): one op many, its insets and the size. */
   float?: string;
+  /** The ops go to the <Layer> a component on the canvas sits in (this src): its `width` (and `x` from the left edge). */
+  layer?: string;
   /** Undo label. */
   label: string;
   /** What the canvas announces at commit ("Width 320, fixed"). */
@@ -157,6 +163,19 @@ export function resizeTarget(name: string, isComponent: boolean): ResizeTarget |
   const width: AxisRule = (widthProp && sizeRule(widthProp.type, "width")) ?? (prop("fullWidth")?.type === "boolean" ? { kind: "fullWidth" } : { kind: "wrap" });
   const height: AxisRule = (heightProp && sizeRule(heightProp.type, "height")) ?? { kind: "wrap" };
   return { kind: "component", width, height, corners: cornersOf(width, height) };
+}
+
+/**
+ * A component on the canvas (the one layer of a <Layer> at `src`): one that takes no width of its own (a wrap, or
+ * fullWidth) fills its Layer, so a width drag writes the Layer's `width` (Figma's instance width), never a wrap inside
+ * it; one that takes no height of its own keeps its height (no vertical handles: a Layer has no height).
+ */
+export function withLayer(target: ResizeTarget, layer: { src: string }): ResizeTarget {
+  const sizes = (rule: AxisRule | null) => Boolean(rule && rule.kind !== "wrap" && rule.kind !== "fullWidth");
+  if (sizes(target.width) && sizes(target.height)) return target;
+  const width: AxisRule | null = sizes(target.width) ? target.width : target.width ? { kind: "layer" } : null;
+  const height = sizes(target.height) ? target.height : null;
+  return { ...target, width, height, corners: false, layer, why: height ? target.why : withWhy(target.why, "Its height is its own on the canvas") };
 }
 
 /** The prop an axis rule writes ("width", "fullWidth"), or null for a wrap (or the wrapper Stack's). */
@@ -546,6 +565,14 @@ export function planResize(name: string, target: ResizeTarget, values: { width?:
     const which = `column ${column.index + 1}`;
     return { ops: [columnsOp(column.source, list)], wrap: false, wrapper: null, grid: column.src, label: `${name} width → ${width} (Grid ${which}${all.label ? `, ${all.label}` : ""})`, announce: `Width ${width}, Grid ${which}${all.announce}` };
   }
+  // A component on the canvas: its Layer's width (and X, from the left edge), as a frame's.
+  if (rules.some(([, rule]) => rule.kind === "layer")) {
+    const width = dragged.width;
+    if (!target.layer || width === undefined || rules.length > 1) return null;
+    const ops: EditOp[] = [{ op: "setProp", name: "width", value: number(width) }];
+    if (options.layerX !== undefined) ops.push({ op: "setProp", name: "x", value: number(options.layerX) });
+    return { ops, wrap: false, wrapper: null, layer: target.layer.src, label: `${name} width → ${width} (on the canvas)`, announce: `Width ${width}, fixed` };
+  }
   // fullWidth: only an edge drag to the parent's content width fills it; any other width (and a corner) is a wrap.
   const fullWidth = rules.find(([, rule]) => rule.kind === "fullWidth");
   if (fullWidth && axes.length === 1 && !options.corner && reachesParent(dragged.width ?? 0, parentWidth)) {
@@ -596,12 +623,16 @@ export function planHug(name: string, target: ResizeTarget, axes: ResizeAxis[], 
       return { ops: [columnsOp(source, list)], wrap: false, wrapper: null, grid: src, label: `${name} width → hug (Grid ${which} auto${all.label ? `, ${all.label}` : ""})`, announce: `Width hug (Grid ${which})${all.announce}` };
     }
   }
+  // A component on the canvas: Hug takes its Layer's width away (it takes its own width again).
+  if (axes.includes("width") && target.width?.kind === "layer" && target.layer) {
+    return { ops: [{ op: "removeProp", name: "width" }], wrap: false, wrapper: null, layer: target.layer.src, label: `${name} width → hug (on the canvas)`, announce: "Width hug" };
+  }
   const ops: EditOp[] = [];
   const done: ResizeAxis[] = [];
   const changes: string[] = [];
   for (const axis of axes) {
     const rule = target[axis];
-    if (!rule || rule.kind === "wrap" || rule.kind === "wrapper" || rule.kind === "column") continue;
+    if (!rule || rule.kind === "wrap" || rule.kind === "wrapper" || rule.kind === "column" || rule.kind === "layer") continue;
     const prop = ruleProp(rule)!;
     if (rule.kind === "prop" && rule.hug) {
       ops.push({ op: "setProp", name: prop, value: { kind: "string", value: "hug" } });

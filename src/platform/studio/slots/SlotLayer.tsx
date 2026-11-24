@@ -187,16 +187,37 @@ function marksFor(selection: NodeSelection, { hit, root: hostRoot }: Resolved, w
 
 /**
  * A chip on the selection's size pill (ResizeLayer centres it under the layer: a small Box's column slot puts its chip
- * there too) moves just below the pill, so the size stays readable.
+ * there too) moves just below the pill, so the size stays readable. A chip on a resize handle (a Top Navigation on the
+ * canvas: its empty trailing slot's chip sat on its right handle, loose layers PR5) moves off it, so the handle takes the
+ * press, as Figma's handles always do.
  */
 function clearOfPill(marks: Marks, viewport: Element | null, origin: DOMRect): Marks {
-  const rect = viewport?.querySelector(".studio-resize__pill")?.getBoundingClientRect();
-  if (!rect?.width) return marks;
-  const pill = { x: rect.left - origin.left, y: rect.top - origin.top, w: rect.width, h: rect.height };
   const half = CHIP / 2;
-  const onPill = (chip: { x: number; y: number }) => chip.x + half > pill.x && chip.x - half < pill.x + pill.w && chip.y + half > pill.y && chip.y - half < pill.y + pill.h;
-  if (!marks.slots.some((mark) => mark.chip && onPill(mark.chip))) return marks;
-  return { ...marks, slots: marks.slots.map((mark) => (mark.chip && onPill(mark.chip) ? { ...mark, chip: { x: mark.chip.x, y: pill.y + pill.h + 4 + half } } : mark)) };
+  const boxOf = (element: Element) => {
+    const rect = element.getBoundingClientRect();
+    return { x: rect.left - origin.left, y: rect.top - origin.top, w: rect.width, h: rect.height };
+  };
+  const on = (chip: { x: number; y: number }, box: Box) => chip.x + half > box.x && chip.x - half < box.x + box.w && chip.y + half > box.y && chip.y - half < box.y + box.h;
+  const handles = [...(viewport?.querySelectorAll(".studio-resize__handle[data-handle]") ?? [])].map((element) => ({ id: element.getAttribute("data-handle") ?? "", box: boxOf(element) })).filter((handle) => handle.box.w);
+  const pillElement = viewport?.querySelector(".studio-resize__pill");
+  const pill = pillElement ? boxOf(pillElement) : null;
+  const clear = (chip: { x: number; y: number }) => {
+    let { x, y } = chip;
+    for (const { id, box } of handles) {
+      if (!on({ x, y }, box)) continue;
+      // Off the handle on the side the chip's centre is on: in over the layer, or out past its edge.
+      const before = id.includes("e") || id.includes("w") ? x < box.x + box.w / 2 : y < box.y + box.h / 2;
+      if (id.includes("e") || id.includes("w")) x = before ? box.x - half - 2 : box.x + box.w + half + 2;
+      else y = before ? box.y - half - 2 : box.y + box.h + half + 2;
+    }
+    if (pill?.w && on({ x, y }, pill)) y = pill.y + pill.h + 4 + half;
+    return x === chip.x && y === chip.y ? chip : { x, y };
+  };
+  if (!handles.length && !pill?.w) return marks;
+  return { ...marks, slots: marks.slots.map((mark) => {
+    const chip = mark.chip ? clear(mark.chip) : null;
+    return chip === mark.chip ? mark : { ...mark, chip };
+  }) };
 }
 
 /** The selected element's source while it is a slot host in example content (the picker builds its palette from it). */

@@ -1,19 +1,11 @@
 import type { ReactNode, Ref } from "react";
 import { Icon, type IconName } from "../Icon";
-import { scaleKey } from "../_shared/scale";
+import { dockIconDefaultEmoji, dockIconModel, type DockIconBackground, type DockIconSize, type DockIconTheme } from "./model";
 import "./dock-icon.css";
 import "../Icon/core";
 import { dataAttributes } from "../_shared/data-attributes";
 
-export const dockIconSizes = ["xsmall", "small", "medium", "large", "xlarge", "2xlarge"] as const;
-export const dockIconSupportColors = ["blue", "bronze", "brown", "crimson", "cyan", "golden", "green", "indigo", "mint", "orange", "pink", "plum", "purple", "red", "sky", "teal", "violet", "yellow"] as const;
-export const dockIconThemes = ["neutral", "accent", ...dockIconSupportColors, "inverse", "on-color", "pale", "surface", "emoji"] as const;
-/** CSS / Figma key (the `data-size` value). */
-type DockIconSizeKey = (typeof dockIconSizes)[number];
-/** Short (canonical) or long Figma spelling — both render the same. */
-export type DockIconSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "xsmall" | "small" | "medium" | "large" | "xlarge" | "2xlarge";
-export type DockIconTheme = (typeof dockIconThemes)[number];
-export type DockIconBackground = "solid" | "subtle";
+export { dockIconSizes, dockIconSupportColors, dockIconThemes, type DockIconBackground, type DockIconSize, type DockIconTheme } from "./model";
 
 export interface DockIconProps {
   /** Figma Icon-Src. */
@@ -38,11 +30,10 @@ export interface DockIconProps {
  * (Neutral: Neutral/Base). Re-synced from the live file 2026-10-09.
  */
 export function DockIcon({ icon = "icon-star-93-solid", emoji, size: sizeProp = "md", theme = "neutral", background = "solid", label, className, ref, ...rest }: DockIconProps) {
-  const size = scaleKey(sizeProp, dockIconSizes);
-  const resolvedBackground = theme === "pale" ? "subtle" : ["inverse", "on-color", "surface", "emoji"].includes(theme) ? "solid" : background;
-  const glyph = theme === "emoji" ? <span className="zen-dock-icon__emoji">{emoji ?? "😊"}</span> : <Icon name={icon} decorative />;
+  const dock = dockIconModel({ size: sizeProp, theme, background, label });
+  const glyph = theme === "emoji" ? <span className="zen-dock-icon__emoji">{emoji ?? dockIconDefaultEmoji}</span> : <Icon name={icon} decorative />;
   return (
-    <span {...dataAttributes(rest)} ref={ref} className={["zen-dock-icon", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-background={resolvedBackground} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
+    <span {...dataAttributes(rest)} ref={ref} className={["zen-dock-icon", className].filter(Boolean).join(" ")} data-size={dock.size} data-tone={theme} data-background={dock.background} role={dock.role} aria-label={label} aria-hidden={dock.ariaHidden}>
       {glyph}
     </span>
   );

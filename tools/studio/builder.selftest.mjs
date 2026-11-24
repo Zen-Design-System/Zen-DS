@@ -332,6 +332,54 @@ export default function Page() {
   check("`loose` needs the Board as the parent", /`loose` puts a layer on the Board/.test(wrong.error ?? ""), true);
 }
 
+{
+  // A main component's root moves with its <Component> (Figma moves the main; user 2026-11-23: "vẫn chưa kéo component
+  // gốc ra khỏi frame được"): moved alone it left the <Component> empty, which the page refuses.
+  const start = `// @zen-page {"format":1,"title":"Mains"}
+import { Board, Component, ComponentSet, Screen } from "@zen-ds/react/builder";
+import { Stack, Text } from "@zen-ds/react";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Free" device="desktop" frame x={0} y={0} width={400} height={300}>
+        <Component id="card" name="Card">
+          <Stack position="absolute" insetLeft={20} insetTop={135} padding="md">
+            <Text>Card</Text>
+          </Stack>
+        </Component>
+        <ComponentSet id="chip" name="Chip">
+          <Component id="chip-a">
+            <Stack padding="sm"><Text>A</Text></Stack>
+          </Component>
+          <Component id="chip-b">
+            <Stack padding="sm"><Text>B</Text></Stack>
+          </Component>
+        </ComponentSet>
+      </Screen>
+      <Screen id="screen-2" title="Other" device="desktop" frame x={600} y={0} width={400} height={300}>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const find = (text, test) => { let found = null; const visit = (node) => { if (!found && test(node)) found = node; for (const child of node.children ?? []) if (child.kind === "element") visit(child); }; visit(parsePage(text).board); return found; };
+  const root = (text) => find(text, (node) => node.name === "Stack" && node.props.position);
+  const board = parsePage(start).board.loc;
+  const valid = (code) => validateDialect(code, { components });
+  const out = applyOps(start, root(start).loc, "Stack", [{ op: "moveTo", parent: board, loose: { id: "layer-1", x: 500, y: 40 } }], options(start));
+  check("a main's root onto the canvas: its <Component> goes too, the root without its place, the page valid", [out.error ?? null, out.code && /<Layer id="layer-1" x=\{500\} y=\{40\}>\s*<Component id="card" name="Card">\s*<Stack padding="md">/.test(out.code), out.code && valid(out.code)], [null, true, []]);
+  check("the selection stays on the main's root", out.moved && out.code.split("\n")[Number(out.moved.loc.split(":")[0]) - 1].trim().startsWith("<Stack"), true);
+  const other = find(start, (node) => node.name === "Screen" && node.props.id?.value === "screen-2");
+  const into = applyOps(start, root(start).loc, "Stack", [{ op: "moveTo", parent: other.loc, at: { x: 10, y: 20 } }], options(start));
+  check("a main's root into another free frame: its <Component> floats there by its root", [into.error ?? null, into.code && /<Screen id="screen-2"[^>]*>\s*<Component id="card" name="Card">\s*<Stack position="absolute" insetLeft=\{10\} insetTop=\{20\} padding="md">/.test(into.code), into.code && valid(into.code)], [null, true, []]);
+  const copied = applyOps(start, root(start).loc, "Stack", [{ op: "moveTo", parent: other.loc, at: { x: 10, y: 20 }, copy: true }], options(start));
+  check("a ⌥ copy of a main's root is a copy of the layer (the main stays)", [copied.error ?? null, copied.code && (copied.code.match(/<Component id="card"/g) ?? []).length], [null, 1]);
+  const variant = find(start, (node) => node.name === "Stack" && node.children.some((child) => child.kind === "element" && child.children?.some((word) => word.kind === "text" && word.value === "A")));
+  const fromSet = applyOps(start, variant.loc, "Stack", [{ op: "moveTo", parent: board, loose: { id: "layer-1", x: 500, y: 40 } }], options(start));
+  check("a variant's root does not take its <Component> out of the set", fromSet.code ? /<Layer id="layer-1"[^>]*>\s*<Component/.test(fromSet.code) : false, false);
+}
+
 if (failures.length) {
   console.error(`builder selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);
   process.exit(1);

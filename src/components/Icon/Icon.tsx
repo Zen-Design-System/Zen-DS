@@ -1,12 +1,12 @@
-import { Suspense, use, useId, useMemo, type CSSProperties, type SVGAttributes } from "react";
+import { Suspense, use, useId, useMemo, type SVGAttributes } from "react";
 import type { IconDefinition, IconName } from "../../icons/generated/names";
 import { resolveContentTone, type ContentTone } from "../_shared/contentTone";
+import { iconSize, scopeIconIds, type IconSize } from "./model";
 import { getRegisteredIcon, loadIconBucket, warnUnknownIcon } from "./registry";
 import "../_shared/content-tone.css";
 import "./icon.css";
 
-export const iconSizes = ["2xs", "xs", "sm", "base", "md", "lg", "xl", "2xl", "3xl"] as const;
-export type IconSize = (typeof iconSizes)[number];
+export { iconSizes, type IconSize } from "./model";
 
 export type IconProps = Omit<SVGAttributes<SVGSVGElement>, "children" | "name"> & {
   /**
@@ -25,12 +25,6 @@ export type IconProps = Omit<SVGAttributes<SVGSVGElement>, "children" | "name"> 
   /** Accessible name; without it the icon is decorative (aria-hidden). */
   title?: string;
   decorative?: boolean;
-};
-
-const sizeValue = (size: IconProps["size"]): CSSProperties["width"] => {
-  if (typeof size === "number") return `${size}px`;
-  if (!size || (iconSizes as readonly string[]).includes(size)) return undefined;
-  return size;
 };
 
 /**
@@ -71,14 +65,8 @@ function IconSvg({
   // Inline SVGs share one document: make clipPath/mask/gradient ids unique per instance, otherwise the second
   // copy of an icon points at the first copy's <clipPath> (broken when that one is hidden, and invalid HTML).
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
-  const content = useMemo(() => {
-    if (!icon || !/\sid="/.test(icon.content)) return icon?.content ?? "";
-    return icon.content.replace(/\sid="([^"]+)"/g, ` id="$1-${uid}"`).replace(/url\(#([^)]+)\)/g, `url(#$1-${uid})`).replace(/(xlink:)?href="#([^"]+)"/g, (_m, xl, id) => `${xl ?? ""}href="#${id}-${uid}"`);
-  }, [icon, uid]);
-  const customSize = sizeValue(size);
-  const sizeName = typeof size === "string" && (iconSizes as readonly string[]).includes(size)
-    ? size
-    : undefined;
+  const content = useMemo(() => (icon ? scopeIconIds(icon.content, uid) : ""), [icon, uid]);
+  const { name: sizeName, custom: customSize } = iconSize(size);
 
   return (
     <svg

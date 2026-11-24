@@ -3,12 +3,12 @@
  * child (gridColumnSpan / gridRowSpan), for a dashboard's widgets in one grid (a hero over 8 of 12 columns beside a
  * companion over 4).
  *
- * The Grid shares the column count it lays out at and whether it stacks (GridCellContext); a direct child clamps its
- * span to it, so a span never makes CSS add columns. Rendering: `data-span` (`"true"` or `"full"`) and `data-row-span`
- * plus `--zen-cell-span` / `--zen-cell-row-span`, which layout.css reads on a Grid's direct children only. Placement stays
- * CSS auto-placement in reading order (no `dense`), so a span that doesn't fit the rest of a row starts the next one.
+ * The Grid shares the column count it lays out at and whether it stacks (GridCellContext, cell-context.ts); a direct child
+ * clamps its span to it, so a span never makes CSS add columns. Rendering: `data-span` (`"true"` or `"full"`) and
+ * `data-row-span` plus `--zen-cell-span` / `--zen-cell-row-span`, which layout.css reads on a Grid's direct children only.
+ * Placement stays CSS auto-placement in reading order (no `dense`), so a span that doesn't fit the rest of a row starts
+ * the next one. Framework-free (the web core, src/core); React's context and hook are in cell-context.ts.
  */
-import { createContext, useContext } from "react";
 import { resolveAt, type Responsive, type ResponsiveBreakpoint } from "../_shared/responsive";
 
 /** Columns a cell takes: a whole number (clamped to the Grid's columns) or `"full"`, the whole row. */
@@ -37,8 +37,6 @@ export interface GridCellContextValue {
   stacked: boolean;
   breakpoint: ResponsiveBreakpoint;
 }
-
-export const GridCellContext = createContext<GridCellContextValue | null>(null);
 
 export interface LayoutCellOutput {
   /** Data attributes to spread on the element; empty when the element is no spanning Grid cell. */
@@ -96,9 +94,4 @@ export function gridCell(grid: GridCellContextValue | null, { span, rowSpan }: L
       ...(rows !== null && rows > 1 ? { "--zen-cell-row-span": String(rows) } : {}),
     },
   };
-}
-
-/** The cell attributes for a child of the nearest Grid. */
-export function useGridCell(props: LayoutCellProps): LayoutCellOutput {
-  return gridCell(useContext(GridCellContext), props);
 }

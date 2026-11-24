@@ -6,7 +6,11 @@
 import { parse } from "@babel/parser";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
-import { page as browser } from "vitest/browser";
+import { commands, page as browser } from "vitest/browser";
+import vueStatus from "../../platforms/vue/code-language.json";
+import { emitVue } from "../../src/platform/code/vue";
+import { demoFile } from "../../src/platform/examples/demoFile";
+import { vueDemoOf } from "../../src/platform/examples/exampleCode";
 import { ZenProvider } from "../../src/index";
 import { componentNavigation } from "../../src/platform/PlatformApp";
 import { PlatformComponentPage } from "../../src/platform/PlatformExamples";
@@ -32,6 +36,30 @@ vi.mock("../../src/platform/PlatformCode", () => ({
 /** Only the playground of a component page renders (no examples, props or guidelines): the Studio's seam. */
 const playgroundOnly: StudioBridge = { renderComponentPage: ({ playground }) => <>{playground}</>, renderCode: () => null, controlsSlot: null, codeSlot: null };
 
+declare module "vitest/browser" {
+  interface BrowserCommands {
+    /** vue-tsc on emitted SFCs beside demo.ts for Vue (vitest.config.ts → tools/code-languages/vue-project.mjs). */
+    vueTypeCheck: (files: Record<string, string>, demo: string) => Promise<{ ok: boolean; output: string }>;
+  }
+}
+
+/** Every page's playground rendered once: the code each hands to PlatformCode at its default state, by page. */
+let playgrounds: Promise<Map<string, number>> | null = null;
+const renderPlaygrounds = () => (playgrounds ??= (async () => {
+  const perPage = new Map<string, number>();
+  for (const { id } of componentNavigation) {
+    const before = captured.codes.length;
+    const screen = await render(
+      <ZenProvider>
+        <StudioBridgeContext value={playgroundOnly}><PlatformComponentPage page={id} /></StudioBridgeContext>
+      </ZenProvider>,
+    );
+    perPage.set(id, captured.codes.length - before);
+    await screen.unmount();
+  }
+  return perPage;
+})());
+
 const walk = (nodes: SnippetNode[], out: SnippetElement[] = []): SnippetElement[] => {
   for (const node of nodes) {
     if (node.type === "element") { out.push(node); walk(node.children, out); for (const prop of node.props) if ("value" in prop && prop.value.kind === "node") walk(prop.value.value, out); }
@@ -44,17 +72,7 @@ afterEach(() => setCodeLanguage("react"));
 
 describe("snippet parser", () => {
   it("reads every playground snippet into the neutral tree", async () => {
-    const perPage = new Map<string, number>();
-    for (const { id } of componentNavigation) {
-      const before = captured.codes.length;
-      const screen = await render(
-        <ZenProvider>
-          <StudioBridgeContext value={playgroundOnly}><PlatformComponentPage page={id} /></StudioBridgeContext>
-        </ZenProvider>,
-      );
-      perPage.set(id, captured.codes.length - before);
-      await screen.unmount();
-    }
+    const perPage = await renderPlaygrounds();
     const snippets = [...new Set(captured.codes)];
     const failures = snippets.map((code) => ({ code, result: readSnippet(parse, code) })).filter(({ result }) => !result.ok);
     expect(failures.map(({ code, result }) => `${result.ok ? "" : result.error}\n${code.slice(0, 160)}`)).toEqual([]);
@@ -62,6 +80,24 @@ describe("snippet parser", () => {
     expect(snippets.length).toBeGreaterThanOrEqual(44);
     expect([...perPage].filter(([, count]) => !count).map(([id]) => id)).toEqual([]);
     console.info(`snippet parser: ${snippets.length}/${snippets.length} playground snippets read (${componentNavigation.length} pages)`);
+  });
+
+  it("shows Vue for every playground whose components are all in @zen-ds/vue, and that Vue type-checks (P3)", async () => {
+    await renderPlaygrounds();
+    const ready = [...new Set(captured.codes)].filter((code) => snippetStatus(code, "vue").status === "ready");
+    const api = { exports: vueStatus.exports, components: vueStatus.components };
+    const emitted = ready.map((code) => ({ code, result: emitVue(parse, code, api) }));
+    expect(emitted.filter(({ result }) => !result.ok).map(({ code, result }) => `${result.ok ? "" : result.reason}\n${code.slice(0, 160)}`)).toEqual([]);
+    // A playground's code is an excerpt (`onClick={share}`), in React too: the check declares what it leaves out, so
+    // vue-tsc reads every Zen component, prop, slot and event as written.
+    const declared = (code: string, free: string[]) => code.replace('<script setup lang="ts">\n', `<script setup lang="ts">\n${free.map((name) => `declare const ${name}: any;\n`).join("")}`);
+    const files = Object.fromEntries(emitted.flatMap(({ result }, index) => (result.ok ? [[`playground_${index}.vue`, declared(result.code, result.free)]] : [])));
+    const types = await commands.vueTypeCheck(files, vueDemoOf(demoFile, vueStatus.types));
+    expect(types.output).toBe("");
+    expect(types.ok).toBe(true);
+    // Badge, Button, Divider, Link and the rest of wave 1 have playgrounds of their own.
+    expect(ready.length).toBeGreaterThanOrEqual(10);
+    console.info(`Vue: ${ready.length} playground snippets emitted and type-checked`);
   });
 
   it("keeps imports, props by kind, children and the code it does not map", () => {
@@ -114,12 +150,15 @@ const [count, setCount] = useState(0);
 });
 
 describe("language picker", () => {
-  const code = `import { Button } from "@zen-ds/react";\n\n<Button level="primary">Save</Button>`;
+  // Checkbox waits for the Vue port's second wave.
+  const code = `import { Checkbox } from "@zen-ds/react";\n\n<Checkbox label="Remember me" />`;
 
   it("finds the snippet's components and their status", () => {
     expect(componentsIn(`<Stack><Button /><IconButton /><div /><NotAComponent /></Stack>`)).toEqual(["Stack", "Button", "IconButton"]);
+    expect(componentsIn(`const toast = useToast();\n<Button onClick={() => toast.show("Saved")} />`, { hooks: true })).toEqual(["ToastProvider", "Button"]);
     expect(snippetStatus(code, "react")).toEqual({ status: "ready", missing: [] });
-    expect(snippetStatus(code, "vue")).toEqual({ status: "not-yet", missing: ["Button"] });
+    expect(snippetStatus(code, "vue")).toEqual({ status: "not-yet", missing: ["Checkbox"] });
+    expect(snippetStatus(`<Button level="primary">Save</Button>`, "vue")).toEqual({ status: "ready", missing: [] });
   });
 
   it("lists every language; one without code says so, hides Copy, and is remembered", async () => {
@@ -129,7 +168,7 @@ describe("language picker", () => {
     const options = browser.getByRole("option");
     await expect.poll(async () => (await options.all()).map((option) => option.element().textContent)).toEqual(["React", "HTMLNot yet", "VueNot yet", "SwiftNot yet", "FlutterNot yet", "SvelteNot yet"]);
     await browser.getByRole("option", { name: /^Vue/ }).click();
-    await expect.element(screen.getByText("Vue isn't available for Button yet.")).toBeVisible();
+    await expect.element(screen.getByText("Vue isn't available for Checkbox yet.")).toBeVisible();
     await expect.element(screen.getByText(/React is available\./)).toBeVisible();
     await expect.element(screen.getByRole("link", { name: "See language status" })).toHaveAttribute("href", expect.stringContaining("page=installation"));
     expect(screen.getByRole("button", { name: "Copy code" }).query()).toBeNull();
@@ -138,6 +177,16 @@ describe("language picker", () => {
     setCodeLanguage("react");
     await expect.element(screen.getByRole("button", { name: "Copy code" })).toBeVisible();
     expect(new URLSearchParams(window.location.search).get("code")).toBeNull();
+  });
+
+  it("shows the Vue component for a snippet whose components are all in @zen-ds/vue (P3)", async () => {
+    const screen = await render(<ZenProvider><SnippetCode code={`import { Badge, Button } from "@zen-ds/react";\n\n<Button level="primary" startIcon="icon-check-line">Save</Button>\n<Badge theme="red" remove>Design</Badge>`} /></ZenProvider>);
+    setCodeLanguage("vue");
+    const view = () => screen.container.querySelector(".studio-code")?.textContent ?? "";
+    await expect.poll(view).toContain('import { Badge, Button } from "@zen-ds/vue";');
+    expect(view()).toContain('<Button level="primary" start-icon="icon-check-line">Save</Button>');
+    expect(view()).toContain('<Badge theme="red" remove>Design</Badge>');
+    await expect.element(screen.getByRole("button", { name: "Copy code" })).toBeVisible();
   });
 });
 

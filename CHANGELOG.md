@@ -14,14 +14,45 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
-- Zen Studio: Play runs a Screen in the light or dark it shows on the canvas. A Screen set dark with its frame's moon
-  button played light, and a Screen dark by its own modes (Apply variable mode) played with light Bottom Sheets, menus,
-  toasts and a light stage around the phone. Now the whole Play takes the Screen's theme; Play's own Light/Dark button
-  still wins.
 - Zen Studio: in Layers, a row dropped above or below a frame's row (or beside a layer on the canvas) leaves its frame
   for the canvas, where it shows; a layer on the canvas dropped into a frame without auto layout keeps where it shows.
   Several selected layers drag together: out of their frame onto the canvas, into a frame (each at its spot when the
   frame has no auto layout), or, already on the canvas, across it.
+- Vue (Code view P3, part 1): `@zen-ds/vue` starts in `platforms/vue` (not published yet). Badge, BadgeCounter, Button,
+  IconButton, Divider, Icon, Link, VisuallyHidden and ZenPortalProvider render the same DOM as React on the same
+  `styles.css`; `npm run vue:parity` proves it case by case (and that no Vue prop is invented), `npm run vue:check` runs
+  in CI. Their shared logic is a framework-free web core (`src/core`; each component's `model.ts`), so React and Vue
+  draw from one source. The Code view shows Vue code once the emitter lands (P3's last part).
+- Vue (Code view P3, part 2): the rest of wave 1 — AlertBanner, Avatar, AvatarStack, AvatarStatus, Box, Stack, Grid,
+  Container, ColorSelector, DockIcon, EmptyState, EmptyStateIllustration, FileIcon, Heading, Text, TextRun,
+  InlineMessage, List, ListBox, ListItem, Metric, MetricTrend, PageHeader, ProgressBar, ProgressCircle, the three
+  Skeletons, Stepper and StepperItem — match React's DOM: 39 of 39 wave-1 components, 1,254 cases. MetricCard and
+  ToggleListItem wait for Card and Toggle (wave 2); Metric's `hint` waits for Tooltip (wave 3). React's output is
+  unchanged (each move into a `model.ts` compared case by case) and so are the per-component stylesheets.
+- Docs and Zen Studio: the Code view writes Vue. Pick Vue on a snippet whose components are all in `@zen-ds/vue` and
+  it shows the single-file component (`<script setup>` + `<template>`; state as `ref`, derived values as `computed`,
+  lists as `v-for`, conditions as `v-if`, node props as slots), with demo.ts for Vue to copy. 10 of the 10 examples whose
+  components are all ported, and every such playground, show Vue that type-checks with vue-tsc (`npm run vue:check`, the
+  code-languages browser test); a snippet that uses a component not ported yet says which one.
+- Zen Studio: a component on the canvas that fills its layer (a Top Navigation, a chart) resizes as a Figma instance: its
+  side handles set its width (the left one moves it too, its right edge stays), the right panel shows its W, and a
+  double-click on a handle hugs it again. A component that hugs (a Button) resizes as before. A slot's "+" no longer
+  sits on a resize handle.
+- Zen Studio → Figma: layers on the canvas (outside any frame) now go to Figma too, as layers on the Figma page beside the
+  frame they sit by, where the board has them (a component that fills its layer keeps its width); importing again
+  replaces them. New frames land where the board has them, and a drawn frame keeps its drawn width (it was 1440).
+  Needs the Zen plugin's `studio-import` build (4a712ba).
+- Liquid Glass in dark mode no longer keeps a white rim when the dark mode is set on an element around it rather than on
+  a ZenProvider (a Zen Studio frame's own theme): the glass redraws its light for the new mode. In Zen Studio, a dark
+  Screen's bottom corners no longer turn grey under a blurred bar (the blur took the light board behind the frame).
+- Zen Studio: a main component drags out of its frame onto the canvas, or into another frame, as in Figma: the whole
+  main moves (its <Component>), its layer drops the place it had in the old frame, and it stays selected. A click on a
+  main component or an instance selects it, not a layer inside it, and Layers keeps its row (the diamond), also when its
+  layer holds a single child.
+- Zen Studio: Play runs a Screen in the light or dark it shows on the canvas. A Screen set dark with its frame's moon
+  button played light, and a Screen dark by its own modes (Apply variable mode) played with light Bottom Sheets, menus,
+  toasts and a light stage around the phone. Now the whole Play takes the Screen's theme; Play's own Light/Dark button
+  still wins.
 - Zen Studio: the drawing tools work on the empty canvas, as in Figma: a Rectangle, Ellipse, Line, Arrow, Polygon, Star,
   text (T), Pen or Pencil path, or a picture dropped there lands as a layer on the canvas where it is drawn (its edges
   snap to the frames and layers beside it). "Draw inside a frame" no longer stops it. On a layer on the canvas that

@@ -1,18 +1,12 @@
 import { useId, type CSSProperties, type Ref } from "react";
 import { Icon } from "../Icon";
 import { useZenLabels } from "../_shared/zen-context";
+import { colorSelectorLabel, colorSwatchModel, type ColorOption } from "./model";
 import "./color-selector.css";
 import "../Icon/core";
 import { dataAttributes } from "../_shared/data-attributes";
 
-export interface ColorOption {
-  /** Any CSS colour — prefer a token, e.g. "var(--zen-color-background-support-blue-solid)". */
-  value: string;
-  /** Accessible name, e.g. "Blue". */
-  label: string;
-  /** Force the check colour when automatic contrast is wrong (light swatches need "dark"). */
-  contrast?: "light" | "dark";
-}
+export type { ColorOption } from "./model";
 
 export interface ColorSelectorProps {
   colors: ColorOption[];
@@ -36,16 +30,15 @@ export interface ColorSelectorProps {
  */
 export function ColorSelector({ colors, value, onValueChange, onChange, "aria-label": ariaLabelProp, name, className, ref, ...rest }: ColorSelectorProps) {
   const t = useZenLabels();
-  const ariaLabel = ariaLabelProp ?? t.colour;
   const autoName = useId();
   return (
-    <div {...dataAttributes(rest)} ref={ref} className={["zen-color-selector", className].filter(Boolean).join(" ")} role="radiogroup" aria-label={ariaLabel}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-color-selector", className].filter(Boolean).join(" ")} role="radiogroup" aria-label={colorSelectorLabel(t, ariaLabelProp)}>
       {colors.map((color) => {
-        const selected = value === color.value;
+        const swatch = colorSwatchModel(color, value);
         return (
-          <label key={color.value} className="zen-color-swatch" data-selected={selected ? "true" : undefined} data-contrast={color.contrast ?? "light"} style={{ "--zen-swatch": color.value } as CSSProperties} title={color.label}>
-            <input type="radio" name={name ?? autoName} value={color.value} checked={selected} aria-label={color.label} onChange={() => { onValueChange?.(color.value); onChange?.(color.value); }} />
-            <span className="zen-color-swatch__fill" aria-hidden="true">{selected ? <Icon name="icon-check-line" decorative /> : null}</span>
+          <label key={color.value} className="zen-color-swatch" data-selected={swatch.selected ? "true" : undefined} data-contrast={swatch.contrast} style={swatch.style as CSSProperties} title={color.label}>
+            <input type="radio" name={name ?? autoName} value={color.value} checked={swatch.selected} aria-label={color.label} onChange={() => { onValueChange?.(color.value); onChange?.(color.value); }} />
+            <span className="zen-color-swatch__fill" aria-hidden="true">{swatch.selected ? <Icon name="icon-check-line" decorative /> : null}</span>
           </label>
         );
       })}

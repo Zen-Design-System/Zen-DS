@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Layout position selftest (spec docs/research/studio-position-effects-radius-spec-2026-10-03.md §3.6): layoutPosition()
 // is inert unless absolute, always writes all four inset vars on the padding ladder, and falls back to left / top for an
-// unknown constraint; cornerRadiusValue() keeps the single radius when no corner is set. position.ts imports its CSS and
-// extension-less modules, so it is bundled with esbuild (CSS emptied) instead of imported by Node directly.
+// unknown constraint; cornerRadiusValue() keeps the single radius when no corner is set. position.ts imports
+// extension-less modules, so it is bundled with esbuild instead of imported by Node directly.
 //   node src/components/Layout/position.selftest.mjs     summary; exit 1 on any failure
 import { build } from "esbuild";
 import { fileURLToPath } from "node:url";

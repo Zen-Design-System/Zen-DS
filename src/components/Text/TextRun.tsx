@@ -1,8 +1,9 @@
 import { type HTMLAttributes, type ReactNode, type Ref } from "react";
-import { typographyStyles, type TypographyStyleName } from "../../tokens/typography.generated";
-import { resolveContentTone, type ContentTone } from "../_shared/contentTone";
+import type { TypographyStyleName } from "../../tokens/typography.generated";
+import type { ContentTone } from "../_shared/contentTone";
 import "../_shared/content-tone.css";
 import "./text.css";
+import { textRunModel } from "./model";
 
 export interface TextRunProps extends Omit<HTMLAttributes<HTMLSpanElement>, "color"> {
   /** Bold words (Figma's Bold weight on a range, ⌘B): the Bold emphasis token over the text style around it. */
@@ -36,17 +37,9 @@ export interface TextRunProps extends Omit<HTMLAttributes<HTMLSpanElement>, "col
  *   <Text>Your plan renews on <TextRun bold>Nov 2</TextRun>. <TextRun tone="negative-base">2 seats</TextRun> are unpaid.</Text>
  */
 export function TextRun({ bold = false, italic = false, underline = false, strikethrough = false, tone, textStyle, className, children, ref, ...rest }: TextRunProps) {
-  const decoration = [underline ? "underline" : "", strikethrough ? "strikethrough" : ""].filter(Boolean).join(" ") || undefined;
+  const run = textRunModel({ bold, italic, underline, strikethrough, tone, textStyle });
   return (
-    <span
-      {...rest}
-      ref={ref}
-      className={["zen-text-run", textStyle ? typographyStyles[textStyle] : "", className].filter(Boolean).join(" ")}
-      data-bold={bold ? "true" : undefined}
-      data-italic={italic ? "true" : undefined}
-      data-decoration={decoration}
-      data-tone={tone ? resolveContentTone(tone) : undefined}
-    >
+    <span {...rest} ref={ref} className={[run.className, className].filter(Boolean).join(" ")} {...run.attributes}>
       {children}
     </span>
   );
