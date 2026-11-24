@@ -784,7 +784,8 @@ function manyComponentsPlan(ctx, elements, op, h) {
 }
 
 /**
- * op many moveTo { parent, before?, after?, copy? } (a drag of several layers, Figma: they land together): the same rules
+ * op many moveTo { parent, before?, after?, copy?, atByLoc?, looseByLoc? } (a drag of several layers, Figma: they land
+ * together; `atByLoc` / `looseByLoc`: each layer's own `at` / `loose`, as one moveTo takes them): the same rules
  * as one moveTo for each layer (children only, not into itself, cloned parents, text parents, keys on a copy, every name
  * it reads the same where it lands), then one edit that removes them (a move) and puts them, in source order, one after
  * the other at the place. The answer (slots.mjs from `focuses`): moved / inserted { loc, locs: old loc → new loc }.
@@ -835,6 +836,20 @@ function manyMoveToPlan(ctx, outer, op, h) {
     const sorted = [...own].sort((a, b) => a - b);
     if (sorted.every((k, n) => k === sorted[0] + n) && at >= sorted[0] && at <= sorted.at(-1) + 1) h.refuse("The layers are already there.");
   }
+  // Each its own place: floated at its px in a frame without auto layout, or a layer on the canvas (a <Layer> each).
+  const byLoc = (field) => (op[field] && typeof op[field] === "object" ? op[field] : null);
+  const atByLoc = byLoc("atByLoc");
+  const looseByLoc = byLoc("looseByLoc");
+  if (atByLoc || looseByLoc) {
+    for (const layer of layers) {
+      const loc = locOfElement(layer.element);
+      const one = looseByLoc ? { loose: looseByLoc[loc] } : { at: atByLoc[loc] };
+      if ((looseByLoc && !looseByLoc[loc]) || (atByLoc && !atByLoc[loc])) h.refuse(`${looseByLoc ? "looseByLoc" : "atByLoc"} names no place for the layer at ${loc}`);
+      layer.part = reshaped(text, layer.element, one, parentName, false, h);
+      layer.lead = 0;
+      if (looseByLoc) layer.name = /<Layer\b[^>]*>\s*<([\w.]+)/.exec(layer.part.src)?.[1] ?? layer.name;
+    }
+  }
   // One block of code: each layer's text with its own indentation taken off, one after the other.
   let lines = 0;
   const protect = new Set();
@@ -857,6 +872,9 @@ function manyMoveToPlan(ctx, outer, op, h) {
   for (let k = 1; k < sorted.length; k += 1) {
     if (sorted[k].start < sorted[k - 1].end) h.refuse("Two of the layers share code (one is inside a condition or a list of the other); move them one at a time");
   }
+  // On the canvas they need Layer; floated in a Box of their own, Box; out of the Boxes that placed them, Box may go.
+  if (looseByLoc) placed.edits.push(...h.builderImportEdits(ctx.ast, ctx.text, ctx.eol, ["Layer"]));
+  if (atByLoc || looseByLoc) removed.push(...tidyImports(ctx, h, [...removed, ...placed.edits], layers.some((layer) => /^<Box\b/.test(layer.part.src) && jsxName(layer.element.openingElement.name) !== "Box") ? ["Box"] : []));
   // Each layer's opening tag in the placed text: the start of its line within the block, past the indentation.
   const origin = placed.focus.within;
   const focuses = layers.map((layer, k) => {

@@ -1,6 +1,11 @@
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { canvasApi } from "../canvas/viewport";
-import { annotatedAt, findBySrc, frameOf, panelOf, parentHit, selectHit, type FiberHit } from "../select/picker";
+import { annotatedAt, findBySrc, frameOf, panelOf, parentHit, rectOf, selectHit, type FiberHit } from "../select/picker";
+import { parseSrc } from "../api";
+import { boardPlaceAt } from "../builder/frameMove";
+import { frameNodeOf } from "../builder/frameEdit";
+import { looseFrameOf } from "../builder/looseLayer";
+import { freeDropAt, moveManyToCanvas, moveToCanvas } from "./reparent";
 import { isLayerSelected, layerOfHit, multiSelection, selectedLayers, type ExtraLayer } from "../select/multiSelection";
 import { canStructurallyEdit, isFloatWrapper, structuralBlock } from "../slots/actions";
 import { canEdit, studioStore } from "../store";
@@ -15,10 +20,14 @@ import { moveLayersTo } from "./multi";
  * undo step), ⌥ drops a copy, Esc cancels, the list scrolls near its edges. Same rules as dragging on the canvas:
  * within the layer's example, names checked where it lands. A row of a multi-selection drags every selected layer
  * (op many moveTo, edit/multi.ts moveLayersTo), as the canvas does.
+ * On a page you made (loose layers PR4, user 2026-11-22): a row dropped above or below a frame's row, or beside a layer
+ * on the canvas, leaves its frame for the canvas (Figma's top level), a layer on the canvas where it shows; a layer on
+ * the canvas dropped into a frame without auto layout keeps where it shows there.
  */
 
 type Resolve = (row: Element) => FiberHit | null;
-type Place = { target: DropTarget; row: Element; mode: "before" | "after" | "into" };
+/** `board`: onto the canvas beside the frame or layer on the canvas `frameId`, `side` of its element in the code. */
+type Place = { target: DropTarget; row: Element; mode: "before" | "after" | "into"; board?: { frameId: string; side: "before" | "after" } };
 
 type Session = {
   tree: HTMLElement;
@@ -96,11 +105,30 @@ function frameRowHit(row: Element): FiberHit | null {
   return hit?.src && isDropContainer(hit) ? hit : null;
 }
 
+/** Where on a row the pointer is: 0 at its top, 1 at its bottom. */
+const offsetIn = (row: Element, y: number) => { const rect = row.getBoundingClientRect(); return (y - rect.top) / Math.max(1, rect.height); };
+
+/**
+ * Onto the canvas beside the frame (or layer on the canvas) `frameId` whose row is `row`, the marker `mode` of it: the
+ * Board's order is the code's (Layers of a page you made list the front-most first, so above a row is after it).
+ */
+function boardPlace(current: Session, row: Element, frameId: string, mode: "before" | "after"): Place | string {
+  if (!sameDropScope(current.hit.hosts[0]?.closest("[data-studio-frame]") ?? null, document.querySelector(`[data-studio-frame="${CSS.escape(frameId)}"]`))) return "Layers move within their own example";
+  const front = current.tree.getAttribute("data-order") === "front";
+  const side = front ? (mode === "before" ? "after" : "before") : mode;
+  return { target: { parentSrc: "", parentName: "the canvas", frameId: null, panelId: null, reparent: true }, row, mode, board: { frameId, side } };
+}
+
 /** The place under the pointer, or a reason; null when nothing is there. */
 function placeAt(current: Session): Place | string | null {
   const under = document.elementFromPoint(current.pointer.x, current.pointer.y);
   const frameRow = under?.closest(FRAME_ROW) ?? null;
+  const local = Boolean(studioStore.getState().localPage);
   if (frameRow && current.tree.contains(frameRow)) {
+    // Above or below a frame of a page you made: on the canvas beside it (Figma's top level).
+    const frameId = frameRow.getAttribute("data-layer-id")?.replace(/^frame:/, "") ?? "";
+    const edge = offsetIn(frameRow, current.pointer.y);
+    if (local && /^(screen|overlay|section|slice|layer):/.test(frameId) && (edge < 0.25 || edge > 0.75)) return boardPlace(current, frameRow, frameId, edge < 0.5 ? "before" : "after");
     const screen = frameRowHit(frameRow);
     if (!screen) return null;
     const frame = screen.hosts[0]?.closest("[data-studio-frame]") ?? null;
@@ -115,9 +143,11 @@ function placeAt(current: Session): Place | string | null {
   if (!sameDropScope(current.hit.hosts[0]?.closest("[data-studio-frame]") ?? null, frame)) return "Layers move within their own example";
   if (inside(current.hit, hit)) return sameHost(current.hit, hit) ? null : "A layer cannot go inside itself";
   for (const other of current.layers?.hits ?? []) if (inside(other, hit)) return sameHost(other, hit) ? null : "A layer cannot go inside itself";
-  const rect = element.getBoundingClientRect();
-  const offset = (current.pointer.y - rect.top) / Math.max(1, rect.height);
+  const offset = offsetIn(element, current.pointer.y);
   const container = isDropContainer(hit);
+  // A layer on the canvas's row (a top-level row): beside it is the canvas too; into it when it takes layers.
+  const loose = local ? looseFrameOf(hit) : null;
+  if (loose && !(container && offset > 0.25 && offset < 0.75)) return boardPlace(current, element, loose, offset < 0.5 ? "before" : "after");
   const mode: Place["mode"] = container && offset > 0.25 && offset < 0.75 ? "into" : offset < 0.5 ? "before" : "after";
   if (mode === "into") return { target: { parentSrc: hit.src, parentName: hit.name, frameId: frameOf(hit.hosts[0]), panelId: panelOf(hit.hosts[0]), reparent: !sameHost(parentHit(current.hit, frame), hit) }, row: element, mode };
   const sibling = outerHit(hit);
@@ -209,8 +239,49 @@ function end(commit: boolean) {
   window.setTimeout(() => window.removeEventListener("click", swallow, { capture: true }), 0);
   const place = current.place;
   if (!commit || !place || !current.layer || current.refusal) return;
-  if (current.layers) void moveLayersTo(place.target, current.copy, current.layers.all);
-  else void moveLayer(current.layer, place.target, current.copy);
+  if (place.board) { void rowsToCanvas(current, place.board); return; }
+  const free = looseInto(current, place.target);
+  if (current.layers) void moveLayersTo(place.target, current.copy, current.layers.all, free ?? {});
+  else void moveLayer(current.layer, free?.at ? { ...place.target, at: free.at } : place.target, current.copy);
+}
+
+/** Where a layer shows on the board now (board frame px, its corner): its row dropped onto the canvas keeps it there. */
+function shownPlace(hit: FiberHit | null | undefined) {
+  const rect = hit ? rectOf(hit.hosts) : null;
+  return (rect && boardPlaceAt({ x: rect.left, y: rect.top })) || { x: 0, y: 0 };
+}
+
+/** The layer as a selection (the element a move writes: the floating Box that places it, else itself). */
+const selectionOf = (hit: FiberHit): NodeSelection => ({ kind: "node", src: hit.src, name: hit.name, frameId: frameOf(hit.hosts[0]), panelId: panelOf(hit.hosts[0]), instance: 0 });
+
+/** Rows dropped onto the canvas (Figma's top level): each layer on the canvas where it shows, beside the frame in order. */
+async function rowsToCanvas(current: Session, board: NonNullable<Place["board"]>) {
+  const { localPage } = studioStore.getState();
+  const node = localPage ? await frameNodeOf(localPage, board.frameId) : null;
+  if (!node) return;
+  const order = board.side === "before" ? { before: node.loc } : { after: node.loc };
+  if (current.layers) {
+    const outers = current.layers.hits.map(outerHit);
+    void moveManyToCanvas(outers.map((hit) => ({ src: hit.src, name: hit.name, frameId: frameOf(hit.hosts[0]), panelId: panelOf(hit.hosts[0]), instance: 0 })), outers.map(shownPlace), current.copy, order);
+    return;
+  }
+  const moving = outerHit(current.hit);
+  void moveToCanvas(selectionOf(moving), shownPlace(moving), current.copy, order);
+}
+
+/**
+ * Layers on the canvas dropped into a frame without auto layout from Layers keep where they show (Figma's): their px
+ * there (`at`, or `atByLoc` for several). Null for other layers or a frame with auto layout (they join its flow).
+ */
+function looseInto(current: Session, target: DropTarget): { at?: { x: number; y: number }; atByLoc?: Record<string, { x: number; y: number }> } | null {
+  const hits = current.layers ? current.layers.hits : [current.hit];
+  if (!hits.every((hit) => looseFrameOf(hit))) return null;
+  const host = findBySrc(canvasApi.getWorldElement() ?? document.body, target.parentSrc)[0]?.hosts[0];
+  const corner = (hit: FiberHit) => { const rect = rectOf(hit.hosts); return rect ? { x: rect.left, y: rect.top } : null; };
+  const atOf = (hit: FiberHit) => { const at = corner(hit); return at ? freeDropAt(host, at) : null; };
+  if (!current.layers) { const at = atOf(current.hit); return at ? { at } : null; }
+  const entries = hits.map((hit) => [parseSrc(hit.src)?.loc ?? "", atOf(hit)] as const);
+  return entries.every(([, at]) => at) ? { atByLoc: Object.fromEntries(entries) as Record<string, { x: number; y: number }> } : null;
 }
 
 function onMove(event: PointerEvent) {

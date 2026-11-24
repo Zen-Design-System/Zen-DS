@@ -18,6 +18,10 @@ How to maintain it:
   button played light, and a Screen dark by its own modes (Apply variable mode) played with light Bottom Sheets, menus,
   toasts and a light stage around the phone. Now the whole Play takes the Screen's theme; Play's own Light/Dark button
   still wins.
+- Zen Studio: in Layers, a row dropped above or below a frame's row (or beside a layer on the canvas) leaves its frame
+  for the canvas, where it shows; a layer on the canvas dropped into a frame without auto layout keeps where it shows.
+  Several selected layers drag together: out of their frame onto the canvas, into a frame (each at its spot when the
+  frame has no auto layout), or, already on the canvas, across it.
 - Zen Studio: the drawing tools work on the empty canvas, as in Figma: a Rectangle, Ellipse, Line, Arrow, Polygon, Star,
   text (T), Pen or Pencil path, or a picture dropped there lands as a layer on the canvas where it is drawn (its edges
   snap to the frames and layers beside it). "Draw inside a frame" no longer stops it. On a layer on the canvas that

@@ -222,9 +222,10 @@ const PLACES = [
     },
   },
   {
-    // The board outside every frame: a new frame there holds the item, floating at its top-left corner, then fits it
-    // (Figma's loose instance; user 2026-10-28 "kéo component ra canvas trống như figma"); an App shell stays refused
-    // (a whole page goes on a Screen). A width written on it is the item's Figma width (user 2026-10-29).
+    // The board outside every frame: the item lands as a layer on the canvas there (a <Layer> of the Board, its place in
+    // no frame; Figma's loose instance: user 2026-10-28 "kéo component ra canvas trống như figma", 2026-11-20 "không đặt
+    // ở ngoài frame được"); an App shell stays refused (a whole page goes on a Screen). A width on its Layer is the item's
+    // Figma width (user 2026-10-29), or a phone's (390) for one that fills its container without one.
     key: "on the board, outside every frame", screen: null, every: 4,
     // Empty canvas inside the canvas area: the gap between two frames side by side, else beside, under, left of or above
     // them (B4 chrome, 2026-11-01: the Inspector pane sits beside the canvas, and two fitted phones leave ~48px at the
@@ -238,17 +239,16 @@ const PLACES = [
       const spots = [...gaps.map((gap) => ({ x: (gap.from + gap.to) / 2, y: top + 40 })), { x: right + 60, y: top + 40 }, { x: left + 40, y: bottom + 60 }, { x: left - 60, y: top + 40 }, { x: left + 40, y: top - 60 }];
       return spots.find((spot) => spot.x > area.left + 24 && spot.x < area.right - 24 && spot.y > area.top + 24 && spot.y < area.bottom - 120) ?? null;
     }),
-    // The frame fits what it holds in a second write that joins the first: wait for it before judging or ⌘Z.
+    // A width (one that fills its container) is a second write that joins the first: wait for it before judging or ⌘Z.
     settle: (page, id, after) => changed(page, id, after, 2000).then((next) => next ?? after),
     expect(before, after, item) {
       const node = added(before, after, item.root);
-      const screen = node?.parents.find((step) => step.name === "Screen");
-      const id = screen?.props.id?.value;
-      if (!node || !id || before.includes(`id="${id}"`)) return `landed at ${node?.chain ?? "nowhere"}, not in a new frame`;
-      const floating = node.parents.at(-1)?.name === "Screen" ? node.node : node.parents.at(-1);
-      if (!/^\d/.test(String(floating?.props.insetLeft?.value)) || floating?.props.position?.value !== "absolute") return "not floating at the new frame's corner";
-      const width = floating.props.width?.value;
-      return width === undefined || width === FIGMA_WIDTHS[item.id] ? null : `${width} wide, not its Figma width (${FIGMA_WIDTHS[item.id] ?? "it hugs"})`;
+      const layer = node?.parents.at(-1);
+      const id = layer?.props.id?.value;
+      if (!node || layer?.name !== "Layer" || node.parents.at(-2)?.name !== "Board" || !id || before.includes(`id="${id}"`)) return `landed at ${node?.chain ?? "nowhere"}, not on the canvas in a <Layer> of its own`;
+      if (node.node.props.position !== undefined) return "still placed as in a frame (position)";
+      const width = layer.props.width?.value;
+      return width === undefined || width === FIGMA_WIDTHS[item.id] || (FIGMA_WIDTHS[item.id] === undefined && width === 390) ? null : `${width} wide, not its Figma width (${FIGMA_WIDTHS[item.id] ?? "it hugs, or a phone's 390"})`;
     },
   },
 ];
