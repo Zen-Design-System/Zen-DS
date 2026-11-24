@@ -142,7 +142,7 @@ export async function stepLayers(to: "prev" | "next", layers: ExtraLayer[] = sel
  * A drag of several layers (edit/drag.ts): all of them go to `target` (op many moveTo: in source order, together at the
  * drop place; `copy` leaves them where they are, ⌥), and they stay selected there. One edit, one undo step.
  */
-export async function moveLayersTo(target: DropTarget, copy: boolean, layers: ExtraLayer[] = selectedLayers()) {
+export async function moveLayersTo(target: DropTarget, copy: boolean, layers: ExtraLayer[] = selectedLayers(), places: Pick<ManyExtra, "atByLoc" | "looseByLoc"> = {}) {
   if (running) return false;
   const parent = parseSrc(target.parentSrc);
   if (!parent) return false;
@@ -156,7 +156,7 @@ export async function moveLayersTo(target: DropTarget, copy: boolean, layers: Ex
       if (block) { fail(block); return false; }
     }
   }
-  const extra: ManyExtra = { parent: parent.loc, ...(target.before ? { before: parseSrc(target.before)?.loc } : target.after ? { after: parseSrc(target.after)?.loc } : {}), ...(copy ? { copy: true } : {}) };
+  const extra: ManyExtra = { parent: parent.loc, ...(target.before ? { before: parseSrc(target.before)?.loc } : target.after ? { after: parseSrc(target.after)?.loc } : {}), ...(copy ? { copy: true } : {}), ...places };
   const label = `${copy ? "Copy" : "Move"} ${layers.length} layers${target.reparent || copy ? ` into ${target.parentName}` : ""}`;
   const done = await send(items.map((item) => item.moving), "moveTo", label, extra);
   if (!done) return false;

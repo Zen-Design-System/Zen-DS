@@ -424,7 +424,7 @@ export type EditOp =
    * copy's) where the server has it; "moveTo" (a drag of several layers: `parent`, `before` / `after`, `copy` as op
    * moveTo) answers `moved` / `inserted` { loc, locs }.
    */
-  | { op: "many"; action: "remove" | "duplicate" | "setProps" | "move" | "moveTo"; locs: string[]; ops?: EditOp[]; opsByLoc?: Record<string, EditOp[]>; to?: "prev" | "next"; parent?: string; before?: string; after?: string; copy?: boolean }
+  | { op: "many"; action: "remove" | "duplicate" | "setProps" | "move" | "moveTo"; locs: string[]; ops?: EditOp[]; opsByLoc?: Record<string, EditOp[]>; to?: "prev" | "next"; parent?: string; before?: string; after?: string; copy?: boolean; /** moveTo: each layer's px in a frame without auto layout (by loc). */ atByLoc?: Record<string, { x: number; y: number }>; /** moveTo onto the Board: each layer's <Layer> (by loc; loose layers). */ looseByLoc?: Record<string, { id: string; x: number; y: number; width?: number }> }
   /** Figma "Delete contents": empty the host's `prop` slot (omitted: children); `hash` required. Answer: `cleared`. */
   | { op: "clearSlot"; prop?: string }
   /** Figma "Reset slot": the host's `prop` slot (omitted: children) back to the saved file; `hash` required. Answer: `reset`. */

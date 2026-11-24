@@ -2,6 +2,7 @@ import { applyEdit } from "../api";
 import { selectFrameWhenShown } from "../board/frames";
 import { canvasApi } from "../canvas/viewport";
 import { annotatedAt, childHits, findBySrc, frameOf, selectHit, type FiberHit } from "../select/picker";
+import { selectLayers } from "../select/multiSelection";
 import { studioStore } from "../store";
 import type { EditOp, PageVarStarts } from "../types";
 import { loadEngine, zenComponents } from "./engine";
@@ -44,6 +45,21 @@ export function looseLayerHit(frameId: string): FiberHit | null {
   const hit = annotatedAt(host);
   if (!hit) return null;
   return hit.name === "Layer" ? childHits(hit)[0] ?? null : hit;
+}
+
+/** Selects the layers of the loose Layers `frameIds` together once the board shows them (several moved onto the canvas). */
+export function selectLooseLayersWhenShown(frameIds: readonly string[]) {
+  if (frameIds.length < 2) { if (frameIds[0]) selectLooseLayerWhenShown(frameIds[0]); return; }
+  selectFrameWhenShown(frameIds[frameIds.length - 1], () => {
+    const pick = (tries: number) => {
+      const hits = frameIds.map(looseLayerHit);
+      if (hits.every(Boolean)) {
+        const refs = hits.map((hit) => ({ src: hit!.src, name: hit!.name, frameId: frameOf(hit!.hosts[0]), panelId: null, instance: 0 }));
+        selectLayers(refs[0], refs.slice(1));
+      } else if (tries > 0) requestAnimationFrame(() => pick(tries - 1));
+    };
+    pick(30);
+  });
 }
 
 /** Selects the one layer of the loose Layer `frameId` once the board shows it (a Layer just added or copied). */

@@ -6438,6 +6438,154 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       return "a picture dropped on the canvas → <Layer> at 420, 340 · Pen → a vector <Layer> at 700, 360 · ⌘Z, ⌘Z";
     },
   },
+  {
+    id: "FW-285", feature: "Layers: a row dropped above another frame's row leaves its frame for the canvas (Figma's top level, loose layers PR4): a layer on the canvas where it shows, listed above that frame; ⌘Z", wp: "loose layers PR4 2026-11-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await dragOutPage(ctx);
+      const shape = page.locator('[data-studio-frame="screen:screen-1"] [data-zen-name="Shape"]').first();
+      const box = await shape.boundingBox();
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await showLeftTab(page, "layers");
+      const row = page.locator('.studio-layers__tree [role="treeitem"][aria-selected="true"]').first();
+      await row.scrollIntoViewIfNeeded();
+      const from = await row.boundingBox();
+      const empty = await page.locator('.studio-layers__tree [role="treeitem"][data-layer-id="frame:screen:screen-3"]').first().boundingBox();
+      await dragBy(page, { x: from.x + 40, y: from.y + from.height / 2 }, empty.x + 40 - (from.x + 40), empty.y + empty.height * 0.1 - (from.y + from.height / 2));
+      await until(async () => /<Layer id="layer-2"/.test((await pageText(page, id)) ?? ""), { message: "a layer on the canvas" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const layer = boardTag(text, "Layer", "layer-2");
+      const inside = text.slice(text.indexOf('<Layer id="layer-2"'), text.indexOf("</Layer>", text.indexOf('<Layer id="layer-2"')));
+      const order = ['<Screen id="screen-3"', '<Layer id="layer-2"', '<Layer id="layer-1"'].map((tag) => text.indexOf(tag));
+      const problems = [
+        !/type="rectangle"/.test(inside) && `the Layer holds ${inside.replace(/\s+/g, " ").slice(0, 120)}`,
+        /<Shape\b/.test(text.slice(text.indexOf('<Screen id="screen-1"'), text.indexOf("</Screen>", text.indexOf('<Screen id="screen-1"')))) && "the rectangle is still in its frame",
+        (Math.abs(numberAttr(layer, "x") - 20) > 2 || Math.abs(numberAttr(layer, "y") - 20) > 2) && `at ${numberAttr(layer, "x")}, ${numberAttr(layer, "y")} (it showed at 20, 20)`,
+        !(order[0] < order[1] && order[1] < order[2]) && "not listed right above the Empty frame (after it in the code)",
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: back in its frame" });
+      return "Rectangle row → above Empty's row → <Layer> at 20, 20, after screen-3 in the code · ⌘Z";
+    },
+  },
+  {
+    id: "FW-286", feature: "Layers: a layer on the canvas's row dropped below a row in auto layout joins that flow behind it (Layers lists the front-most first); onto a frame without auto layout's row it keeps where it shows (its px there); its Layer goes; ⌘Z each", wp: "loose layers PR4 2026-11-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await dragOutPage(ctx);
+      await showLeftTab(page, "layers");
+      const tree = page.locator(".studio-layers__tree");
+      const looseRow = tree.locator('[role="treeitem"][data-kind="node"][aria-level="1"]').filter({ hasText: /Button/ }).first();
+      // The Flow frame's row opens to show its Stack.
+      const flowRow = tree.locator('[role="treeitem"][data-layer-id="frame:screen:screen-2"]').first();
+      if ((await flowRow.getAttribute("aria-expanded")) === "false") await flowRow.locator(".studio-layers__chevron").click();
+      // The page's Stack folds into the frame's row (its body). Layers lists the front-most first (Figma's): below the
+      // Text "Two"'s row is before it in the Stack's code, after the Button "Flow".
+      const two = /^(\d+)/.exec(String(before.split("\n").findIndex((line) => line.includes("<Text>Two</Text>")) + 1))[1];
+      const twoRow = tree.locator(`[role="treeitem"][data-layer-id^="local:${id}.zen.tsx:${two}:"]`).first();
+      await twoRow.scrollIntoViewIfNeeded();
+      let from = await looseRow.boundingBox();
+      let to = await twoRow.boundingBox();
+      await dragBy(page, { x: from.x + 40, y: from.y + from.height / 2 }, to.x + 60 - (from.x + 40), to.y + to.height * 0.85 - (from.y + from.height / 2));
+      await until(async () => !/<Layer id="layer-1"/.test((await pageText(page, id)) ?? ""), { message: "the Layer gone" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      let text = (await pageText(page, id)) ?? "";
+      const stack = text.slice(text.indexOf("<Stack"), text.indexOf("</Stack>"));
+      if (!/<Button>Flow<\/Button>\s*<Button>Go<\/Button>\s*<Text>Two<\/Text>/.test(stack)) throw new Error(`the Stack holds ${stack.replace(/\s+/g, " ").slice(0, 160)}`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: back on the canvas" });
+      // Onto the Empty frame's row (600, 400): the Button at 600, 0 keeps where it shows, 0, -400 there.
+      from = await looseRow.boundingBox();
+      to = await tree.locator('[role="treeitem"][data-layer-id="frame:screen:screen-3"]').first().boundingBox();
+      await dragBy(page, { x: from.x + 40, y: from.y + from.height / 2 }, to.x + 60 - (from.x + 40), to.y + to.height / 2 - (from.y + from.height / 2));
+      await until(async () => !/<Layer id="layer-1"/.test((await pageText(page, id)) ?? ""), { message: "the Layer gone (into Empty)" });
+      text = (await pageText(page, id)) ?? "";
+      const frame = text.slice(text.indexOf('<Screen id="screen-3"'), text.indexOf("</Screen>", text.indexOf('<Screen id="screen-3"')));
+      const float = /<Box position="absolute" insetLeft=\{(-?\d+)\} insetTop=\{(-?\d+)\}>\s*<Button>Go<\/Button>/.exec(frame);
+      if (!float || Math.abs(Number(float[1])) > 2 || Math.abs(Number(float[2]) + 400) > 2) throw new Error(`Empty holds ${frame.replace(/\s+/g, " ").slice(0, 200)} (want the Button at 0, -400: where it shows)`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: back on the canvas" });
+      return `Button row → below Two's row: in the Stack, behind Two · → Empty's row: at ${float[1]}, ${float[2]} · ⌘Z each`;
+    },
+  },
+  {
+    id: "FW-287", feature: "Two shapes selected in a frame and dragged together onto the empty canvas leave it: each a layer on the canvas where it shows (the ellipse still 120, 20 from the rectangle), both selected; ⌘Z", wp: "loose layers PR4 2026-11-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      const rect = await clipShape(page, id, 0).boundingBox();
+      const frame = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+      // Past the frame's right edge, onto the empty canvas.
+      await dragBy(page, { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }, frame.x + frame.width + 160 - (rect.x + rect.width / 2), 0);
+      await until(async () => /<Layer id="layer-2"/.test((await pageText(page, id)) ?? ""), { message: "two layers on the canvas" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const [a, b] = ["layer-1", "layer-2"].map((layer) => boardTag(text, "Layer", layer));
+      const kinds = ["layer-1", "layer-2"].map((layer) => /type="(\w+)"/.exec(text.slice(text.indexOf(`<Layer id="${layer}"`)))?.[1]);
+      const problems = [
+        kinds.join() !== "rectangle,ellipse" && `the Layers hold ${kinds.join(", ")}`,
+        (Math.abs(numberAttr(b, "x") - numberAttr(a, "x") - 120) > 2 || Math.abs(numberAttr(b, "y") - numberAttr(a, "y") - 20) > 2) && `the ellipse ${numberAttr(b, "x") - numberAttr(a, "x")}, ${numberAttr(b, "y") - numberAttr(a, "y")} from the rectangle (want 120, 20)`,
+        /<Shape\b/.test(text.slice(text.indexOf("<Screen"), text.indexOf("</Screen>"))) && "a shape is still in the frame",
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      await until(async () => (await selectedSrc(page)).length === 2 || (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === 1, { message: "both selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: both back in the frame" });
+      return `2 shapes → the canvas: <Layer>s at ${numberAttr(a, "x")}, ${numberAttr(a, "y")} and +120, +20, both selected · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-288", feature: "Two layers on the canvas selected and dragged together move together on the canvas (each its Layer's X / Y by the same amount, as frames); ⌘Z", wp: "loose layers PR4 2026-11-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await loosePage(ctx);
+      const zoom = await looseZoom(page);
+      await clickLoose(page, "layer-1", ".zen-button");
+      const stack = await page.locator('[data-studio-frame="layer:layer-2"] .zen-stack').first().boundingBox();
+      await page.keyboard.down("Shift");
+      await page.mouse.click(stack.x + stack.width / 2, stack.y + 6);
+      await page.keyboard.up("Shift");
+      await until(async () => (await selectedSrc(page)).length === 2 || (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === 1, { message: "both selected" });
+      const button = await page.locator('[data-studio-frame="layer:layer-1"] .zen-button').boundingBox();
+      await dragBy(page, { x: button.x + 6, y: button.y + 6 }, 30 * zoom, 40 * zoom);
+      await until(async () => (await pageText(page, id)) !== before, { message: "moved" });
+      const text = (await pageText(page, id)) ?? "";
+      const [a, b] = ["layer-1", "layer-2"].map((layer) => boardTag(text, "Layer", layer));
+      if (Math.abs(numberAttr(a, "x") - 530) > 2 || Math.abs(numberAttr(a, "y") - 40) > 2 || Math.abs(numberAttr(b, "x") - 530) > 2 || Math.abs(numberAttr(b, "y") - 200) > 2) throw new Error(`layer-1 at ${numberAttr(a, "x")}, ${numberAttr(a, "y")} · layer-2 at ${numberAttr(b, "x")}, ${numberAttr(b, "y")} (want 530, 40 and 530, 200)`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: back" });
+      return "Button + Stack on the canvas → +30, +40 together · ⌘Z";
+    },
+  },
+  {
+    id: "FW-289", feature: "Two layers on the canvas selected and dropped together into a frame without auto layout go into it, each at the px it shows there (their Layers go); ⌘Z", wp: "loose layers PR4 2026-11-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await loosePage(ctx);
+      const zoom = await looseZoom(page);
+      await clickLoose(page, "layer-1", ".zen-button");
+      const stack = await page.locator('[data-studio-frame="layer:layer-2"] .zen-stack').first().boundingBox();
+      await page.keyboard.down("Shift");
+      await page.mouse.click(stack.x + stack.width / 2, stack.y + 6);
+      await page.keyboard.up("Shift");
+      await until(async () => (await selectedSrc(page)).length === 2 || (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === 1, { message: "both selected" });
+      const button = await page.locator('[data-studio-frame="layer:layer-1"] .zen-button').boundingBox();
+      // From 500, 0 and 500, 160 to 20, 20 and 20, 180: inside screen-1 (0, 0, 400 × 300).
+      await dragBy(page, { x: button.x + 6, y: button.y + 6 }, -480 * zoom, 20 * zoom);
+      await until(async () => !/<Layer id/.test((await pageText(page, id)) ?? ""), { message: "both Layers gone" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)} · ${((await pageText(page, id)) ?? "").match(/<Layer id="[^"]+"/g)?.join(", ")}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const frame = text.slice(text.indexOf('<Screen id="screen-1"'), text.indexOf("</Screen>", text.indexOf('<Screen id="screen-1"')));
+      const button1 = /<Box position="absolute" insetLeft=\{(-?\d+)\} insetTop=\{(-?\d+)\}>\s*<Button>Go<\/Button>/.exec(frame);
+      const stack1 = /<Stack position="absolute" insetLeft=\{(-?\d+)\} insetTop=\{(-?\d+)\}/.exec(frame);
+      const near = (match, x, y) => match && Math.abs(Number(match[1]) - x) <= 2 && Math.abs(Number(match[2]) - y) <= 2;
+      if (!near(button1, 20, 20) || !near(stack1, 20, 180)) throw new Error(`screen-1 holds ${frame.replace(/\s+/g, " ").slice(0, 240)} (want the Button at 20, 20 and the Stack at 20, 180)`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: both back on the canvas" });
+      return "Button + Stack → screen-1 at 20, 20 and 20, 180 · ⌘Z";
+    },
+  },
   ...pictureRows,
 ];
 

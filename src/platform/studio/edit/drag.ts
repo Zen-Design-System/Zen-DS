@@ -16,8 +16,10 @@ import type { EditOp } from "../types";
 import { textEditSession } from "./textEdit";
 import { srcAttr } from "../select/srcIds";
 import { snapBox, SNAP_PX, type FrameBox, type SnapGuide } from "../builder/render/framePlace";
-import { barBoxesIn, layerHolderOf, layerKidsOf } from "./freeBlock";
-import { canvasDropAt, freeDropAt, moveToCanvas } from "./reparent";
+import { barBoxesIn, freeBlock, layerHolderOf, layerKidsOf } from "./freeBlock";
+import { canvasDropAt, freeDropAt, moveManyToCanvas, moveToCanvas } from "./reparent";
+import { boardPlaceAt } from "../builder/frameMove";
+import { looseFrameOfSelection } from "../builder/looseLayer";
 import type { FramePlace } from "../builder/render/framePlace";
 
 /*
@@ -379,8 +381,9 @@ function follow(current: Session) {
   const context: DropContext = { hosts: current.hosts, frame: current.frame, parentHost: current.parentHost, origin: current.origin, layerSrc: current.layer.src, copy: current.copy, origins: current.origins, layers: current.layers?.length ?? 1, slots: true };
   const { target, reason } = current.refusal ? { target: null, reason: current.refusal } : dropTargetAt(current.pointer.x, current.pointer.y, context);
   current.target = target;
-  // Over the empty canvas (no frame under the pointer): it leaves its frame for the canvas, where it shows (Figma's).
-  const shown = !target && !reason && !current.layers ? rectOf(current.hosts) : null;
+  // Over the empty canvas (no frame under the pointer): it leaves its frame for the canvas, where it shows (Figma's);
+  // several layers each where it shows.
+  const shown = !target && !reason ? rectOf(current.hosts) : null;
   current.board = shown ? canvasDropAt(current.pointer, { x: shown.left, y: shown.top }, current.hosts) : null;
   outOfFrame(current.frame, Boolean(current.board));
   const label = reason ?? (current.board ? (current.copy ? "Copy to the canvas" : "Move to the canvas") : current.copy ? "Copy" : null);
@@ -420,7 +423,11 @@ type FloatMove = {
 };
 
 /** Several floating layers moved together: their items, their shared block (null: in several frames, no snapping). */
-type GroupMove = { items: FloatingItem[]; block: HTMLElement | null; scale: number; others: FrameBox[] | null; union: FrameBox; shift: { x: number; y: number }; guides: SnapGuide[]; spacing: SpacingMark[] };
+type GroupMove = {
+  items: FloatingItem[]; block: HTMLElement | null; scale: number; others: FrameBox[] | null; union: FrameBox; shift: { x: number; y: number }; guides: SnapGuide[]; spacing: SpacingMark[];
+  /** The pointer outside their frame: the empty canvas (`board`) or the frame they go into (`free`: its block, when it has no auto layout). */
+  out?: { board?: boolean; target?: Target; free?: HTMLElement | null } | null;
+};
 
 /** A free frame's DOM node: a builder Screen (or its content box) or a Box that is not a layer's float wrapper. */
 const FREE_FRAME = ".studio-builder-screen, .studio-builder-screen__content, .zen-box";
@@ -640,6 +647,16 @@ function end(commit: boolean) {
   }
   drop(current);
   outOfFrame(current.frame, false);
+  if (current.group?.out && commit && !current.refusal) {
+    const { items, out } = current.group;
+    const corners = items.map((item) => movedCorner(current, item.host));
+    if (out.board) void moveManyToCanvas(items.map((item) => item.target), corners.map((corner) => boardPlaceAt(corner) ?? { x: 0, y: 0 }), current.copy);
+    else if (out.target) {
+      const atByLoc = out.free ? Object.fromEntries(items.map((item, k) => [parseSrc(item.target.src)?.loc ?? "", freeDropAt(out.free!, corners[k]) ?? { x: 0, y: 0 }])) : undefined;
+      void moveLayersTo(out.target, current.copy, items.map((item) => item.target), atByLoc ? { atByLoc } : {});
+    }
+    return;
+  }
   if (current.group) {
     const { items, shift } = current.group;
     if (commit && !current.refusal && (shift.x || shift.y)) void writeMoves(items, items.map(() => ({ dx: shift.x, dy: shift.y })), `Move ${items.length} layers · X ${shift.x >= 0 ? "+" : ""}${shift.x}, Y ${shift.y >= 0 ? "+" : ""}${shift.y}`, true);
@@ -652,10 +669,14 @@ function end(commit: boolean) {
     if (commit && !current.refusal) void dropFloat(current.float);
     return;
   }
-  if (commit && current.board && !current.refusal) { void moveToCanvas(current.layer, current.board, current.copy); return; }
+  if (commit && current.board && !current.refusal) {
+    if (current.layers) void moveManyToCanvas(current.layers, current.layers.map((layer) => movedPlace(current, layer)), current.copy);
+    else void moveToCanvas(current.layer, current.board, current.copy);
+    return;
+  }
   const target = current.target;
   if (!commit || !target || target.noop || current.refusal) return;
-  if (current.layers) void moveLayersTo(target, current.copy, current.layers);
+  if (current.layers) void moveLayersTo(target, current.copy, current.layers, looseInto(current, target));
   else void moveLayer(current.layer, target, current.copy);
 }
 
@@ -828,8 +849,73 @@ function armGroup(event: PointerEvent, world: Element, layers: ExtraLayer[], ite
   return true;
 }
 
+/**
+ * Layers on the canvas dropped together into a frame without auto layout: each at the px it shows there (Figma's), as
+ * one dropped alone (frameMove.ts looseDropAt). Nothing for layers from frames, or a frame with auto layout.
+ */
+function looseInto(current: Session, target: Target) {
+  const layers = current.layers ?? [];
+  if (!layers.length || !layers.every((layer) => looseFrameOfSelection(layer))) return {};
+  const host = findBySrc(canvasApi.getWorldElement() ?? document.body, target.parentSrc)[0]?.hosts[0];
+  if (!freeBlock(host)) return {};
+  const world = canvasApi.getWorldElement();
+  const atByLoc = Object.fromEntries(layers.map((layer) => {
+    const hit = world ? findBySrc(world, layer.src)[layer.instance] ?? findBySrc(world, layer.src)[0] : null;
+    const shown = hit?.hosts.find((node) => current.origins.has(node)) ?? hit?.hosts[0];
+    return [parseSrc(layer.src)?.loc ?? "", (shown && freeDropAt(host, movedCorner(current, shown))) || { x: 0, y: 0 }];
+  }));
+  return { atByLoc };
+}
+
+/** Where `host` shows now: its box at the press moved by the pointer (client px, its top-left). */
+function movedCorner(current: Session, host: Element): { x: number; y: number } {
+  const at = current.origins.get(host) ?? host.getBoundingClientRect();
+  return { x: at.left + current.pointer.x - current.start.x, y: at.top + current.pointer.y - current.start.y };
+}
+
+/** Where a dragged layer lands on the canvas (board frame px): its box at the press moved by the pointer. */
+function movedPlace(current: Session, layer: ExtraLayer): FramePlace {
+  const world = canvasApi.getWorldElement();
+  const hit = world ? findBySrc(world, layer.src)[layer.instance] ?? findBySrc(world, layer.src)[0] : null;
+  const host = hit?.hosts.find((node) => current.origins.has(node)) ?? hit?.hosts[0];
+  return (host && boardPlaceAt(movedCorner(current, host))) || current.board || { x: 0, y: 0 };
+}
+
+/**
+ * Several floating layers with the pointer outside their frame (Figma's reparent of a selection): they follow the
+ * pointer, and go on release to the empty canvas under it (each a layer on the canvas) or into the frame under it (each
+ * at its px in a frame without auto layout). False while the pointer is over their frame.
+ */
+function followGroupOut(current: Session, group: GroupMove): boolean {
+  const own = current.frame;
+  const frame = own?.getBoundingClientRect();
+  const { pointer } = current;
+  const inside = frame && pointer.x >= frame.left && pointer.x <= frame.right && pointer.y >= frame.top && pointer.y <= frame.bottom;
+  if (inside || current.refusal || !studioStore.getState().localPage) {
+    if (group.out) { group.out = null; outOfFrame(own, false); }
+    return false;
+  }
+  const dx = pointer.x - current.start.x;
+  const dy = pointer.y - current.start.y;
+  for (const item of group.items) item.host.style.setProperty("translate", `${dx / group.scale}px ${dy / group.scale}px`);
+  const corner = movedCorner(current, group.items[0].host);
+  let out: GroupMove["out"] = canvasDropAt(pointer, corner, group.items.map((item) => item.host)) ? { board: true } : null;
+  if (!out) {
+    const context: DropContext = { hosts: group.items.map((item) => item.host), frame: own, parentHost: null, origin: null, layerSrc: group.items[0].target.src, copy: current.copy, layers: group.items.length, slots: false };
+    const { target } = dropTargetAt(pointer.x, pointer.y, context);
+    const host = target ? findBySrc(canvasApi.getWorldElement() ?? document.body, target.parentSrc)[0]?.hosts[0] : undefined;
+    if (target) out = { target: { ...target, reparent: true }, free: freeBlock(host) };
+  }
+  group.out = out;
+  outOfFrame(own, true);
+  const count = group.items.length;
+  publish({ line: out?.target && !out.free ? out.target.line : null, into: out?.target?.into ?? null, pointer, label: out?.board ? `${current.copy ? "Copy" : "Move"} ${count} layers to the canvas` : out?.target ? `${current.copy ? "Copy" : "Move"} ${count} layers into ${out.target.parentName}` : null, tone: "info" });
+  return true;
+}
+
 /** Several floating layers following the pointer by the px (Figma's move of a selection). */
 function followGroup(current: Session, group: GroupMove) {
+  if (followGroupOut(current, group)) return;
   let dx = (current.pointer.x - current.start.x) / group.scale;
   let dy = (current.pointer.y - current.start.y) / group.scale;
   if (current.keys.shift) { if (Math.abs(dx) >= Math.abs(dy)) dy = 0; else dx = 0; }

@@ -788,7 +788,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       }
       // A layer on the canvas (<Layer>, Figma's; user 2026-11-20) moves on the board as a frame does (its Layer's x / y,
       // smart guides to the frames beside it, ⌥ a copy: builder/frameMove.ts); a click without moving still selects it.
-      const loose = !event.shiftKey ? looseFrameOf(target) : null;
+      // Several layers selected: they drag together (edit/drag.ts), however many of them are on the canvas.
+      const loose = !event.shiftKey && !multiSelection.get().length ? looseFrameOf(target) : null;
       if (loose && pressFrame(event.nativeEvent, loose, () => choose(target, false))) return;
       // A press can drag the layer (Figma; edit/drag.ts): inside the selected layer it drags that one, and a click
       // without moving still selects the layer the click picks.
