@@ -3270,26 +3270,45 @@ export default function Page() {
 }
 
 {
-  // Layers on the canvas (<Layer>, outside any frame; user 2026-11-20): the frames push as before, the Layer is named.
+  // Layers on the canvas (<Layer>, outside any frame; loose layers PR6): each a frame of its own in the package, holding
+  // its layer, with where it goes on the page (its board place, counted from the frame nearest it, named by its id).
   const page = `// @zen-page {"format":1,"title":"Loose"}
 import { Board, Layer, Screen } from "@zen-ds/react/builder";
-import { Button, Text } from "@zen-ds/react";
+import { Button, Text, TopNavigation } from "@zen-ds/react";
 
 export default function Page() {
   return (
     <Board>
-      <Screen id="home" title="Home" frame x={0} y={0} width={400} height={300}>
+      <Screen id="home" title="Home" frame x={100} y={50} width={400} height={300}>
         <Text>Hello</Text>
       </Screen>
-      <Layer id="layer-1" x={500} y={0}>
+      <Layer id="layer-1" x={600} y={50}>
         <Button>Go</Button>
+      </Layer>
+      <Layer id="layer-2" x={600} y={200} width={390}>
+        <TopNavigation title="Bar" />
+      </Layer>
+      <Screen id="far" title="Far" frame x={2000} y={50} width={400} height={300}>
+        <Text>Far</Text>
+      </Screen>
+      <Layer id="layer-3" x={2000} y={400}>
+        <Button>Near far</Button>
       </Layer>
     </Board>
   );
 }
 `;
   const { pkg, notes } = figmaPackage(page, { mapping, nestedLayers: NESTED_LAYERS, page: { id: "loose", title: "Loose" } });
-  check("loose layers: the Screen is the one frame pushed; the Layer is named, not pushed", [pkg?.frame?.name, pkg?.frames ?? null, notes.some((note) => /1 layer on the canvas \(outside any frame\): not pushed yet/.test(note))], ["Home", null, true]);
+  const entry = (id) => pkg?.frames?.find((each) => each.id === id)?.frame;
+  const button = entry("layer:layer-1");
+  const bar = entry("layer:layer-2");
+  check("loose layers: the package holds the Screen, then each layer on the canvas as a frame of its own", pkg?.frames?.map((each) => each.id), ["screen:home", "layer:layer-1", "layer:layer-2", "screen:far", "layer:layer-3"]);
+  check("loose layers: a hugging one, its layer inside, its place from the nearest frame's", [button?.hug, button?.children?.length, button?.children?.[0]?.name, button?.layer], [true, 1, "Button/Main", { x: 600, y: 50, origin: { x: 100, y: 50 }, anchor: "screen:home" }]);
+  check("loose layers: one with a width: its frame that wide, its layer filling it", [bar?.hug ?? false, bar?.width, bar?.children?.[0]?.fillW, bar?.layer], [false, 390, true, { x: 600, y: 200, width: 390, origin: { x: 100, y: 50 }, anchor: "screen:home" }]);
+  check("loose layers: one beside a later frame counts from that frame", entry("layer:layer-3")?.layer, { x: 2000, y: 400, origin: { x: 2000, y: 50 }, anchor: "screen:far" });
+  check("drawn frames: as wide as drawn (not the desktop's 1440), as tall as drawn at least, and not noted", [pkg?.frame?.width, pkg?.frame?.minH, entry("screen:far")?.width, notes.filter((note) => /^Screen (frame|width)/.test(note))], [400, 300, 400, []]);
+  check("board places: each frame with its x / y on the board, for the importer to lay them out as the board has them", pkg?.frames?.map((each) => each.place), [{ x: 100, y: 50 }, { x: 600, y: 50 }, { x: 600, y: 200 }, { x: 2000, y: 50 }, { x: 2000, y: 400 }]);
+  check("loose layers: nothing noted as not pushed", notes.filter((note) => /canvas|Layer/.test(note)), []);
 }
 
 if (failures.length) {
