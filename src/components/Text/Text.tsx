@@ -1,28 +1,13 @@
-import { Children, type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from "react";
-import { typographyStyles, type TypographyStyleName } from "../../tokens/typography.generated";
-import { layoutSizing, withSizingVars, type LayoutSizingProps } from "../Layout/sizing";
-import { contentTones, resolveContentTone, type ContentTone } from "../_shared/contentTone";
+import { Children, type HTMLAttributes, type ReactNode, type Ref } from "react";
+import type { TypographyStyleName } from "../../tokens/typography.generated";
+import { withSizingVars, type LayoutSizingProps } from "../Layout/sizing";
+import "../Layout/layout.css";
+import type { ContentTone } from "../_shared/contentTone";
 import "../_shared/content-tone.css";
 import "./text.css";
+import { hasLineBreak, headingModel, textModel, type HeadingLevel, type TextAlign, type TextElement, type TextRootModel, type TextVerticalAlign } from "./model";
 
-/**
- * Text colour roles: every resting Figma Color/Content token, named by its path (`support-blue-light` =
- * Content/Support/Blue/Light; contentTone.ts). Neutral text: `strongest` (primary), `base` (secondary), `light`
- * (tertiary). Colour families: Strongest/Base for text on the family's Subtle background; Light, sparingly, for short
- * text that must stand out (help or error text, a condition, a delta), never for the Lights group (Accent, Warning,
- * Support/Yellow). `on-colors` is text on a Solid fill
- * (docs/component-usage-rules.md §7). Older names stay as aliases (`secondary`, `accent` = `accent-base`, `inverse`).
- */
-export const textTones = contentTones;
-export type TextTone = ContentTone;
-
-export const textElements = ["p", "span", "div", "strong", "em", "small", "label", "li", "dt", "dd", "figcaption", "legend", "code", "time"] as const;
-export type TextElement = (typeof textElements)[number];
-
-/** Text alignment, as Figma's Alignment: start (left in LTR) · center · end · justify (Figma's Justified). */
-export type TextAlign = "start" | "center" | "end" | "justify";
-/** Vertical alignment inside the text box, as Figma's Align top · middle · bottom. */
-export type TextVerticalAlign = "top" | "middle" | "bottom";
+export { headingLevels, plural, textElements, textTones, type HeadingLevel, type TextAlign, type TextElement, type TextTone, type TextVerticalAlign } from "./model";
 
 export interface TextProps extends Omit<HTMLAttributes<HTMLElement>, "color">, LayoutSizingProps {
   /** Figma text style, e.g. "Body/Base/Regular" (default), "Body/Small/Medium", "Caption/Regular", "Heading/4". */
@@ -63,10 +48,8 @@ export interface TextProps extends Omit<HTMLAttributes<HTMLElement>, "color">, L
   ref?: Ref<HTMLElement>;
 }
 
-function truncateStyle(truncate: TextProps["truncate"], style: CSSProperties | undefined): CSSProperties | undefined {
-  if (typeof truncate !== "number" || truncate < 2) return style;
-  return { ...style, ["--zen-text-lines" as string]: truncate };
-}
+/** The root's style: Figma's resizing under the caller's `style`, the line clamp over it (model.ts). */
+const rootStyle = (style: TextProps["style"], { vars, clamp }: TextRootModel) => withSizingVars(clamp ? { ...style, ...clamp } : style, vars);
 
 /**
  * Figma text styles with Zen's content colours. Paragraphs, labels and inline copy; titles use <Heading>. Meta in
@@ -77,46 +60,13 @@ function truncateStyle(truncate: TextProps["truncate"], style: CSSProperties | u
  *   <Text textStyle="Body/Small/Regular" tone="base">Updated 2 min ago</Text>
  */
 export function Text({ textStyle = "Body/Base/Regular", tone = "strongest", as: Element = "p", truncate, align, verticalAlign, wrap = true, tabularNumbers = false, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, className, style, children, ref, ...rest }: TextProps) {
-  const lines = truncate === true ? 1 : typeof truncate === "number" ? Math.max(1, Math.floor(truncate)) : undefined;
-  const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
-  // Line breaks in its words (`{"First line\nSecond line"}`, Figma's Enter in a text) show as lines.
-  const breaks = Children.toArray(children).some((child) => typeof child === "string" && child.includes("\n"));
+  const text = textModel({ textStyle, tone, truncate, align, verticalAlign, wrap, tabularNumbers, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf }, hasLineBreak(Children.toArray(children)));
   return (
-    <Element
-      {...rest}
-      ref={ref as never}
-      className={["zen-text", typographyStyles[textStyle], className].filter(Boolean).join(" ")}
-      data-breaks={breaks ? "true" : undefined}
-      data-tone={resolveContentTone(tone)}
-      data-truncate={lines === undefined ? undefined : lines === 1 ? "line" : "lines"}
-      data-align={align}
-      data-valign={verticalAlign}
-      data-wrap={wrap ? undefined : "false"}
-      data-numbers={tabularNumbers ? "tabular" : undefined}
-      {...sizing.attributes}
-      style={withSizingVars(truncateStyle(lines, style), sizing.vars)}
-    >
+    <Element {...rest} ref={ref as never} className={[text.className, className].filter(Boolean).join(" ")} {...text.attributes} style={rootStyle(style, text)}>
       {children}
     </Element>
   );
 }
-
-export const headingLevels = [1, 2, 3, 4, 5, 6] as const;
-export type HeadingLevel = (typeof headingLevels)[number];
-
-/**
- * Default Figma style per heading level, following the Typography › Content hierarchy ladder: h1 page title Heading/1,
- * h2 section Heading/4, h3 card or widget title Heading/Subheading, then Body/Extra/Bold and Body/Base/Bold. The
- * dashboard/popular/mobile typography modes resize the styles; the mapping never changes a font size.
- */
-const headingStyleByLevel: Record<HeadingLevel, TypographyStyleName> = {
-  1: "Heading/1",
-  2: "Heading/4",
-  3: "Heading/Subheading",
-  4: "Body/Extra/Bold",
-  5: "Body/Base/Bold",
-  6: "Body/Base/Bold",
-};
 
 export interface HeadingProps extends Omit<HTMLAttributes<HTMLHeadingElement>, "color">, LayoutSizingProps {
   /** Document level (h1–h6): pick it from the page outline, not from the size. Step down one level at a time (h1 → h2
@@ -154,35 +104,11 @@ export interface HeadingProps extends Omit<HTMLAttributes<HTMLHeadingElement>, "
  *   <Heading level={2} textStyle="Heading/Subheading">Current plan</Heading>
  */
 export function Heading({ level = 2, textStyle, tone = "strongest", truncate, align, verticalAlign, wrap = true, tabularNumbers = false, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, className, style, children, ref, ...rest }: HeadingProps) {
-  const Element = `h${level}` as const;
-  const lines = truncate === true ? 1 : typeof truncate === "number" ? Math.max(1, Math.floor(truncate)) : undefined;
-  const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
+  const heading = headingModel({ level, textStyle, tone, truncate, align, verticalAlign, wrap, tabularNumbers, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
+  const Element = heading.tag;
   return (
-    <Element
-      {...rest}
-      ref={ref}
-      className={["zen-text", "zen-heading", typographyStyles[textStyle ?? headingStyleByLevel[level]], className].filter(Boolean).join(" ")}
-      data-tone={resolveContentTone(tone)}
-      data-truncate={lines === undefined ? undefined : lines === 1 ? "line" : "lines"}
-      data-align={align}
-      data-valign={verticalAlign}
-      data-wrap={wrap ? undefined : "false"}
-      data-numbers={tabularNumbers ? "tabular" : undefined}
-      {...sizing.attributes}
-      style={withSizingVars(truncateStyle(lines, style), sizing.vars)}
-    >
+    <Element {...rest} ref={ref} className={[heading.className, className].filter(Boolean).join(" ")} {...heading.attributes} style={rootStyle(style, heading)}>
       {children}
     </Element>
   );
-}
-
-/**
- * "1 file", "3 files". Counts in UI copy are pluralised (harness copy/plural-count). `locale` (default "en-US"; pass
- * useZenLocale()) picks the number format and the plural rule: Vietnamese nouns do not inflect, so
- * `plural(3, "tệp", undefined, "vi")` is "3 tệp" (the default `many` is `one` there, `one + "s"` in English).
- */
-export function plural(count: number, one: string, many?: string, locale = "en-US"): string {
-  const vietnamese = locale.toLowerCase().startsWith("vi");
-  const singular = !vietnamese && new Intl.PluralRules(locale).select(count) === "one";
-  return `${count.toLocaleString(locale)} ${singular ? one : (many ?? (vietnamese ? one : `${one}s`))}`;
 }

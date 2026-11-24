@@ -3,31 +3,15 @@ import { Button } from "../Button";
 import { Icon, type IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
-import { scaleKey } from "../_shared/scale";
-import { toneFromStatus, type StatusAlias } from "../_shared/status";
+import type { StatusAlias } from "../_shared/status";
 import { useZenLabels } from "../_shared/zen-context";
-import { typographyStyles } from "../../tokens/typography.generated";
+import { alertBannerActionButton, alertBannerModel, type AlertBannerSize, type AlertBannerTheme } from "./model";
 import "./alert-banner.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { dataAttributes } from "../_shared/data-attributes";
 
-export const alertBannerThemes = ["default", "info", "positive", "warning", "negative"] as const;
-export const alertBannerSizes = ["medium", "small"] as const;
-export type AlertBannerTheme = (typeof alertBannerThemes)[number];
-/** CSS / Figma key (the `data-size` value). */
-type AlertBannerSizeKey = (typeof alertBannerSizes)[number];
-/** Short (canonical) or long Figma spelling — both render the same. */
-export type AlertBannerSize = "md" | "sm" | "medium" | "small";
-
-/** Figma Alert-Banner Leading icon per Theme. */
-const themeIcon: Record<AlertBannerTheme, IconName> = {
-  default: "icon-info-circle-line",
-  info: "icon-info-circle-solid",
-  positive: "icon-check-solid",
-  warning: "icon-alert-triangle-solid",
-  negative: "icon-x-circle-solid",
-};
+export { alertBannerSizes, alertBannerThemes, type AlertBannerSize, type AlertBannerTheme } from "./model";
 
 export interface AlertBannerProps {
   /** The alert message (Body/Base/Medium; Small: Body/Small/Medium). */
@@ -60,22 +44,19 @@ export interface AlertBannerProps {
  */
 export function AlertBanner({ children, theme: themeProp, status, size: sizeProp = "md", leading = true, action, onClose, closeLabel: closeLabelProp, className, overrides, ref, ...rest }: AlertBannerProps) {
   const nest = useNested(overrides);
-  const theme: AlertBannerTheme = themeProp ?? toneFromStatus(status) ?? "default";
   const t = useZenLabels();
-  const closeLabel = closeLabelProp ?? t.dismiss;
-  const size = scaleKey(sizeProp, alertBannerSizes);
-  const leadingNode = nest("Leading", leading === true ? <Icon name={themeIcon[theme]} decorative /> : leading ? renderIcon(leading) : null);
-  const urgent = theme === "negative" || theme === "warning";
-  const closeTip = useIconTooltip(onClose ? closeLabel : false);
+  const banner = alertBannerModel({ theme: themeProp, status, size: sizeProp, closeLabel: closeLabelProp, labels: t });
+  const leadingNode = nest("Leading", leading === true ? <Icon name={banner.icon} decorative /> : leading ? renderIcon(leading) : null);
+  const closeTip = useIconTooltip(onClose ? banner.closeLabel : false);
   return (
-    <div {...dataAttributes(rest)} ref={ref} className={["zen-alert-banner", className].filter(Boolean).join(" ")} data-tone={theme} data-size={size} role={urgent ? "alert" : "status"}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-alert-banner", className].filter(Boolean).join(" ")} data-tone={banner.theme} data-size={banner.size} role={banner.role}>
       {leadingNode ? <span className="zen-alert-banner__icon" aria-hidden="true">{leadingNode}</span> : null}
-      <span className={`zen-alert-banner__message ${typographyStyles[size === "small" ? "Body/Small/Medium" : "Body/Base/Medium"]}`}>{nest.slot(children)}</span>
-      {action && size === "medium" ? (
-        nest("Action", <Button className="zen-alert-banner__action" appearance="overlay" level="inverse" size="sm" onClick={action.onClick}>{action.label}</Button>)
+      <span className={banner.messageClass}>{nest.slot(children)}</span>
+      {action && banner.showsAction ? (
+        nest("Action", <Button className="zen-alert-banner__action" {...alertBannerActionButton} onClick={action.onClick}>{action.label}</Button>)
       ) : null}
       {onClose ? (
-        <button type="button" className="zen-alert-banner__close" aria-label={closeLabel} {...closeTip.bind({ onClick: onClose })}>
+        <button type="button" className="zen-alert-banner__close" aria-label={banner.closeLabel} {...closeTip.bind({ onClick: onClose })}>
           <Icon name="icon-x-small-line" decorative />{closeTip.tooltip}
         </button>
       ) : null}

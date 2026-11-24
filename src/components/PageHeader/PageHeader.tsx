@@ -8,12 +8,9 @@ import { useNested, type NestedOverrides } from "../_shared/nested";
 import { phoneTrail } from "../_shared/trail-back";
 import { useZen } from "../_shared/zen-context";
 import { AppShellChromeContext } from "../AppShell/context";
+import { pageHeaderOnPhone, pageHeaderTitleStyle, type PageHeaderBack } from "./model";
 
-export interface PageHeaderBack {
-  /** Where Back goes, named (e.g. "Projects"). */
-  label: string;
-  onClick: () => void;
-}
+export type { PageHeaderBack } from "./model";
 
 export interface PageHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "title"> {
   /** The page title (an h1 by default: one per page). */
@@ -66,7 +63,7 @@ export function PageHeader({ title, childTitle, description, breadcrumbs, eyebro
   // AppShell's drawer layout under 744, or the provider's mobile breakpoint outside a shell.
   const chrome = useContext(AppShellChromeContext);
   const breakpoint = useZen()?.breakpoint;
-  const phone = chrome ? chrome.phone : breakpoint === "mobile";
+  const phone = pageHeaderOnPhone(chrome?.phone, breakpoint);
   const trail = !phone ? breadcrumbs : back ? null : phoneTrail(breadcrumbs);
   return (
     <header {...rest} ref={ref} className={["zen-page-header", className].filter(Boolean).join(" ")}>
@@ -79,7 +76,7 @@ export function PageHeader({ title, childTitle, description, breadcrumbs, eyebro
       <div className="zen-page-header__row">
         <div className="zen-page-header__titles">
           {/* h1 = Heading/1 (Figma ◇ Master-Layout page title), h2 = Heading/4 (the house ladder's h2, backlog batch 6). */}
-          <Heading level={headingLevel} textStyle={headingLevel === 1 ? "Heading/1" : "Heading/4"}>
+          <Heading level={headingLevel} textStyle={pageHeaderTitleStyle(headingLevel)}>
             {title}
             {childTitle ? <span className="zen-page-header__child">{childTitle}</span> : null}
           </Heading>

@@ -272,7 +272,9 @@ function casesFor(name, entry) {
 /* ── rendering ─────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 const isNode = (value) => value !== null && typeof value === "object" && !Array.isArray(value) && typeof value.$ === "string";
-const isNodeList = (value) => Array.isArray(value) && value.length > 0 && value.every((item) => isNode(item) || typeof item === "string" || typeof item === "number");
+// A list of nodes and text is content (a slot in Vue) once it holds a node; a list of only strings or numbers is a value
+// (Box's hideOn: ["mobile"]).
+const isNodeList = (value) => Array.isArray(value) && value.some(isNode) && value.every((item) => isNode(item) || typeof item === "string" || typeof item === "number");
 const splitProps = ({ $label: _label, children, ...props }) => ({ props, children });
 
 function reactNode(node, key) {
@@ -290,7 +292,9 @@ function reactProps(props) {
 function renderReactCase(Component, testCase) {
   const { props, children } = splitProps(testCase);
   const list = children === undefined ? [] : Array.isArray(children) ? children : [children];
-  return renderReact(React.createElement(Component, reactProps(props), ...list.map((child, index) => reactNode(child, index))));
+  // React 19's server render puts a `<link rel="preload" as="image">` before markup holding an <img>: a hint for the
+  // document's head, not part of the component (a client render never draws it).
+  return renderReact(React.createElement(Component, reactProps(props), ...list.map((child, index) => reactNode(child, index)))).replace(/<link rel="preload" as="image"[^>]*\/?>/g, "");
 }
 
 /** A slot as compiled templates pass it: a function returning vnodes (text becomes a text vnode). */
@@ -338,7 +342,8 @@ function apiProblems(name, entry, VueComponent) {
   const slots = new Set(entry.slots ?? []);
   const notPorted = entry.notPorted ?? {};
   for (const prop of reactProps) {
-    if (IGNORED.has(prop.name) || prop.deprecated || notPorted[prop.name]) continue;
+    // aria-* and data-* props (Stepper's aria-label) are attributes in Vue too: the root reads them from attrs.
+    if (IGNORED.has(prop.name) || prop.deprecated || notPorted[prop.name] || /^(aria|data)-/.test(prop.name)) continue;
     if (vueProps.has(prop.name) || slots.has(prop.name)) continue;
     if (/^on[A-Z]/.test(prop.name) && (emits.has(lowerFirst(prop.name.slice(2))) || vueProps.has(prop.name))) continue;
     problems.push(`React prop "${prop.name}" has no Vue prop, emit or slot`);
@@ -386,6 +391,25 @@ let failed = 0;
 let caseCount = 0;
 const ready = [];
 const lines = [];
+/** The type names @zen-ds/vue exports (read from its source: types leave no trace at run time). demo.ts for Vue keeps these. */
+function vueTypes() {
+  const names = new Set();
+  for (const file of walk(path.join(VUE_DIR, "src")).filter((file) => file.endsWith(".ts") && !file.endsWith(".parity.ts"))) {
+    const source = fs.readFileSync(file, "utf8");
+    for (const match of source.matchAll(/^export (?:type|interface) (\w+)/gm)) names.add(match[1]);
+    for (const list of source.matchAll(/^export (?:type )?\{([^}]*)\}/gm)) for (const match of list[1].matchAll(/\btype (\w+)(?:\s+as\s+(\w+))?/g)) names.add(match[2] ?? match[1]);
+  }
+  return [...names].sort();
+}
+/** What the Vue emitter (src/platform/code/vue.ts) needs to know of each ready component. */
+const apiOf = {};
+const NODE_TYPE = /\b(ReactNode|ReactElement|JSX\.Element)\b/;
+function componentApi(name, entry, VueComponent) {
+  const docs = propsOf.get(name) ?? [];
+  const slots = new Set(entry.slots ?? []);
+  for (const prop of docs) if (prop.name !== "children" && NODE_TYPE.test(prop.type) && !prop.deprecated && !entry.notPorted?.[prop.name]) slots.add(prop.name);
+  return { props: declared(VueComponent.props), emits: declared(VueComponent.emits), slots: [...slots].sort(), react: docs.map((prop) => prop.name) };
+}
 for (const { file, name, entry } of entries) {
   const ReactComponent = lib.zenReact[name];
   const VueComponent = lib.zenVue[name];
@@ -413,8 +437,10 @@ for (const { file, name, entry } of entries) {
     else differences.push(`    case ${testCase.$label}${warnings.length ? ` — Vue warned: ${warnings[0]}` : ""}${expected === actual ? "" : `\n${firstDifference(expected, actual)}`}`);
   }
   const ok = !problems.length && matched === cases.length;
-  if (ok) ready.push(name);
-  else failed += 1;
+  if (ok) {
+    ready.push(name);
+    apiOf[name] = componentApi(name, entry, VueComponent);
+  } else failed += 1;
   const ported = Object.entries(entry.notPorted ?? {}).map(([prop, why]) => `${prop} (${why})`);
   lines.push(`  ${ok ? "✓" : "✗"} ${name}: ${matched}/${cases.length} cases${ported.length && VERBOSE ? ` · not ported: ${ported.join("; ")}` : ""}`);
   for (const problem of problems) lines.push(`    API: ${problem}`);
@@ -424,15 +450,31 @@ for (const { file, name, entry } of entries) {
 
 console.log(`Vue parity (plan §3.C): ${entries.length} components, ${caseCount} cases`);
 console.log(lines.join("\n"));
-for (const [wave, folders] of Object.entries(waves).filter(([key]) => !key.startsWith("$"))) {
-  const names = Object.values(folders).flat();
+const waits = waves.waits ?? {};
+for (const [wave, folders] of Object.entries(waves).filter(([key]) => /^W\d/.test(key))) {
+  const all = Object.values(folders).flat();
+  // A component that renders a later wave's component counts once that one is ported.
+  const names = all.filter((name) => !waits[name] || ready.includes(name));
+  const waiting = all.filter((name) => !names.includes(name));
   const done = names.filter((name) => ready.includes(name));
-  console.log(`${wave}: ${done.length}/${names.length} components ready${done.length < names.length ? ` (not yet: ${names.filter((name) => !ready.includes(name)).join(", ")})` : ""}`);
+  console.log(`${wave}: ${done.length}/${names.length} components ready${done.length < names.length ? ` (not yet: ${names.filter((name) => !ready.includes(name)).join(", ")})` : ""}${waiting.length ? `; waiting: ${waiting.map((name) => `${name} for ${waits[name].split(":")[0]}`).join(", ")}` : ""}`);
 }
 
 if (!ONLY) {
-  const status = { $comment: "Written by tools/code-languages/vue-parity.mjs --write: the Vue components whose API and DOM match React (the Code view's status manifest reads it).", ready: [...ready].sort(), markup: [] };
-  const text = `${JSON.stringify(status, null, 2)}\n`;
+  // One line per component, so a port that changes one component changes one line.
+  const text = [
+    "{",
+    `  "$comment": "Written by tools/code-languages/vue-parity.mjs --write: the Vue components whose API and DOM match React (the Code view's status manifest reads ready/markup), what @zen-ds/vue exports, and each ready component's props, emits and slots (the Vue emitter reads them).",`,
+    `  "ready": ${JSON.stringify([...ready].sort())},`,
+    '  "markup": [],',
+    `  "exports": ${JSON.stringify(Object.keys(lib.zenVue).sort())},`,
+    `  "types": ${JSON.stringify(vueTypes())},`,
+    '  "components": {',
+    Object.keys(apiOf).sort().map((name) => `    ${JSON.stringify(name)}: ${JSON.stringify(apiOf[name])}`).join(",\n"),
+    "  }",
+    "}",
+    "",
+  ].join("\n");
   const current = fs.existsSync(STATUS_FILE) ? fs.readFileSync(STATUS_FILE, "utf8") : "";
   if (WRITE) {
     if (text !== current) fs.writeFileSync(STATUS_FILE, text);

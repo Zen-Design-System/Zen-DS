@@ -4,16 +4,14 @@ import { VisuallyHidden } from "../VisuallyHidden";
 import { renderIcon } from "../_shared/icon";
 import { slotItems } from "../_shared/slots";
 import { useZenLabels } from "../_shared/zen-context";
-import { typographyStyles } from "../../tokens/typography.generated";
+import { stepCaptionClass, stepClickable, stepGlyph, stepNumberClass, stepPosition, stepState, stepTitleClass, type StepperOrientation, type StepperState } from "./model";
 import "./stepper.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useControllableState } from "../_shared/use-controllable-state";
 import { dataAttributes } from "../_shared/data-attributes";
 
-export const stepperStates = ["default", "focused", "passed", "error"] as const;
-export type StepperState = (typeof stepperStates)[number];
-export type StepperOrientation = "horizontal" | "vertical";
+export { stepperStates, type StepperOrientation, type StepperState } from "./model";
 
 export interface StepperStep {
   id: string;
@@ -53,9 +51,6 @@ export interface StepperProps extends HTMLAttributes<HTMLOListElement> {
   overrides?: NestedOverrides;
 }
 
-const stateOf = (step: StepperStep, index: number, current: number): StepperState =>
-  step.error ? "error" : index < current ? "passed" : index === current ? "focused" : "default";
-
 /**
  * One step as a child of Stepper (Figma Stepper-Bar's Step-Horizontal / Step-Vertical): `<StepperStep id title caption />`.
  * It declares the step and renders nothing on its own; Stepper draws it.
@@ -72,10 +67,10 @@ export function StepperItem({ state = "default", index = 1, icon, ref, ...rest }
   /** Ref to the marker's root `<span>`. */
   ref?: Ref<HTMLSpanElement>;
 }) {
-  const glyph = state === "passed" ? "icon-check-solid" : state === "error" ? "icon-info-octagon-solid" : icon;
+  const glyph = stepGlyph(state, icon);
   return (
     <span {...dataAttributes(rest)} ref={ref} className="zen-stepper-item" data-state={state} aria-hidden="true">
-      {glyph ? renderIcon(glyph) : <span className={typographyStyles[state === "focused" ? "Body/Small/Bold" : "Body/Small/Medium"]}>{index}</span>}
+      {glyph ? renderIcon(glyph) : <span className={stepNumberClass(state)}>{index}</span>}
     </span>
   );
 }
@@ -94,10 +89,9 @@ export function Stepper({ ref, steps: stepsProp, children, current: currentProp,
   return (
     <ol {...rest} ref={ref} className={["zen-stepper", className].filter(Boolean).join(" ")} data-orientation={orientation} aria-label={ariaLabel}>
       {steps.map((step, index) => {
-        const state = stateOf(step, index, current);
-        const position = index === 0 ? "first" : index === steps.length - 1 ? "last" : "middle";
-        // Steps the person has reached take a press (onStepClick); a Stepper that keeps its own step goes back to a Passed one.
-        const clickable = onStepClick ? state !== "default" : currentProp === undefined && index < current;
+        const state = stepState(step.error, index, current);
+        const position = stepPosition(index, steps.length);
+        const clickable = stepClickable(state, index, current, { listens: Boolean(onStepClick), controlled: currentProp !== undefined });
         const body = (
           <>
             <span className="zen-stepper__track">
@@ -106,8 +100,8 @@ export function Stepper({ ref, steps: stepsProp, children, current: currentProp,
               <span className="zen-stepper__line" data-part="after" />
             </span>
             <span className="zen-stepper__contents">
-              <span className={`zen-stepper__title ${typographyStyles["Body/Base/Bold"]}`}>{step.title}</span>
-              {step.caption ? <span className={`zen-stepper__caption ${typographyStyles["Caption/Regular"]}`}>{step.caption}</span> : null}
+              <span className={stepTitleClass}>{step.title}</span>
+              {step.caption ? <span className={stepCaptionClass}>{step.caption}</span> : null}
               {state === "error" ? <VisuallyHidden> {t.stepError}</VisuallyHidden> : state === "passed" ? <VisuallyHidden> {t.stepCompleted}</VisuallyHidden> : null}
             </span>
           </>

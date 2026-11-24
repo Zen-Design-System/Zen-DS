@@ -11,9 +11,10 @@
  * Zen Studio 2026-10-17), px numbers: Figma's X / Y are free px, only gap and padding are spacing. There are no
  * percentage offsets, and overhangs of a component (status dots, notification badges, a Card sub-action) still belong
  * to the components that own them.
+ *
+ * Framework-free (the web core, src/core): the components that read it import position.css themselves.
  */
 import { paddingValue, type ZenPadding } from "../_shared/scale";
-import "./position.css";
 
 /** An absolute offset: a Spacing/Padding token, or px (Figma's free X / Y in a frame without auto layout). */
 export type LayoutInset = ZenPadding | number;

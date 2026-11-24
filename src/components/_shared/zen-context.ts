@@ -1,6 +1,9 @@
 import { createContext, createElement, useContext, useMemo, type ReactNode } from "react";
 import type { ZenBrand, ZenBreakpoint, ZenComponentTheme, ZenDensity, ZenEmphasis, ZenRadius, ZenTypography } from "../Provider/ZenProvider";
 import { resolveZenLabels, type ZenLabelOverrides, type ZenLabels } from "./labels";
+import { frameModeScope } from "./modes";
+
+export { zenModeAttributes } from "./modes";
 
 /**
  * The ZenProvider context, in its own module so components can read the modes, locale and labels without importing
@@ -58,18 +61,6 @@ export type ZenModes = {
   brand?: ZenBrand;
 };
 
-/** The data-* attribute tokens.css reads for each axis (as ZenProvider writes them). */
-export const zenModeAttributes = {
-  theme: "data-theme",
-  componentTheme: "data-component-theme",
-  density: "data-density",
-  radius: "data-radius",
-  emphasis: "data-emphasis",
-  breakpoint: "data-breakpoint",
-  typography: "data-typography",
-  brand: "data-brand",
-} as const;
-
 /**
  * A frame's mode scope: its data-* attributes (tokens.css re-resolves the variables there) and `wrap(children)`, which
  * gives the children the ZenProvider context with these modes (components that read the breakpoint or theme from it see
@@ -79,11 +70,10 @@ export function useModeScope(modes: ZenModes | undefined): { attributes: Record<
   const parent = useContext(ZenContext);
   const key = modes ? JSON.stringify(modes) : "";
   return useMemo(() => {
-    const own = (Object.keys(zenModeAttributes) as Array<keyof ZenModes>).flatMap((axis) => (typeof modes?.[axis] === "string" ? [[axis, modes[axis] as string] as const] : []));
-    if (!own.length) return { attributes: {}, wrap: (children: ReactNode) => children };
-    const attributes: Record<string, string> = Object.fromEntries(own.map(([axis, value]) => [zenModeAttributes[axis], value]));
-    const value: ZenContextValue = { ...(parent ?? {}), ...Object.fromEntries(own) };
-    return { attributes, wrap: (children: ReactNode) => createElement(ZenContext.Provider, { value }, children) };
+    const scope = frameModeScope(modes);
+    if (!scope) return { attributes: {}, wrap: (children: ReactNode) => children };
+    const value: ZenContextValue = { ...(parent ?? {}), ...scope.own };
+    return { attributes: scope.attributes, wrap: (children: ReactNode) => createElement(ZenContext.Provider, { value }, children) };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` is `modes` by value
   }, [key, parent]);
 }
