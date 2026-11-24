@@ -362,6 +362,39 @@ async function dragOutPage(ctx) {
   await deselect(page);
   return { page, id, before: (await pageText(page, id)) ?? "" };
 }
+/** A desktop page with a frame (screen-1, 0, 0, 400 × 300) and two layers on the canvas: a Top Navigation filling its
+ *  Layer (layer-1, 500, 0, width 390) and a Button that hugs (layer-2, 500, 200). */
+const resizeText = (title) => `// @zen-page {"format":1,"title":${JSON.stringify(title)}}
+import { Board, Layer, Screen } from "@zen-ds/react/builder";
+import { Button, TopNavigation } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Frame 1" device="desktop" frame x={0} y={0} width={400} height={300}>
+      </Screen>
+      <Layer id="layer-1" x={500} y={0} width={390}>
+        <TopNavigation title="Home" />
+      </Layer>
+      <Layer id="layer-2" x={500} y={200}>
+        <Button>Go</Button>
+      </Layer>
+    </Board>
+  );
+}
+`;
+async function resizePage(ctx) {
+  const { page, id } = await seededPage(ctx, resizeText, /<Layer id="layer-2"/);
+  await showLeftTab(page, "layers");
+  await page.locator('[data-studio-frame="layer:layer-2"]').waitFor({ state: "attached", timeout: 10_000 });
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Shift+1");
+  await sleep(500);
+  await deselect(page);
+  return { page, id, before: (await pageText(page, id)) ?? "" };
+}
 /** A desktop page with a plain frame (0, 0, 400 × 300) and two layers on the canvas (<Layer>, user 2026-11-20): a Button
  *  at 500, 0 and a Stack of two Texts at 500, 160. A fresh page each time (the rows move and remove them). */
 const looseText = (title) => `// @zen-page {"format":1,"title":${JSON.stringify(title)}}
@@ -6584,6 +6617,63 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       await page.keyboard.press("ControlOrMeta+z");
       await until(async () => (await pageText(page, id)) === before, { message: "⌘Z: both back on the canvas" });
       return "Button + Stack → screen-1 at 20, 20 and 20, 180 · ⌘Z";
+    },
+  },
+  {
+    id: "FW-290", feature: "A component on the canvas that fills its Layer (a Top Navigation, 390) resizes as Figma's instance: its right handle writes its Layer's width, its left handle the width and X (the right edge stays); no height handles; ⌘Z each (loose layers PR5)", wp: "loose layers PR5 2026-11-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await resizePage(ctx);
+      const zoom = await looseZoom(page);
+      await clickLoose(page, "layer-1", "> *");
+      await until(async () => (await page.locator('.studio-resize__handle[data-handle="e"]').count()) > 0, { message: "the right handle" });
+      if (await page.locator('.studio-resize__handle[data-handle="s"], .studio-resize__handle[data-handle="se"]').count()) throw new Error("height handles on a component on the canvas");
+      await dragHandle(page, "e", 50 * zoom, 0);
+      await until(async () => numberAttr(boardTag((await pageText(page, id)) ?? "", "Layer", "layer-1"), "width") !== 390, { message: "its Layer wider" });
+      let layer = boardTag((await pageText(page, id)) ?? "", "Layer", "layer-1");
+      const drawn = await page.locator('[data-studio-frame="layer:layer-1"] > *').first().evaluate((node) => node.offsetWidth);
+      if (Math.abs(numberAttr(layer, "width") - 440) > 2 || numberAttr(layer, "x") !== 500 || Math.abs(drawn - numberAttr(layer, "width")) > 1) throw new Error(`right handle: ${layer} (want width 440 at x 500), it draws ${drawn}`);
+      if (/<TopNavigation[^>]*\bwidth=/.test((await pageText(page, id)) ?? "")) throw new Error("the Top Navigation took a width of its own (its Layer has it)");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z" });
+      await clickLoose(page, "layer-1", "> *");
+      await until(async () => (await page.locator('.studio-resize__handle[data-handle="w"]').count()) > 0, { message: "the left handle" });
+      await dragHandle(page, "w", -30 * zoom, 0);
+      await until(async () => numberAttr(boardTag((await pageText(page, id)) ?? "", "Layer", "layer-1"), "width") !== 390, { message: "its Layer wider to the left" });
+      layer = boardTag((await pageText(page, id)) ?? "", "Layer", "layer-1");
+      if (Math.abs(numberAttr(layer, "width") - 420) > 2 || Math.abs(numberAttr(layer, "x") - 470) > 2) throw new Error(`left handle: ${layer} (want width 420 at x 470: the right edge stays at 890)`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z" });
+      return "→ +50: <Layer width={440}> · ← 30: width 420 at x 470 · no height handles · ⌘Z each";
+    },
+  },
+  {
+    id: "FW-291", feature: "A component on the canvas that fills its Layer: the right panel's W writes its Layer's width, a double-click on its side handle hugs it (the Layer's width goes); a Button on the canvas (it hugs) shows no W there; ⌘Z each", wp: "loose layers PR5 2026-11-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, before } = await resizePage(ctx);
+      await clickLoose(page, "layer-1", "> *");
+      await showDesignTab(page);
+      const w = page.locator('#studio-right [data-prop="frame-size"] input').first();
+      await until(async () => (await w.inputValue().catch(() => "")) === "390", { message: "W 390 in the right panel" }).catch(async (error) => { throw new Error(`${error.message}: ${await w.inputValue().catch(() => "no W field")}`); });
+      await w.fill("300");
+      await w.press("Enter");
+      await until(async () => numberAttr(boardTag((await pageText(page, id)) ?? "", "Layer", "layer-1"), "width") === 300, { message: "W 300 on its Layer" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z" });
+      await clickLoose(page, "layer-1", "> *");
+      const handle = page.locator('.studio-resize__handle[data-handle="e"]').first();
+      await handle.waitFor({ state: "visible", timeout: 5000 });
+      await handle.dblclick();
+      await until(async () => !/\bwidth=/.test(boardTag((await pageText(page, id)) ?? "", "Layer", "layer-1")), { message: "its Layer's width gone (it hugs)" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "⌘Z" });
+      await clickLoose(page, "layer-2", ".zen-button");
+      await sleep(300);
+      if (await page.locator('#studio-right [data-prop="frame-size"]').count()) throw new Error("a Button on the canvas (it hugs) shows a W for its Layer");
+      return "W 300 → its Layer · double-click → hug · a Button shows no Layer W · ⌘Z each";
     },
   },
   ...pictureRows,
