@@ -76,6 +76,9 @@ const sameRect = (a: DOMRect | null, b: DOMRect | null) => Boolean(a && b && Mat
 function folded(hit: FiberHit, next: FiberHit, parent: FiberHit | undefined): boolean {
   // A list's <ul> (List) is its rows' semantics only: Figma's List-Box holds its List-Items directly.
   if (hit.name === "List") return true;
+  // A main component or an instance is a layer of its own, as Figma's: a click selects it, never what its one layer holds
+  // (user 2026-11-23: a main whose root Stack held one Text gave that Text to the click and the drag).
+  if (hit.props["data-zen-main"] || hit.props["data-zen-instance"]) return false;
   const children = LAYOUT.has(hit.name) ? shownChildren(hit) : [];
   if (children.length === 1 && LAYOUT_ONLY.has(hit.name)) return true;
   // The one layout layer inside a Zen component (a Card's content Stack) is that slot's own auto layout in Figma; an
@@ -85,6 +88,13 @@ function folded(hit: FiberHit, next: FiberHit, parent: FiberHit | undefined): bo
   const host = next.isComponent && next.hosts.length === 1 ? next.hosts[0] : null;
   return Boolean(host && hit.name === "Stack" && hit.isComponent && wrapperCandidate(host) === hit.src);
 }
+
+/**
+ * Whether a frame's one first layer is a layer of its own rather than the frame's content: a main component or an
+ * instance (Figma never takes a component for a frame's auto layout), or a layer floating in a frame without auto layout.
+ * Its click selects it (user 2026-11-23: "vẫn chưa kéo component gốc ra khỏi frame được").
+ */
+const ownLayer = (hit: FiberHit) => Boolean(hit.props["data-zen-main"] || hit.props["data-zen-instance"] || hit.props.position === "absolute");
 
 /** Whether `hit` is the Layer of a loose layer's frame (`layer:<id>`, builder/BuilderBoard.tsx LayerFrame). */
 const loose = (hit: FiberHit | undefined, frame: Element | null) => Boolean(hit && hit.name === "Layer" && frame?.getAttribute("data-studio-frame")?.startsWith("layer:"));
@@ -106,7 +116,7 @@ export function layersAt(deepest: FiberHit, frame: Element | null): { path: Fibe
     const first = firstLayers(frame);
     start = chain.findIndex((hit) => first.some((layer) => sameElement(layer, hit)));
     if (start < 0) return null;
-    if (first.length === 1) {
+    if (first.length === 1 && !ownLayer(chain[start])) {
       let at = start;
       // A layer on the canvas (<Layer>, Figma's; user 2026-11-20) stands for its frame: its one layer is the top level,
       // though it draws the same box.
@@ -125,7 +135,8 @@ export function layersAt(deepest: FiberHit, frame: Element | null): { path: Fibe
   for (let guard = 0; at >= 0 && at < path.length - 2 && guard < 8; guard++) {
     const next = path[at + 1];
     const shell = next.name === "AppShell" || (next.name === "AppShellHeader" && path[at].name === "AppShell") || (LAYOUT.has(next.name) && (path[at].name === "AppShell" || shownChildren(path[at]).length === 1));
-    if (!shell) break;
+    // A main component, an instance or a floating layer is no body column: the click selects it.
+    if (!shell || ownLayer(next)) break;
     at += 1;
   }
   return { path, root: at };

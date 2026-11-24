@@ -45,6 +45,10 @@ How to maintain it:
 - Liquid Glass in dark mode no longer keeps a white rim when the dark mode is set on an element around it rather than on
   a ZenProvider (a Zen Studio frame's own theme): the glass redraws its light for the new mode. In Zen Studio, a dark
   Screen's bottom corners no longer turn grey under a blurred bar (the blur took the light board behind the frame).
+- Zen Studio: a main component drags out of its frame onto the canvas, or into another frame, as in Figma: the whole
+  main moves (its <Component>), its layer drops the place it had in the old frame, and it stays selected. A click on a
+  main component or an instance selects it, not a layer inside it, and Layers keeps its row (the diamond), also when its
+  layer holds a single child.
 - Zen Studio: the drawing tools work on the empty canvas, as in Figma: a Rectangle, Ellipse, Line, Arrow, Polygon, Star,
   text (T), Pen or Pencil path, or a picture dropped there lands as a layer on the canvas where it is drawn (its edges
   snap to the frames and layers beside it). "Draw inside a frame" no longer stops it. On a layer on the canvas that

@@ -544,6 +544,8 @@ function simplify(nodes: LayerNode[], aliases: Map<string, string>, owner: Layer
       return node.children;
     }
     if (node.children.length !== 1) return [node];
+    // A main component or an instance keeps its row (Figma's diamond), as the canvas click selects it (clickTarget.ts).
+    if (componentOfRow(node)) return [node];
     const only = node.children[0];
     if (only.kind === "panel") {
       only.stand ??= node;
