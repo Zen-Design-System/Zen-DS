@@ -1,0 +1,28 @@
+{
+  "$comment": "The Vue port's waves (plan docs/research/code-languages-plan-2026-10-03.md §1 and §3.C): per wave, each React component folder and the public components it exports. W1 is the 23 stateless folders. tools/code-languages/vue-parity.mjs reports each wave's progress; a component in a folder that renders a later wave's component waits for it (listed under `waits`).",
+  "W1": {
+    "AlertBanner": ["AlertBanner"],
+    "Avatar": ["Avatar", "AvatarStack", "AvatarStatus"],
+    "Badge": ["Badge", "BadgeCounter"],
+    "Button": ["Button", "IconButton"],
+    "ColorSelector": ["ColorSelector"],
+    "Divider": ["Divider"],
+    "DockIcon": ["DockIcon"],
+    "EmptyState": ["EmptyState", "EmptyStateIllustration"],
+    "FileIcon": ["FileIcon"],
+    "Icon": ["Icon"],
+    "InlineMessage": ["InlineMessage"],
+    "Layout": ["Box", "Container", "Grid", "Stack"],
+    "Link": ["Link"],
+    "ListItem": ["List", "ListBox", "ListItem", "ToggleListItem"],
+    "MetricWidget": ["Metric", "MetricCard", "MetricTrend"],
+    "Motion": [],
+    "PageHeader": ["PageHeader"],
+    "Portal": ["ZenPortalProvider"],
+    "Progress": ["ProgressBar", "ProgressCircle"],
+    "Skeleton": ["SkeletonHeading", "SkeletonShape", "SkeletonText"],
+    "Stepper": ["Stepper", "StepperItem"],
+    "Text": ["Heading", "Text", "TextRun"],
+    "VisuallyHidden": ["VisuallyHidden"]
+  }
+}

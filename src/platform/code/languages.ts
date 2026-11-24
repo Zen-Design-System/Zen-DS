@@ -25,7 +25,7 @@ export type CodeLanguageInfo = {
 export const CODE_LANGUAGES: readonly CodeLanguageInfo[] = [
   { id: "react", label: "React", name: "React 19 · TSX", install: "npm install @zen-ds/react" },
   { id: "html", label: "HTML", name: "HTML + CSS", install: "@zen-ds/react/styles.css on any page" },
-  { id: "vue", label: "Vue", name: "Vue 3", install: "A Vue package (planned)" },
+  { id: "vue", label: "Vue", name: "Vue 3", install: "@zen-ds/vue (in progress: platforms/vue)" },
   { id: "swift", label: "Swift", name: "SwiftUI", install: "A Swift package (tokens today: platforms/swift)" },
   { id: "flutter", label: "Flutter", name: "Flutter", install: "A Dart package (tokens today: platforms/flutter)" },
   { id: "svelte", label: "Svelte", name: "Svelte 5", install: "A Svelte package (planned)" },
@@ -35,7 +35,16 @@ export const isCodeLanguage = (value: unknown): value is CodeLanguageId => CODE_
 export const languageInfo = (id: CodeLanguageId) => CODE_LANGUAGES.find((language) => language.id === id) ?? CODE_LANGUAGES[0];
 
 type ManifestRow = { slug: string } & Record<CodeLanguageId, CodeLanguageStatus>;
-const components = manifest.components as Record<string, ManifestRow>;
+/**
+ * The languages the Code view writes code in today: React (the source) and HTML (the specimen's markup). A port's
+ * components can be ready in the manifest before its emitter is wired here (Vue, P3: the package and its parity first,
+ * the emitter last); until then the picker and the Languages table count that language as not yet.
+ */
+const WRITES_CODE: ReadonlySet<CodeLanguageId> = new Set(["react", "html"]);
+const components = Object.fromEntries(Object.entries(manifest.components as Record<string, ManifestRow>).map(([name, row]) => [
+  name,
+  Object.fromEntries(Object.entries(row).map(([key, value]) => [key, key === "slug" || WRITES_CODE.has(key as CodeLanguageId) ? value : "not-yet"])) as ManifestRow,
+]));
 
 /** Every public component and its row, sorted by name (the Languages table). */
 export const languageRows = Object.entries(components).map(([name, row]) => ({ name, ...row }));

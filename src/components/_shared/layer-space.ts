@@ -38,3 +38,20 @@ export function fixedLayerSpace(parent: Element | null | undefined): LayerSpace 
   }
   return VIEWPORT;
 }
+
+/** The viewport intersected with every ancestor that clips its overflow — the area the surface can
+ * actually be seen in. `viewport: false`: the clipping ancestors alone (what scrolling the page cannot reveal). */
+export function visibleBounds(from: HTMLElement, { viewport = true }: { viewport?: boolean } = {}) {
+  let top = viewport ? 0 : -Infinity;
+  let left = viewport ? 0 : -Infinity;
+  let bottom = viewport ? document.documentElement.clientHeight : Infinity;
+  let right = viewport ? document.documentElement.clientWidth : Infinity;
+  for (let node: HTMLElement | null = from; node && node !== document.body && node !== document.documentElement; node = node.parentElement) {
+    const style = getComputedStyle(node);
+    if (style.overflowX === "visible" && style.overflowY === "visible") continue;
+    const rect = node.getBoundingClientRect();
+    if (style.overflowY !== "visible") { top = Math.max(top, rect.top); bottom = Math.min(bottom, rect.bottom); }
+    if (style.overflowX !== "visible") { left = Math.max(left, rect.left); right = Math.min(right, rect.right); }
+  }
+  return { top, left, bottom, right };
+}

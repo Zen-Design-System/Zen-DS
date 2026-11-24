@@ -1,9 +1,8 @@
 import { type HTMLAttributes, type ReactNode, type Ref } from "react";
-import { typographyStyles } from "../../tokens/typography.generated";
+import { visuallyHiddenClass, type VisuallyHiddenElement } from "./model";
 import "./visually-hidden.css";
 
-export const visuallyHiddenElements = ["span", "div", "p", "label", "legend", "a", "h1", "h2", "h3", "h4", "h5", "h6"] as const;
-export type VisuallyHiddenElement = (typeof visuallyHiddenElements)[number];
+export { visuallyHiddenElements, type VisuallyHiddenElement } from "./model";
 
 export interface VisuallyHiddenProps extends HTMLAttributes<HTMLElement> {
   /**
@@ -41,7 +40,7 @@ export function VisuallyHidden({ as: Element = "span", focusable = false, classN
     <Element
       {...rest}
       ref={ref as never}
-      className={["zen-visually-hidden", focusable ? typographyStyles["Body/Base/Medium"] : undefined, className].filter(Boolean).join(" ")}
+      className={[...visuallyHiddenClass(focusable), className].filter(Boolean).join(" ")}
       data-focusable={focusable ? "true" : undefined}
     >
       {children}

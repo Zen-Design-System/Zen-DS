@@ -2,8 +2,9 @@
 
 Status: **P1 and P2 approved (user, 2026-11-12: "Code view: HTML/CSS"); §8 answered the same day.** P1 (the Code view
 base) and P2 (HTML + CSS) are built: see §9–§10. **P2b is done** (started 2026-11-13 with the user's three choices,
-seven slices #400–#410 merged by 2026-11-19: 505/505 examples are files, the gate is closed; §11). P3–P9 still need
-their own approval (Scope lock).
+seven slices #400–#410 merged by 2026-11-19: 505/505 examples are files, the gate is closed; §11). **P3 (Vue: web core,
+W1, parity harness, emitter) approved 2026-11-22 (user: "Làm codeview")**, in progress (§12). P4–P9 still need their
+own approval (Scope lock).
 
 ## 1. Where we are
 
@@ -455,3 +456,36 @@ screen does not show.
 `examples:check` baseline is 0 and `examples/portable-subset` is an error (`npm run usage:selftest` fails if it is
 ever a warning again). Next in §6 is P3 (web core extraction + Vue W1, whose emitter reads these files), approved on
 its own.
+
+## 12. P3 as built (started 2026-11-22)
+
+**Shape (decided in the session, inside §3.C and §8 (A)):**
+- **Web core = one entry, the code stays beside React.** `src/core/index.ts` is what a port imports (alias
+  `@zen-ds/core`). A component's framework-free part moves out of its `.tsx` into a `model.ts` in its folder (levels,
+  sizes, what the root and its parts render for a set of props); shared helpers stay in `components/_shared`. So React's
+  imports, the props docs and the QA gate's folder → page rules do not move. `vue:check` proves the core reaches no
+  React, stylesheet or `.tsx`. Each move is proven by React's own SSR HTML before and after (`vue-parity.mjs
+  --react-snapshot` / `--react-compare`: 199/199 cases unchanged in part 1), not by screenshots.
+- **The package:** `platforms/vue` (`@zen-ds/vue`, private until a release is approved). Components are `defineComponent`
+  + `h()` in `.ts` (no SFC compiler in the build, exact control of the markup). React → Vue: children → default slot; a
+  node prop → a slot of the same name (an `IconName` prop also takes the name as a string); component events → emits
+  (`onRemove` → `@remove`); DOM attributes and listeners → the root, with the component's own `data-*` winning as in
+  React (`inheritAttrs: false` + `_shared/attrs.ts`). Deprecated aliases and Studio's `overrides` are not ported.
+- **Parity harness:** `npm run vue:parity` bundles both libraries with esbuild and renders each case with
+  `react-dom/server` and Vue's server renderer in Node (no browser, no gate slot), then compares canonical HTML (comments,
+  attribute and class order, style spacing and generated ids do not count). Cases: each component's `<Name>.parity.ts`
+  plus one per union member and non-default boolean in the props docs. API check: every React prop is a Vue prop, emit
+  or slot (or `notPorted` with a reason), no Vue prop is invented (`inherits` for props the docs leave out, BadgeCounter).
+  `--write` records the matching components in `platforms/vue/code-language.json`; the Code view manifest reads it.
+- **Types:** vue-tsc 3.3 runs on TypeScript 5 (`typescript5`, an npm alias): it needs TypeScript's JS API, which the
+  repo's TypeScript 7 does not ship.
+- **Code view until the emitter:** `languages.ts` counts a language as not yet until the Code view writes code in it
+  (`WRITES_CODE`), so the picker and the Languages table stay honest while the package grows.
+- **W1 roster:** `platforms/vue/waves.json` (the 23 folders and their public components; Motion's `usePresence` and
+  Portal's `ZenPortal` / `usePortalContainer` are ported as composables and helpers).
+
+**Part 1 (PR, 2026-11-22):** core + harness + `vue:check` in CI + Badge, BadgeCounter, Button, IconButton, Divider, Icon,
+Link, VisuallyHidden, ZenPortalProvider (9/41 of W1, 202 cases, 100%), with `usePresence`, `ZenPortal` and the icon
+tooltip (`_shared/tooltip.ts`, Tooltip's `model.ts`: hover wait and placement) they need. `visibleBounds` moved to
+`_shared/layer-space.ts` (framework-free; Popover re-exports it).
+

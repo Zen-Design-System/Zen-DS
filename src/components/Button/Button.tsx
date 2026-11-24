@@ -1,62 +1,28 @@
 import { type ButtonHTMLAttributes, type ReactNode, type Ref } from "react";
-import { typographyStyles, type TypographyStyleName } from "../../tokens/typography.generated";
 import type { IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
-import { scaleKey } from "../_shared/scale";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { buttonModel, iconButtonModel, type ButtonAppearance, type ButtonLevel, type ButtonSize, type ButtonState, type ButtonVariant } from "./model";
 import "./button.css";
 
-/** Figma Button/Main levels. `surface` is present in the current official file. */
-export const buttonLevels = [
-  "primary",
-  "accent",
-  "secondary",
-  "tertiary",
-  "danger",
-  "danger-subtle",
-  "positive",
-  "positive-subtle",
-  "surface",
-  "danger-secondary",
-  "positive-secondary",
-  "inverse",
-  "white",
-  "white-overlay",
-  "black-overlay",
-  "inverse-subtle",
-] as const;
-
-export const buttonAppearances = ["main", "flat", "overlay"] as const;
-export const buttonMainLevels = ["primary", "accent", "secondary", "tertiary", "danger", "danger-subtle", "positive", "positive-subtle", "surface"] as const;
-export const buttonIconMainLevels = ["primary", "accent", "secondary", "tertiary", "danger", "danger-secondary", "positive", "positive-secondary", "surface"] as const;
-export const buttonFlatLevels = ["primary", "accent"] as const;
-export const buttonIconFlatLevels = ["primary", "secondary", "accent", "danger", "positive"] as const;
-export const buttonOverlayLevels = ["inverse", "white", "white-overlay", "black-overlay", "inverse-subtle"] as const;
-
-/** Backwards-compatible name used by the original Storybook stories. */
-export const buttonVariants = buttonLevels;
-
-export const buttonSizes = ["2xs", "xs", "sm", "md", "lg", "xl"] as const;
-export const buttonStates = ["default", "hover", "pressed", "focused", "disabled"] as const;
-
-export type ButtonLevel = (typeof buttonLevels)[number];
-export type ButtonAppearance = (typeof buttonAppearances)[number];
-export type ButtonVariant = ButtonLevel;
-/** CSS / Figma key (the `data-size` value). */
-type ButtonSizeKey = (typeof buttonSizes)[number];
-/** Short (canonical) or long Figma spelling — both render the same. */
-export type ButtonSize = "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xsmall" | "xsmall" | "small" | "medium" | "large" | "xlarge";
-export type ButtonState = (typeof buttonStates)[number];
-
-const labelStyleBySize: Record<ButtonSizeKey, TypographyStyleName> = {
-  "2xs": "Button-Label/XS",
-  xs: "Button-Label/XS",
-  sm: "Button-Label/S",
-  md: "Button-Label/M",
-  lg: "Button-Label/L",
-  xl: "Button-Label/XL",
-};
+export {
+  buttonAppearances,
+  buttonFlatLevels,
+  buttonIconFlatLevels,
+  buttonIconMainLevels,
+  buttonLevels,
+  buttonMainLevels,
+  buttonOverlayLevels,
+  buttonSizes,
+  buttonStates,
+  buttonVariants,
+  type ButtonAppearance,
+  type ButtonLevel,
+  type ButtonSize,
+  type ButtonState,
+  type ButtonVariant,
+} from "./model";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Canonical Figma prop. `variant` remains as a compatibility alias. */
@@ -103,30 +69,28 @@ export function Button({
   ...buttonProps
 }: ButtonProps) {
   const nest = useNested(overrides);
-  const size = scaleKey(sizeProp, buttonSizes);
   const startIcon = startIconProp ?? leftIcon;
   const endIcon = endIconProp ?? rightIcon;
-  const resolvedLevel = level ?? variant ?? "primary";
-  const resolvedState = state ?? (buttonProps.disabled ? "disabled" : undefined);
+  const button = buttonModel({ level, variant, size: sizeProp, state, disabled: buttonProps.disabled });
   return (
     <button
       {...buttonProps}
       ref={ref}
       type={type}
-      disabled={buttonProps.disabled || resolvedState === "disabled"}
+      disabled={button.disabled}
       className={["zen-button", className].filter(Boolean).join(" ")}
-      data-size={size}
+      data-size={button.size}
       data-appearance={appearance}
-      data-level={resolvedLevel}
-      data-variant={resolvedLevel}
-      data-state={resolvedState}
+      data-level={button.level}
+      data-variant={button.level}
+      data-state={button.state}
     >
       {startIcon ? (
         <span className="zen-button__icon" aria-hidden="true">
           {nest("Leading-Icon", renderIcon(startIcon))}
         </span>
       ) : null}
-      <span className={`zen-button__label ${typographyStyles[labelStyleBySize[size]]}`}>
+      <span className={button.labelClass}>
         {nest.slot(children)}
       </span>
       {endIcon ? (
@@ -188,10 +152,8 @@ export function IconButton({
   ...buttonProps
 }: IconButtonProps) {
   const nest = useNested(overrides);
-  const size = scaleKey(sizeProp, buttonSizes);
-  // Guideline defaults: Tertiary for everyday icon actions, Flat Primary for close/dismiss (Overlay keeps its old default).
-  const resolvedLevel = level ?? variant ?? (appearance === "flat" ? "primary" : appearance === "overlay" ? "accent" : "tertiary");
-  const resolvedState = state ?? (disabled ? "disabled" : undefined);
+  // Guideline defaults (iconButtonModel): Tertiary for everyday icon actions, Flat Primary for close/dismiss.
+  const button = iconButtonModel({ level, variant, size: sizeProp, state, appearance, disabled });
   const tip = useIconTooltip(tooltip === undefined ? buttonProps["aria-label"] : tooltip);
   return (
     <>
@@ -199,13 +161,13 @@ export function IconButton({
         {...tip.bind(buttonProps)}
         ref={ref}
         type={type}
-        disabled={disabled || resolvedState === "disabled"}
+        disabled={button.disabled}
         className={["zen-button", "zen-button--icon-only", className].filter(Boolean).join(" ")}
-        data-size={size}
+        data-size={button.size}
         data-appearance={appearance}
-        data-level={resolvedLevel}
-        data-variant={resolvedLevel}
-        data-state={resolvedState}
+        data-level={button.level}
+        data-variant={button.level}
+        data-state={button.state}
         aria-label={buttonProps["aria-label"]}
       >
         <span className="zen-button__icon" aria-hidden="true">{nest("Leading-Icon", renderIcon(icon))}</span>
