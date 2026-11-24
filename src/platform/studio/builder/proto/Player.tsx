@@ -9,8 +9,10 @@ import { bezelOf, DeviceFrame, deviceViewport, presentEscapeOwners, useViewportF
 import { canvasApi } from "../../canvas/viewport";
 import { OpenOnPhone } from "../../device/OpenOnPhone";
 import { previewAttributes, type ModeKey } from "../../shell/modes";
-import { studioStore, useStudio } from "../../store";
+import { pageKey, studioStore, useStudio } from "../../store";
 import type { StudioPreviewSettings } from "../../types";
+import { frameOf } from "../render/frames";
+import type { PageNode } from "../render/renderPage";
 import { pageFile, usePage } from "../store/pageStore";
 import { usePageTree } from "../usePageTree";
 import { useUploadsVersion } from "../assets/uploads";
@@ -39,6 +41,13 @@ export { isPlaying, PLAY_PREFIX, playStartOf, startPlay, stopPlay } from "./play
 
 /** How long the hotspot hints stay (their fade is in builder.css). */
 const HINT_MS = 900;
+
+/** A Screen's own light or dark (`modes={{ theme: … }}`, Apply variable mode), if it sets one. */
+function modesTheme(screen: PageNode | undefined): "light" | "dark" | undefined {
+  const modes = screen?.props.modes;
+  const theme = modes?.kind === "object" ? modes.fields.theme : undefined;
+  return theme?.kind === "literal" && (theme.value === "light" || theme.value === "dark") ? theme.value : undefined;
+}
 type HintBox = { x: number; y: number; width: number; height: number; radius: string };
 
 /** StudioApp renders it beside Present: the Play layer while `presenting` is "play:…" on a builder page. */
@@ -89,7 +98,14 @@ function PlayLayer({ id, start, portalRef, toastRef }: { id: string; start: stri
   // canvas modes. They change the page being played, never the Studio's UI (its bar keeps the chrome modes).
   const { preview: canvasModes, brand, locale } = useCanvasPreview();
   const [own, setOwn] = useState<Partial<StudioPreviewSettings>>({});
-  const modes: StudioPreviewSettings = { ...canvasModes, ...own };
+  // The played frame's light or dark, as the canvas draws it: its own theme (the frame toolbar's moon, which Present and
+  // the export follow too), else the Screen's `modes` theme. The whole layer takes it, so the stage, the overlays, the
+  // popovers and the toasts of a dark Screen are dark with it (user 2026-11-24: "chạy prototype vẫn lỗi darkmode", Play
+  // took the canvas's light only). Play's own pick wins over both.
+  const playedFrame = screen ? frameOf(screen).id : alone && presentedNode ? frameOf(presentedNode).id : null;
+  const frameTheme = useStudio((state) => (playedFrame ? state.frameOverrides[pageKey(state.page, state.collection, state.localPage)]?.[playedFrame]?.theme : undefined));
+  const theme = own.theme ?? frameTheme ?? modesTheme(screen) ?? canvasModes.theme;
+  const modes: StudioPreviewSettings = { ...canvasModes, ...own, theme };
   const setMode = useCallback((key: ModeKey, value: string) => setOwn((current) => ({ ...current, [key]: value })), []);
   const [framed, setFramed] = useState(true);
   const stageRef = useRef<HTMLDivElement>(null);

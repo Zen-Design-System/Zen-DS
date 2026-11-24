@@ -93,7 +93,9 @@ Last updated: 2026-11-13.
   tooltip); `inspector/sizeNote.ts` (the size badge's note, published by the canvas — the badge side is with session
   studio-gestures); `inspector/propCategories.ts` + `GroupedProperties` groups (Content · Look · Behavior · Advanced,
   `FLAT_GROUPS` for components without Figma groups); `shell/modes.ts` `setStudioTheme` (chrome only) and
-  `setPreviewTheme` (the frames). E2E I-35…I-38, S-08, S-09. Detail: session log 2026-10-27.
+  `setPreviewTheme` (the frames). E2E I-35…I-38, S-08, S-09. Detail: session log 2026-10-27. Play's theme (2026-11-24):
+  Play's own pick › the played frame's moon (`frameOverrides`) › the Screen's `modes.theme` › the canvas's, on the whole
+  layer (`proto/Player.tsx`), as Present does; E2E FW-295.
 - **Studio UI/UX review (2026-10-27, docs only):** `docs/research/studio-ux-review-2026-10-27.md` — five hands-on
   walks on the user's pages, the Figma-key E2E walk, axe, a UX-writing audit (40 strings), 15 screenshots. Ranked
   proposal §7 approved by the user 2026-10-27, in order: P0 double-click / Enter land on DOM parts with a CSS panel and ⌘A / ⌘D die after
