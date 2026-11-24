@@ -1,30 +1,12 @@
 import { useId, type CSSProperties, type ReactNode, type Ref } from "react";
 import { Icon } from "../Icon";
 import { useZenLabels } from "../_shared/zen-context";
-import { typographyStyles } from "../../tokens/typography.generated";
+import { progressBarModel, progressCircleModel, type ProgressBarLayout, type ProgressBarTheme, type ProgressCircleTheme, type ProgressStatusScale } from "./model";
 import "./progress.css";
 import "../Icon/core";
 import { dataAttributes } from "../_shared/data-attributes";
 
-export const progressBarThemes = ["neutral", "accent", "status"] as const;
-export const progressBarLayouts = ["inline", "stacked"] as const;
-export const progressCircleThemes = ["neutral", "accent", "red", "orange", "yellow", "green", "blue"] as const;
-export type ProgressBarTheme = (typeof progressBarThemes)[number];
-export type ProgressBarLayout = (typeof progressBarLayouts)[number];
-export type ProgressCircleTheme = (typeof progressCircleThemes)[number];
-
-const clamp = (value: number) => Math.min(100, Math.max(0, Number.isFinite(value) ? value : 0));
-
-/** Figma Theme=Status maps progress to a semantic colour: Low → Negative, Medium → Warning, Good/Done → Positive. */
-/** How the Status theme reads a value: `completion` (towards a goal — low is red, done is green) or `quota`
- * (filling up a limit — storage, seats, API calls: green while there is room, Warning from 75%, Negative from 90%). */
-export type ProgressStatusScale = "completion" | "quota";
-
-export function progressStatus(value: number, scale: ProgressStatusScale = "completion"): "negative" | "warning" | "positive" {
-  const v = clamp(value);
-  if (scale === "quota") return v >= 90 ? "negative" : v >= 75 ? "warning" : "positive";
-  return v < 33 ? "negative" : v < 66 ? "warning" : "positive";
-}
+export { progressBarLayouts, progressBarThemes, progressCircleThemes, progressStatus, type ProgressBarLayout, type ProgressBarTheme, type ProgressCircleTheme, type ProgressStatusScale } from "./model";
 
 export interface ProgressBarProps {
   /** 0–100. */
@@ -52,28 +34,20 @@ export interface ProgressBarProps {
 export function ProgressBar({ value, theme = "neutral", layout = "inline", label, valueLabel, "aria-label": ariaLabel, scale = "completion", className, ref, ...rest }: ProgressBarProps) {
   const t = useZenLabels();
   const labelId = useId();
-  const v = clamp(value);
-  const percent = `${Math.round(v)}%`;
-  const stacked = layout === "stacked";
-  const text = label === true ? (stacked ? undefined : percent) : label;
-  const shown = text !== undefined && text !== null && text !== false;
-  const end = stacked ? (valueLabel ?? percent) : undefined;
-  const labelEl = shown ? <span id={stacked ? labelId : undefined} className={`zen-progress-bar__label ${typographyStyles[stacked ? "Body/Base/Bold" : "Body/Base/Regular"]}`}>{text}</span> : null;
-  // Stacked: the label names the bar and the Value is its value text. Inline: the label is the value text.
-  const name = ariaLabel ?? (stacked ? (shown ? undefined : t.progress) : (typeof text === "string" ? undefined : t.progress));
-  const valueText = stacked ? (typeof end === "string" ? end : undefined) : (typeof text === "string" ? text : undefined);
+  const bar = progressBarModel<ReactNode>({ value, theme, layout, label, valueLabel, ariaLabel, scale }, t);
+  const labelEl = bar.shown ? <span id={bar.stacked ? labelId : undefined} className={bar.labelClass}>{bar.text}</span> : null;
   const track = (
-    <div className="zen-progress-bar__track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(v)} aria-label={name} aria-labelledby={stacked && shown && !ariaLabel ? labelId : undefined} aria-valuetext={valueText}>
-      <span className="zen-progress-bar__fill" style={{ width: `${v}%` }} hidden={v === 0} />
+    <div className="zen-progress-bar__track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={bar.now} aria-label={bar.ariaLabel} aria-labelledby={bar.labelledByLabel ? labelId : undefined} aria-valuetext={bar.ariaValueText}>
+      <span className="zen-progress-bar__fill" style={{ width: `${bar.value}%` }} hidden={bar.value === 0} />
     </div>
   );
   return (
-    <div {...dataAttributes(rest)} ref={ref} className={["zen-progress-bar", className].filter(Boolean).join(" ")} data-layout={layout} data-tone={theme} data-status={theme === "status" ? progressStatus(v, scale) : undefined}>
-      {stacked ? (
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-progress-bar", className].filter(Boolean).join(" ")} data-layout={layout} data-tone={theme} data-status={bar.status}>
+      {bar.stacked ? (
         <>
           <div className="zen-progress-bar__header">
             {labelEl}
-            <span className={`zen-progress-bar__value ${typographyStyles["Body/Base/Regular"]}`}>{end}</span>
+            <span className={bar.valueClass}>{bar.end}</span>
           </div>
           {track}
         </>
@@ -103,16 +77,13 @@ export interface ProgressCircleProps {
  * icon-check-solid. */
 export function ProgressCircle({ value, theme = "accent", label, "aria-label": ariaLabel, decorative = false, className, ref, ...rest }: ProgressCircleProps) {
   const t = useZenLabels();
-  const v = clamp(value);
-  const done = v >= 100;
-  const text = label === true ? `${Math.round(v)}%` : label;
+  const circle = progressCircleModel<ReactNode>({ value, label, ariaLabel, decorative }, t);
   return (
     <div {...dataAttributes(rest)} ref={ref} className={["zen-progress-circle", className].filter(Boolean).join(" ")} data-tone={theme}>
-      <span className="zen-progress-circle__icon" data-done={done ? "true" : "false"} style={{ "--zen-progress-value": v } as CSSProperties}
-        {...(decorative ? { "aria-hidden": true } : { role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": Math.round(v), "aria-label": ariaLabel ?? (typeof text === "string" ? undefined : t.progress), "aria-valuetext": typeof text === "string" ? text : undefined })}>
-        {done ? <Icon name="icon-check-solid" decorative /> : null}
+      <span className="zen-progress-circle__icon" data-done={circle.done ? "true" : "false"} style={{ "--zen-progress-value": circle.value } as CSSProperties} {...circle.ring}>
+        {circle.done ? <Icon name="icon-check-solid" decorative /> : null}
       </span>
-      {text !== undefined && text !== false ? <span className={`zen-progress-circle__label ${typographyStyles["Body/Base/Regular"]}`}>{text}</span> : null}
+      {circle.shown ? <span className={circle.labelClass}>{circle.text}</span> : null}
     </div>
   );
 }

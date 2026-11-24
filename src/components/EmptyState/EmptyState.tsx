@@ -2,16 +2,13 @@ import { createContext, useContext, type HTMLAttributes, type ReactElement, type
 import { Button, type ButtonLevel } from "../Button";
 import type { IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
-import { scaleKey } from "../_shared/scale";
-import { typographyStyles, type TypographyStyleName } from "../../tokens/typography.generated";
+import { emptyStateActionLevels, emptyStateArt, emptyStateCaptionClass, emptyStateIllustrationClass, emptyStateModel, type EmptyStateHeadingLevel, type EmptyStateSize } from "./model";
 import "./empty-state.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { dataAttributes } from "../_shared/data-attributes";
 
-export const emptyStateSizes = ["sm", "md"] as const;
-/** Short (canonical) or long Figma spelling — both render the same. */
-export type EmptyStateSize = "sm" | "md" | "small" | "medium";
+export { emptyStateSizes, type EmptyStateSize } from "./model";
 
 export interface EmptyStateAction {
   label: ReactNode;
@@ -78,24 +75,18 @@ export function EmptyStateIllustration({ icon = "icon-user-circle-line", size: s
   ref?: Ref<HTMLSpanElement>;
 }) {
   const nest = useNested();
-  const size = scaleKey(sizeProp, emptyStateSizes);
   return (
-    <span {...dataAttributes(rest)} ref={ref} className={`zen-empty-state__illustration zen-empty-state__illustration--${size}`} aria-hidden="true">
+    <span {...dataAttributes(rest)} ref={ref} className={emptyStateIllustrationClass(sizeProp)} aria-hidden="true">
       <svg viewBox="0 0 240 240" width="240" height="240" className="zen-empty-state__art">
         <g className="zen-empty-state__grid">
-          {[40, 93, 146, 199].map((x) => <line key={`v${x}`} x1={x} x2={x} y1={40} y2={200} />)}
-          {[60, 100, 140, 180].map((y) => <line key={`h${y}`} x1={20} x2={220} y1={y} y2={y} />)}
+          {emptyStateArt.lines.map(({ key, ...line }) => <line key={key} {...line} />)}
         </g>
-        <circle className="zen-empty-state__ghost" cx={90} cy={110} r={49} />
-        <circle className="zen-empty-state__ring" cx={149} cy={130} r={49} />
-        <circle className="zen-empty-state__well" cx={149} cy={130} r={40} />
+        {emptyStateArt.circles.map((circle) => <circle key={circle.className} {...circle} />)}
       </svg>
       <span className="zen-empty-state__icon">{nest("Icon", renderIcon(icon))}</span>
     </span>
   );
 }
-
-type EmptyStateHeadingLevel = NonNullable<EmptyStateProps["headingLevel"]>;
 
 /**
  * Provided by a titled card (ChartCard) around its content, with the level of the card title. An Empty State inside
@@ -112,24 +103,22 @@ export const EmptyStateCardContext = createContext<EmptyStateHeadingLevel | unde
 export function EmptyState({ ref, title, headingLevel, compactTitle = false, children, size: sizeProp, illustration = true, icon, primaryAction, secondaryAction, className, overrides, ...rest }: EmptyStateProps) {
   const nest = useNested(overrides);
   const cardLevel = useContext(EmptyStateCardContext);
-  const size = scaleKey(sizeProp ?? (cardLevel === undefined ? "md" : "sm"), emptyStateSizes);
-  const art = illustration === true ? nest("Illustration", <EmptyStateIllustration icon={icon} size={size} />) : nest.slot(illustration || null);
+  const empty = emptyStateModel({ size: sizeProp, headingLevel, compactTitle, cardLevel });
+  const art = illustration === true ? nest("Illustration", <EmptyStateIllustration icon={icon} size={empty.size} />) : nest.slot(illustration || null);
   const hasActions = Boolean(primaryAction || secondaryAction);
-  const level = headingLevel ?? (cardLevel === undefined ? 3 : (Math.min(cardLevel + 1, 6) as EmptyStateHeadingLevel));
-  const titleStyle: TypographyStyleName = compactTitle || cardLevel !== undefined || level >= 4 ? "Body/Extra/Bold" : "Heading/4";
-  const Heading = `h${level}` as "h2" | "h3" | "h4" | "h5" | "h6";
+  const Heading = empty.heading;
   return (
-    <section {...rest} ref={ref} className={["zen-empty-state", `zen-empty-state--${size}`, className].filter(Boolean).join(" ")}>
+    <section {...rest} ref={ref} className={[empty.className, className].filter(Boolean).join(" ")}>
       {art}
       <div className="zen-empty-state__body">
         <div className="zen-empty-state__content">
-          <Heading className={`zen-empty-state__title ${typographyStyles[titleStyle]}`}>{title}</Heading>
-          {children ? <p className={`zen-empty-state__caption ${typographyStyles["Body/Base/Regular"]}`}>{nest.slot(children)}</p> : null}
+          <Heading className={empty.titleClass}>{title}</Heading>
+          {children ? <p className={emptyStateCaptionClass}>{nest.slot(children)}</p> : null}
         </div>
         {hasActions ? (
           <div className="zen-empty-state__actions">
-            {primaryAction ? nest("Primary", <Button appearance="main" level={primaryAction.level ?? "primary"} size="md" onClick={primaryAction.onClick}>{primaryAction.label}</Button>) : null}
-            {secondaryAction ? nest("Secondary", <Button appearance="main" level={secondaryAction.level ?? "tertiary"} size="md" onClick={secondaryAction.onClick}>{secondaryAction.label}</Button>) : null}
+            {primaryAction ? nest("Primary", <Button appearance="main" level={primaryAction.level ?? emptyStateActionLevels.first} size="md" onClick={primaryAction.onClick}>{primaryAction.label}</Button>) : null}
+            {secondaryAction ? nest("Secondary", <Button appearance="main" level={secondaryAction.level ?? emptyStateActionLevels.second} size="md" onClick={secondaryAction.onClick}>{secondaryAction.label}</Button>) : null}
           </div>
         ) : null}
       </div>

@@ -28,6 +28,14 @@ export default defineConfig({
       provider: playwright({ contextOptions: { reducedMotion: "reduce" } }),
       instances: [{ browser: "chromium", viewport: { width: 1280, height: 900 } }],
       screenshotFailures: false,
+      commands: {
+        // Code view P3: vue-tsc on the Vue code the playgrounds show (tests/interaction/code-languages.test.tsx), in Node.
+        async vueTypeCheck(_context, files: Record<string, string>, demo: string) {
+          const { typeCheckVue } = await import(new URL("./tools/code-languages/vue-project.mjs", import.meta.url).href);
+          const { ok, output } = typeCheckVue(files, { demo, excerpts: true });
+          return { ok, output };
+        },
+      },
     },
   },
 });

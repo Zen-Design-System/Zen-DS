@@ -25,7 +25,7 @@ export type CodeLanguageInfo = {
 export const CODE_LANGUAGES: readonly CodeLanguageInfo[] = [
   { id: "react", label: "React", name: "React 19 · TSX", install: "npm install @zen-ds/react" },
   { id: "html", label: "HTML", name: "HTML + CSS", install: "@zen-ds/react/styles.css on any page" },
-  { id: "vue", label: "Vue", name: "Vue 3", install: "A Vue package (planned)" },
+  { id: "vue", label: "Vue", name: "Vue 3", install: "@zen-ds/vue: wave 1 (not published yet: platforms/vue)" },
   { id: "swift", label: "Swift", name: "SwiftUI", install: "A Swift package (tokens today: platforms/swift)" },
   { id: "flutter", label: "Flutter", name: "Flutter", install: "A Dart package (tokens today: platforms/flutter)" },
   { id: "svelte", label: "Svelte", name: "Svelte 5", install: "A Svelte package (planned)" },
@@ -35,15 +35,42 @@ export const isCodeLanguage = (value: unknown): value is CodeLanguageId => CODE_
 export const languageInfo = (id: CodeLanguageId) => CODE_LANGUAGES.find((language) => language.id === id) ?? CODE_LANGUAGES[0];
 
 type ManifestRow = { slug: string } & Record<CodeLanguageId, CodeLanguageStatus>;
-const components = manifest.components as Record<string, ManifestRow>;
+/**
+ * The languages the Code view writes code in today: React (the source), HTML (the specimen's markup) and Vue (the
+ * emitter, code/vue.ts). A port's components can be ready in the manifest before its emitter is wired here; until then
+ * the picker and the Languages table count that language as not yet.
+ */
+const WRITES_CODE: ReadonlySet<CodeLanguageId> = new Set(["react", "html", "vue"]);
+const components = Object.fromEntries(Object.entries(manifest.components as Record<string, ManifestRow>).map(([name, row]) => [
+  name,
+  Object.fromEntries(Object.entries(row).map(([key, value]) => [key, key === "slug" || WRITES_CODE.has(key as CodeLanguageId) ? value : "not-yet"])) as ManifestRow,
+]));
 
 /** Every public component and its row, sorted by name (the Languages table). */
 export const languageRows = Object.entries(components).map(([name, row]) => ({ name, ...row }));
 
-/** The library components a snippet renders: its JSX tags that the library exports, in order of appearance. */
-export function componentsIn(code: string): string[] {
+/** The library's hooks and the component each belongs to: a snippet that calls one needs that component's port. */
+export const libraryHooks: Readonly<Record<string, string>> = {
+  useToast: "ToastProvider",
+  useFormState: "Form",
+  useVoiceLevels: "VoiceRecorder",
+  useZen: "ZenProvider",
+  useExclusivePopover: "Popover",
+  useAnchoredPosition: "Popover",
+  useIconTooltip: "Tooltip",
+};
+
+/**
+ * The library components a snippet renders: its JSX tags that the library exports, in order of appearance. With
+ * `hooks`, also the component behind each library hook it calls (a port translates the code, so it needs them; HTML
+ * shows the rendered markup and does not).
+ */
+export function componentsIn(code: string, { hooks = false }: { hooks?: boolean } = {}): string[] {
   const found = new Set<string>();
-  for (const match of code.matchAll(/<([A-Z][A-Za-z0-9]*)/g)) if (components[match[1]]) found.add(match[1]);
+  for (const match of code.matchAll(/<([A-Z][A-Za-z0-9]*)|\b(use[A-Z]\w*)\(/g)) {
+    const name = match[1] ?? (hooks ? libraryHooks[match[2]] : undefined);
+    if (name && components[name]) found.add(name);
+  }
   return [...found];
 }
 
@@ -59,7 +86,7 @@ const interactive = (code: string) => /\bon[A-Z]\w*=\{|\buse[A-Z]\w*\(/.test(cod
  */
 export function snippetStatus(code: string, language: CodeLanguageId): SnippetLanguageStatus {
   if (language === "react") return { status: "ready", missing: [] };
-  const used = componentsIn(code);
+  const used = componentsIn(code, { hooks: language !== "html" });
   if (!used.length) return { status: "not-yet", missing: [] };
   const missing = used.filter((name) => components[name][language] === "not-yet");
   if (missing.length) return { status: "not-yet", missing };

@@ -4,7 +4,7 @@ import { activity, daysFromToday, formatDue, formatMoney, formatRange, formatRel
 
 const person = (id: string) => (people as Record<string, Person>)[id];
 /** Photo when the person has one, initials on their steady theme otherwise. The name sits next to it, so alt is empty. */
-const avatarFor = (p: Person) => p.photo ? { theme: "photo" as const, src: p.photo, alt: "" } : { theme: p.theme, children: initials(p.name) };
+const avatarFor = (p: Person) => (p.photo ? <Avatar size="md" theme="photo" src={p.photo} alt="" /> : <Avatar size="md" theme={p.theme} alt="">{initials(p.name)}</Avatar>);
 
 type Notice = { id: string; title: string; text: string; at: Date; unread: boolean } & ({ actor: string } | { icon: IconName; theme: DockIconTheme });
 /** When each studio event happened (the shared activity feed), so every page tells the same story. */
@@ -46,7 +46,7 @@ export default function Notifications() {
       <List aria-label="Notifications">
         {items.map((n) => (
           <ListItem key={n.id} selected={n.id === openId} title={n.title} titleLines={2} caption={`${n.text} · ${formatRelative(n.at)}`}
-            leading={"actor" in n ? <Avatar size="md" {...avatarFor(person(n.actor))} /> : <DockIcon icon={n.icon} theme={n.theme} background="subtle" size="md" />}
+            leading={"actor" in n ? avatarFor(person(n.actor)) : <DockIcon icon={n.icon} theme={n.theme} background="subtle" size="md" />}
             trailing={n.unread ? <Badge theme="accent" background="subtle">New</Badge> : undefined}
             onClick={() => open(n.id)} />
         ))}

@@ -1,21 +1,12 @@
 import type { CSSProperties, Ref } from "react";
 import { scaleKey } from "../_shared/scale";
+import { skeletonClass, skeletonHeadingSizes, skeletonShapeSizes, skeletonTextBars, type SkeletonHeadingSize, type SkeletonShape as SkeletonShapeKind, type SkeletonShapeSize } from "./model";
 import "./skeleton.css";
 import { dataAttributes } from "../_shared/data-attributes";
 
-export const skeletonTextLines = [1, 2, 3, 5] as const;
-export const skeletonHeadingSizes = ["small", "medium", "large"] as const;
-export const skeletonShapes = ["rectangle", "pill", "round", "square"] as const;
-export const skeletonShapeSizes = ["2xsmall", "xsmall", "small", "medium", "large"] as const;
-/** CSS / Figma key (the `data-size` value). */
-type SkeletonHeadingSizeKey = (typeof skeletonHeadingSizes)[number];
-/** Short (canonical) or long Figma spelling — both render the same. */
-export type SkeletonHeadingSize = "sm" | "md" | "lg" | "small" | "medium" | "large";
-export type SkeletonShape = (typeof skeletonShapes)[number];
-/** CSS / Figma key (the `data-size` value). */
-type SkeletonShapeSizeKey = (typeof skeletonShapeSizes)[number];
-/** Short (canonical) or long Figma spelling — both render the same. */
-export type SkeletonShapeSize = "2xs" | "xs" | "sm" | "md" | "lg" | "2xsmall" | "xsmall" | "small" | "medium" | "large";
+export { skeletonHeadingSizes, skeletonShapes, skeletonShapeSizes, skeletonTextLines, type SkeletonHeadingSize, type SkeletonShapeSize } from "./model";
+/** Declared here so the type and the SkeletonShape component share the name (index.ts exports it as SkeletonShapeKind). */
+export type SkeletonShape = SkeletonShapeKind;
 
 interface SkeletonBaseProps {
   /** Pulse while loading (off for reduced motion). */
@@ -26,7 +17,7 @@ interface SkeletonBaseProps {
   ref?: Ref<HTMLSpanElement>;
 }
 
-const classes = (base: string, animated: boolean, className?: string) => [base, animated ? "zen-skeleton--animated" : "", className].filter(Boolean).join(" ");
+const classes = (base: string, animated: boolean, className?: string) => [skeletonClass(base, animated), className].filter(Boolean).join(" ");
 
 export interface SkeletonTextProps extends SkeletonBaseProps {
   /** Figma No. of line: 1 · 2 · 3 · 5 (any positive number works). */
@@ -37,7 +28,7 @@ export interface SkeletonTextProps extends SkeletonBaseProps {
 export function SkeletonText({ lines = 3, animated = true, className, style, ref, ...rest }: SkeletonTextProps) {
   return (
     <span {...dataAttributes(rest)} ref={ref} className={classes("zen-skeleton-text", animated, className)} style={style} aria-hidden="true">
-      {Array.from({ length: Math.max(1, lines) }, (_, index) => <span key={index} className="zen-skeleton__bar" />)}
+      {skeletonTextBars(lines).map((index) => <span key={index} className="zen-skeleton__bar" />)}
     </span>
   );
 }

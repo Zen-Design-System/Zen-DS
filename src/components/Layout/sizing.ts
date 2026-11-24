@@ -5,9 +5,9 @@
  * Rendering: data attributes (`data-w`, `data-h` = hug | fill | fixed, `data-self`, `data-min-w` …) plus the px values
  * as inline custom properties (`--zen-layout-width` …). The rules in layout.css read the parent: inside a Stack, fill
  * grows along its direction and stretches across it. Unset props render nothing.
+ *
+ * Framework-free (the web core, src/core): the components that read it import layout.css themselves.
  */
-import type { CSSProperties } from "react";
-import "./layout.css";
 
 /** One axis of Figma resizing: "hug" (Hug contents), "fill" (Fill container) or a number (Fixed size, in px). */
 export type LayoutSizing = "hug" | "fill" | number;
@@ -97,6 +97,6 @@ export function layoutSizing({ width, height, minWidth, maxWidth, minHeight, max
 }
 
 /** `style` with the sizing custom properties underneath it; the same object (or undefined) when there are none. */
-export function withSizingVars<T extends CSSProperties | undefined>(style: T, vars: LayoutSizingOutput["vars"]): T | CSSProperties {
-  return Object.keys(vars).length ? ({ ...vars, ...style } as CSSProperties) : style;
+export function withSizingVars<S extends object>(style: S | undefined, vars: LayoutSizingOutput["vars"]): S | undefined {
+  return Object.keys(vars).length ? ({ ...vars, ...style } as S) : style;
 }

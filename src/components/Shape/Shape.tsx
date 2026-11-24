@@ -1,13 +1,16 @@
 import { useId, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { frameFlips, zenBlendModes, type FrameFlip, type ZenBlendMode } from "../Layout/appearance";
 import { layoutPosition, type LayoutPositionProps } from "../Layout/position";
+import "../Layout/position.css";
 import { layoutSizing, withSizingVars, type LayoutSizingProps } from "../Layout/sizing";
+import "../Layout/layout.css";
 import { cornerRadiusValue, cornerSmoothingStyle, type CornerRadiusProps, type CornerSmoothingProps } from "../_shared/corners";
 import { gradientLayers, gradientStyle, svgGradient, type GradientFillProps } from "../_shared/gradient";
 import { useMergedRefs } from "../_shared/merge-refs";
 import type { ZenCornerRadius } from "../_shared/scale";
 import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
-import { imagePattern, useImageFill, type ImageFillProps } from "../_shared/image-fill";
+import { imagePattern, type ImageFillProps } from "../_shared/image-fill";
+import { useImageFill } from "../_shared/use-image-fill";
 import { arrowHeadPath, ellipsePath, fitVectorPath, isFullArc, normalizeArc, parseVectorPath, parseViewBox, pointsPath, polygonPoints, POLYGON_POINTS, starPoints, STAR_POINTS, STAR_RATIO, vectorBounds } from "./geometry";
 import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL, fillPaint, strokePaint, type ShapeFill, type ShapeStroke } from "./paint";
 import "./shape.css";

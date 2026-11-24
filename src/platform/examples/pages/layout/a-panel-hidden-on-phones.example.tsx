@@ -3,9 +3,9 @@ import { Avatar, Box, Grid, Heading, List, ListBox, ListItem } from "@zen-ds/rea
 import { activity, formatDue, formatRelative, initials, people, tasks, type Person } from "../../data";
 
 /** Photo when the person has one, else initials on their steady theme. */
-const avatarOf = (person: Person) => person.photo
-  ? { theme: "photo" as const, src: person.photo, alt: "" }
-  : { theme: person.theme, alt: "", children: initials(person.name) };
+const avatarOf = (person: Person) => (person.photo
+  ? <Avatar size="md" theme="photo" src={person.photo} alt="" />
+  : <Avatar size="md" theme={person.theme} alt="">{initials(person.name)}</Avatar>);
 /** A row caption of whole values: it wraps between values, never inside a key or a name; each "· " stays with the value it introduces, so no line ends on a dot. */
 const wholeValues = (...values: (string | false)[]) => values.filter((value): value is string => Boolean(value)).map((value, index) => (
   <Fragment key={`${index}:${value}`}>{index ? " " : null}{whole(`${index ? "· " : ""}${value}`)}</Fragment>
@@ -27,7 +27,7 @@ export default function TasksAndActivity({ headingLevel = 4 }: { headingLevel?: 
       <ListBox as="section" theme="default" aria-labelledby={tasksId} header={<Heading level={headingLevel} id={tasksId} textStyle="Heading/Subheading">Open tasks</Heading>}>
         <List aria-labelledby={tasksId}>
           {openTasks.map((task) => <ListItem key={task.id} title={task.title} titleLines={2} caption={wholeValues(task.key, formatDue(task.due))}
-            leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} />)}
+            leading={avatarOf(people[task.assignee])} />)}
         </List>
       </ListBox>
       {/* Secondary on a phone: hidden there (display none), still in the DOM. ListBox has no hideOn: a Box holds it. */}
@@ -36,7 +36,7 @@ export default function TasksAndActivity({ headingLevel = 4 }: { headingLevel?: 
           <List aria-labelledby={activityId}>
             {activity.slice(0, 3).map((item) => (
               <ListItem key={item.id} title={people[item.actor].name} titleLines={1} caption={`${item.verb} ${item.object} · ${formatRelative(item.at)}`}
-                leading={<Avatar size="md" {...avatarOf(people[item.actor])} />} />
+                leading={avatarOf(people[item.actor])} />
             ))}
           </List>
         </ListBox>

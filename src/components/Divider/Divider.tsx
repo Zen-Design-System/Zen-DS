@@ -1,10 +1,9 @@
 import type { Ref } from "react";
 import "./divider.css";
 import { dataAttributes } from "../_shared/data-attributes";
+import type { DividerColor, DividerOrientation } from "./model";
 
-export const dividerColors = ["default", "medium", "high"] as const;
-export type DividerColor = (typeof dividerColors)[number];
-export type DividerOrientation = "horizontal" | "vertical";
+export { dividerColors, type DividerColor, type DividerOrientation } from "./model";
 
 export interface DividerProps {
   /** Figma Color: Default → Border/Neutral/Pale · Medium → Subtle · High → Solid. */

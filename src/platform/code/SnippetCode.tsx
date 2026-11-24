@@ -1,17 +1,19 @@
-import { useLayoutEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
+import vueStatus from "../../../platforms/vue/code-language.json";
 import { Button } from "../../components/Button";
 import { Icon } from "../../components/Icon";
 import { SelectField } from "../../components/Input";
 import { Link } from "../../components/Link";
 import { VisuallyHidden } from "../../components/VisuallyHidden";
 import { demoFile } from "../examples/demoFile";
-import { usesDemo } from "../examples/exampleCode";
+import { usesDemo, vueDemoOf } from "../examples/exampleCode";
 import { useStudioBridge } from "../studio/bridge";
 import { CodeView, type CodeLanguage } from "../studio/code/CodeView";
 import { htmlSnippet } from "./html";
 import { CODE_LANGUAGES, isCodeLanguage, languageInfo, listNames, snippetStatus, type CodeLanguageId, type CodeLanguageStatus } from "./languages";
 import { setCodeLanguage, useCodeLanguage } from "./preference";
 import { useSnippetSpecimen, type SpecimenSource } from "./specimen";
+import type { VueApi, VueEmit } from "./vue";
 import "./snippet.css";
 
 /*
@@ -62,6 +64,26 @@ function useSpecimenHtml(source: SpecimenSource | null, markupOnly: boolean, cod
   return source ? html : undefined;
 }
 
+/** What @zen-ds/vue has: written by tools/code-languages/vue-parity.mjs --write. */
+const vueApi: VueApi = { exports: vueStatus.exports, components: vueStatus.components };
+
+/**
+ * The Vue SFC of a snippet (code/vue.ts), made once the reader picks Vue: the emitter and Babel load only then.
+ * Undefined while they load.
+ */
+function useVueCode(code: string, enabled: boolean): VueEmit | undefined {
+  const [result, setResult] = useState<{ code: string; emit: VueEmit } | undefined>(undefined);
+  useEffect(() => {
+    if (!enabled) return undefined;
+    let live = true;
+    void Promise.all([import("@babel/parser"), import("./vue")]).then(([{ parse }, { emitVue }]) => {
+      if (live) setResult({ code, emit: emitVue(parse, code, vueApi) });
+    });
+    return () => { live = false; };
+  }, [code, enabled]);
+  return enabled && result?.code === code ? result.emit : undefined;
+}
+
 /** The Installation page's Languages section, keeping the other parameters (?code=…) of the address. */
 function languagesHref() {
   const url = new URL(window.location.href);
@@ -94,14 +116,15 @@ function followDocsLink(event: MouseEvent<HTMLAnchorElement>, scroll: boolean) {
 
 /**
  * An example imports the demo world from "./demo" (examples/source.ts): the header offers that file, demo.ts, to copy
- * beside the snippet, so the copied example runs as it is.
+ * beside the snippet, so the copied example runs as it is. `file`: demo.ts for the language shown (Vue's takes its
+ * types from @zen-ds/vue).
  */
-function DemoFileButton() {
+function DemoFileButton({ file }: { file: string }) {
   const [copied, setCopied] = useState(false);
   const timer = useRef(0);
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(demoFile);
+      await navigator.clipboard.writeText(file);
       setCopied(true);
       window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => setCopied(false), 1500);
@@ -133,8 +156,15 @@ export function SnippetCode({ code, maxHeight, specimen }: { code: string; maxHe
   // A specimen that is not rendered (null) has no markup to show either.
   const states = CODE_LANGUAGES.map((language) => ({ language, ...(language.id !== "html" ? snippetStatus(code, language.id) : html === null ? { status: "not-yet" as const, missing: [] } : htmlState) }));
   const current = states.find((state) => state.language.id === picked) ?? states[0];
-  const codeIn = (language: CodeLanguageId): { code: string; highlight: CodeLanguage } | null => (language === "react" ? { code, highlight: "tsx" } : language === "html" && html ? { code: html, highlight: "html" } : null);
+  const vue = useVueCode(code, picked === "vue" && current.status !== "not-yet");
+  const codeIn = (language: CodeLanguageId): { code: string; highlight: CodeLanguage } | null => {
+    if (language === "react") return { code, highlight: "tsx" };
+    if (language === "html" && html) return { code: html, highlight: "html" };
+    if (language === "vue" && vue?.ok) return { code: vue.code, highlight: "vue" };
+    return null;
+  };
   const shown = current.status === "not-yet" ? null : codeIn(picked);
+  const demo = usesDemo(code) ? (picked === "react" ? demoFile : picked === "vue" ? vueDemoOf(demoFile, vueStatus.types) : null) : null;
 
   const picker = (
     <SelectField
@@ -148,15 +178,19 @@ export function SnippetCode({ code, maxHeight, specimen }: { code: string; maxHe
     />
   );
 
-  if (shown) return <CodeView key="code" code={shown.code} language={shown.highlight} languageControl={picker} maxHeight={maxHeight} actions={picked === "react" && usesDemo(code) ? <DemoFileButton /> : undefined} />;
-  // HTML not read yet (the first frames): the code view waits empty rather than saying "not available".
+  if (shown) return <CodeView key="code" code={shown.code} language={shown.highlight} languageControl={picker} maxHeight={maxHeight} actions={demo ? <DemoFileButton file={demo} /> : undefined} />;
+  // HTML not read yet (the first frames), Vue's emitter still loading: the code view waits empty rather than saying
+  // "not available".
   if (picked === "html" && current.status !== "not-yet" && html === undefined) return <CodeView key="code" code="" language="html" languageControl={picker} maxHeight={maxHeight} toolbar={false} />;
+  if (picked === "vue" && current.status !== "not-yet" && vue === undefined) return <CodeView key="code" code="" language="vue" languageControl={picker} maxHeight={maxHeight} toolbar={false} />;
 
   const { label } = languageInfo(picked);
-  const available = states.filter((state) => state.status !== "not-yet").map((state) => state.language.label);
+  const available = states.filter((state) => state.status !== "not-yet" && !(state.language.id === "vue" && vue && !vue.ok)).map((state) => state.language.label);
+  // Every component is in the port, but this snippet's code is not one the emitter can write (yet): it says what.
+  const untranslated = picked === "vue" && vue && !vue.ok ? vue.reason : null;
   const notice = (
     <>
-      <p>{current.missing.length ? `${label} isn't available for ${listNames(current.missing)} yet.` : `${label} isn't available for this snippet yet.`}</p>
+      <p>{untranslated ? `${label} can't show this snippet yet: ${untranslated}.` : current.missing.length ? `${label} isn't available for ${listNames(current.missing)} yet.` : `${label} isn't available for this snippet yet.`}</p>
       <p>
         {`${listNames(available)} ${available.length === 1 ? "is" : "are"} available. `}
         <Link href={languagesHref()} onClick={(event) => followDocsLink(event, !studio)}>See language status</Link>

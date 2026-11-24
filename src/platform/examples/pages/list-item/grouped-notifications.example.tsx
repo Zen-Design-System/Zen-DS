@@ -3,9 +3,9 @@ import { Avatar, Badge, BadgeCounter, Button, Heading, List, ListBox, ListItem, 
 import { TODAY, activity, formatRange, formatRelative, initials, leaveRequests, people, type Person, type PersonId } from "../../data";
 
 /** Photo when the person has one, else initials on their steady theme. */
-const avatarFor = (person: Person) => person.photo
-  ? { theme: "photo" as const, src: person.photo, alt: "" }
-  : { theme: person.theme, alt: "", children: initials(person.name) };
+const avatarFor = (person: Person) => (person.photo
+  ? <Avatar size="md" theme="photo" src={person.photo} alt="" />
+  : <Avatar size="md" theme={person.theme} alt="">{initials(person.name)}</Avatar>);
 
 type Notice = { id: string; actor: PersonId; title: string; text: string; at: Date; unread: boolean };
 /** When each studio event happened (the shared activity feed), so every page tells the same story. */
@@ -59,7 +59,7 @@ export default function Notifications() {
               <ListItem key={notice.id} ref={notice.id === firstId ? firstRowRef : undefined} tabIndex={notice.id === firstId ? -1 : undefined}
                 title={notice.title} titleLines={2} caption={`${notice.text} · ${formatRelative(notice.at)}`}
                 selected={notice.id === openId} onClick={() => open(notice.id)}
-                leading={<Avatar size="md" {...avatarFor(people[notice.actor])} />}
+                leading={avatarFor(people[notice.actor])}
                 trailing={notice.unread ? <Badge theme="accent" background="subtle">New</Badge> : undefined} />
             ))}
           </List>

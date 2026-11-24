@@ -40,7 +40,8 @@ function check(label, actual, expected) {
 
 /* ───────────── 1. Registry against the component source and CSS ───────────── */
 
-/** Where each slot component renders: its TSX (classes, conditional mounts, title levels) and CSS (flow, gap). */
+/** Where each slot component renders: its TSX (classes, conditional mounts, title levels) and CSS (flow, gap). A
+ *  component's `model.ts` (the web core, shared with the Vue port) holds the class names that moved out of its TSX. */
 const SOURCES = {
   Card: { tsx: ["Card/Card.tsx"], css: ["Card/card.css"] },
   Dialog: { tsx: ["Dialog/Dialog.tsx"], css: ["Dialog/dialog.css"] },
@@ -50,8 +51,8 @@ const SOURCES = {
   Accordion: { tsx: ["Accordion/Accordion.tsx"], css: ["Accordion/accordion.css"] },
   TabPanel: { tsx: ["Tabs/Tabs.tsx"], css: ["Tabs/tabs.css"] },
   ChartCard: { tsx: ["Chart/Chart.tsx", "Card/Card.tsx", "Segmented/Segmented.tsx"], css: ["Chart/chart.css"] },
-  ListItem: { tsx: ["ListItem/ListItem.tsx"], css: ["ListItem/list-item.css"] },
-  ListBox: { tsx: ["ListItem/ListItem.tsx"], css: ["ListItem/list-item.css"] },
+  ListItem: { tsx: ["ListItem/ListItem.tsx", "ListItem/model.ts"], css: ["ListItem/list-item.css"] },
+  ListBox: { tsx: ["ListItem/ListItem.tsx", "ListItem/model.ts"], css: ["ListItem/list-item.css"] },
   TopNavigation: { tsx: ["TopNavigation/TopNavigation.tsx"], css: ["TopNavigation/top-navigation.css"] },
   Sidebar: { tsx: ["Sidebar/Sidebar.tsx"], css: ["Sidebar/sidebar.css"] },
   AppShell: { tsx: ["AppShell/AppShell.tsx"], css: ["AppShell/app-shell.css"] },
@@ -60,15 +61,15 @@ const SOURCES = {
   AppShellPane: { tsx: ["AppShell/AppShellPane.tsx"], css: ["AppShell/app-shell.css"] },
   SidebarMenuItem: { tsx: ["Sidebar/Sidebar.tsx"], css: ["Sidebar/sidebar.css"] },
   SidebarMenuSection: { tsx: ["Sidebar/Sidebar.tsx"], css: ["Sidebar/sidebar.css"] },
-  PageHeader: { tsx: ["PageHeader/PageHeader.tsx"], css: ["PageHeader/page-header.css"] },
-  Metric: { tsx: ["MetricWidget/MetricWidget.tsx"], css: ["MetricWidget/metric-widget.css"] },
-  MetricCard: { tsx: ["MetricWidget/MetricWidget.tsx", "Card/Card.tsx"], css: ["MetricWidget/metric-widget.css"] },
+  PageHeader: { tsx: ["PageHeader/PageHeader.tsx", "PageHeader/model.ts"], css: ["PageHeader/page-header.css"] },
+  Metric: { tsx: ["MetricWidget/MetricWidget.tsx", "MetricWidget/model.ts"], css: ["MetricWidget/metric-widget.css"] },
+  MetricCard: { tsx: ["MetricWidget/MetricWidget.tsx", "MetricWidget/model.ts", "Card/Card.tsx"], css: ["MetricWidget/metric-widget.css"] },
   // Type=Main renders PageHeader: its actions row holds Action-Slots and Trailing-Slots.
   DashboardHeader: { tsx: ["DashboardHeader/DashboardHeader.tsx", "PageHeader/PageHeader.tsx"], css: ["DashboardHeader/dashboard-header.css", "PageHeader/page-header.css"] },
-  EmptyState: { tsx: ["EmptyState/EmptyState.tsx"], css: ["EmptyState/empty-state.css"] },
-  Stack: { tsx: ["Layout/Layout.tsx"], css: ["Layout/layout.css"] },
-  Grid: { tsx: ["Layout/Layout.tsx"], css: ["Layout/layout.css"] },
-  Box: { tsx: ["Layout/Layout.tsx"], css: ["Layout/layout.css"] },
+  EmptyState: { tsx: ["EmptyState/EmptyState.tsx", "EmptyState/model.ts"], css: ["EmptyState/empty-state.css"] },
+  Stack: { tsx: ["Layout/Layout.tsx", "Layout/model.ts"], css: ["Layout/layout.css"] },
+  Grid: { tsx: ["Layout/Layout.tsx", "Layout/model.ts"], css: ["Layout/layout.css"] },
+  Box: { tsx: ["Layout/Layout.tsx", "Layout/model.ts"], css: ["Layout/layout.css"] },
   // A builder page's Screen (not a library component): its source is the builder runtime, its props its ScreenProps type.
   Screen: { tsx: ["../platform/studio/builder/proto/runtime.tsx"], css: ["../platform/studio/builder/builder.css"], props: "ScreenProps" },
 };

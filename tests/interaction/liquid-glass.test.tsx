@@ -53,6 +53,27 @@ describe("Liquid Glass", () => {
     expect((screen.container.querySelector('.zen-bottom-nav__item[data-selected="false"]') as HTMLElement).style.backdropFilter).toBe("");
   });
 
+  it("draws the dark light again when a plain element around the bar turns dark (a Zen Studio frame's own theme)", async () => {
+    const screen = await render(
+      <ZenProvider>
+        <div data-testid="frame">
+          <BottomNavigation type="floating-glass" value="home" onValueChange={() => {}}
+            items={[{ id: "home", label: "Home", icon: "icon-home-03-line" }, { id: "inbox", label: "Inbox", icon: "icon-bell-01-line" }]} />
+        </div>
+      </ZenProvider>,
+    );
+    const pill = screen.container.querySelector(".zen-bottom-nav__pill") as HTMLElement;
+    await expect.poll(() => pill.style.backgroundImage).toMatch(/^url\(/);
+    // Past the ResizeObserver's first callback (it fires once on observe and redraws): only the mode change may redraw.
+    await new Promise((done) => setTimeout(done, 300));
+    const light = pill.style.backgroundImage;
+    // user 2026-11-23 "Darkmode glass vẫn còn bị trắng": the mode set on the frame (not on a ZenProvider) kept the light
+    // mode's white rim; the dark Normal glass draws its light at a twentieth.
+    screen.container.querySelector('[data-testid="frame"]')!.setAttribute("data-theme", "dark");
+    await expect.poll(() => pill.style.backgroundImage).not.toBe(light);
+    expect(getComputedStyle(pill).getPropertyValue("--zen-liquid-glass-light").trim()).toBe("0.05");
+  });
+
   it("gives the Liquid Glass top bar's actions their glass", async () => {
     const screen = await render(<ZenProvider><TopNavigation type="liquid-glass" title="Trip" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => {} }} /></ZenProvider>);
     await expect.poll(() => glassFilter(screen.container.querySelector(".zen-top-nav__action")!)?.tagName).toBe("filter");

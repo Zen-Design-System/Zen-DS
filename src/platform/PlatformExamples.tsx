@@ -1852,7 +1852,7 @@ ${code}`} />
           <PlaygroundFilterChip label="Selected" value={colorValue} onChange={(value) => setColorValue(String(value))} options={colors.map((color) => ({ id: color.value, label: color.label }))} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-color-preview">
-          <ColorSelector aria-label="Label colour" colors={colors} value={colorValue} onChange={setColorValue} />
+          <ColorSelector aria-label="Label colour" colors={colors} value={colorValue} onValueChange={setColorValue} />
           <span data-snippet-skip className={`platform-color-readout ${typographyStyles["Body/Small/Regular"]}`}>{picked?.label}</span>
         </div>
         <PlatformCode code={`import { ColorSelector } from "@zen-ds/react";
@@ -1860,7 +1860,7 @@ ${code}`} />
 <ColorSelector
   aria-label="Label colour"
   value={colour}
-  onChange={setColour}
+  onValueChange={setColour}
   colors={[
     { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" },
     { value: "var(--zen-color-background-support-yellow-solid)", label: "Yellow", contrast: "dark" },
@@ -2102,7 +2102,7 @@ ${code}`} />
           </ListBox>
         </div>
         {actionNote}
-        <PlatformCode code={`import { List, ListBox, ListItem } from "@zen-ds/react";
+        <PlatformCode code={`import { ${[...(listLeading ? ["Avatar"] : []), ...(listTrailing ? ["Icon", "IconButton"] : []), "List", "ListBox", "ListItem"].join(", ")} } from "@zen-ds/react";
 
 <ListBox${listBoxTheme === "default" ? "" : ` theme="${listBoxTheme}"`}${listBoxTheme === "pale" && listBoxColor !== "neutral" ? ` color="${listBoxColor}"` : ""}${listBoxSurface === "alt" && listBoxSurfaces[listBoxTheme].includes("alt") ? ` surface="alt"` : ""}>
 <List aria-label="Team">

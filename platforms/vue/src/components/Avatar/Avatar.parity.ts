@@ -1,0 +1,76 @@
+import type { ParitySpec } from "../../../parity";
+
+const people = [
+  { alt: "Ava Chen", children: "AC", theme: "blue" },
+  { alt: "Bao Nguyen", children: "BN", theme: "green" },
+  { alt: "Chi Tran", children: "CT", theme: "purple" },
+  { alt: "Duy Le", children: "DL", theme: "red" },
+  { alt: "Em Pham", children: "EP", theme: "teal" },
+  { alt: "Giang Vo", children: "GV", theme: "orange" },
+  { alt: "Hoa Do", children: "HD", theme: "pink" },
+];
+const many = Array.from({ length: 15 }, (_, index) => ({ alt: `Person ${index + 1}`, children: `P${index + 1}` }));
+
+export default {
+  Avatar: {
+    base: { size: "medium", theme: "accent", alt: "Zen Design", children: "ZD" },
+    cases: [
+      { theme: "photo", src: "/avatars/zen.jpg", children: undefined },
+      { theme: "photo", src: "/avatars/zen.jpg", status: true, children: undefined },
+      { theme: "photo", src: "/avatars/zen.jpg", alt: "", children: undefined },
+      { theme: "photo", src: "/avatars/zen.jpg", alt: undefined, status: "pending", children: undefined },
+      { children: undefined, alt: "Ava Chen" },
+      { children: undefined, alt: "  ava   chen nguyen " },
+      { children: undefined, alt: "ava", size: "xs" },
+      { children: undefined, alt: undefined },
+      { alt: "" },
+      { alt: "", status: true },
+      { children: "zen design" },
+      { children: "zen design", size: "2xsmall" },
+      { children: "   " },
+      { children: 7 },
+      { children: { $: "Icon", name: "icon-check-line" } },
+      { children: { $: "Icon", name: "icon-check-line" }, alt: "" },
+      { status: true },
+      { status: "active" },
+      { status: "disabled" },
+      { status: "pending", size: "xlarge" },
+      { status: "inactive", size: "2xl" },
+      { status: true, size: "3xlarge" },
+      { status: "disabled", alt: "" },
+      { status: false },
+      { shape: "square", background: "subtle", theme: "indigo", focus: true },
+      { class: "owner", id: "owner", style: { margin: "4px" }, title: "Owner", "data-testid": "owner", "data-size": "ignored" },
+    ],
+  },
+  AvatarStack: {
+    inherits: ["Avatar"],
+    base: { size: "medium", items: people.slice(0, 4) },
+    cases: [
+      { items: people, showMore: true },
+      { items: people },
+      { items: people, max: 3, showMore: true },
+      { items: people, max: 2 },
+      { items: many, max: 3, showMore: true },
+      { items: people, showMore: true, size: "xs" },
+      { items: people, showMore: true, size: "2xsmall", status: true },
+      { size: "sm" },
+      { size: "3xlarge" },
+      { size: "2xs" },
+      { items: [...people.slice(0, 2), { alt: "Kim Ly" }, { alt: "Lan", children: "lan" }], theme: "red" },
+      { items: [{ alt: "Ava Chen", src: "/avatars/ava.jpg" }, { alt: "", children: "BN" }, {}] },
+      { shape: "square", background: "subtle", status: "pending", focus: true },
+      { items: people, max: 4, showMore: true, shape: "square", background: "solid", theme: "red", status: true },
+      { items: [] },
+      { class: "team", id: "team", title: "Team", "aria-label": "Design team", role: "group", style: { gap: "2px" }, "data-testid": "team", "data-size": "ignored" },
+    ],
+  },
+  AvatarStatus: {
+    cases: [
+      { label: "Away" },
+      { label: "Away", decorative: true },
+      { status: "pending", size: "lg", label: "" },
+      { class: "presence", id: "presence", "aria-label": "ignored", "data-testid": "presence", "data-status": "ignored" },
+    ],
+  },
+} satisfies ParitySpec;

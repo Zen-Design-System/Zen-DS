@@ -5,8 +5,8 @@ import { ZenPortal } from "../Portal";
 import { useZenLabels } from "../_shared/zen-context";
 import { usePresence } from "../Motion";
 import { scaleKey } from "../_shared/scale";
-import { fixedLayerSpace } from "../_shared/layer-space";
-import { visibleBounds } from "../Popover/useAnchoredPosition";
+import { visibleBounds } from "../_shared/layer-space";
+import { hoverWait, iconTooltipPosition, markTooltipClosed, TOOLTIP_HOVER_DELAY, type IconTooltipPosition } from "./model";
 import { useControllableState } from "../_shared/use-controllable-state";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./tooltip.css";
@@ -82,12 +82,7 @@ export interface TooltipProps {
   className?: string;
 }
 
-/** Zen rule: a tooltip opens after hovering its trigger for 1s; keyboard focus opens it at once; touch never does. */
-export const TOOLTIP_HOVER_DELAY = 1000;
-/** After a tooltip closes, the next one within this window opens without the delay (moving along a toolbar). */
-const TOOLTIP_WARM_MS = 600;
-let lastTooltipClosedAt = 0;
-const hoverWait = (delay: number) => (Date.now() - lastTooltipClosedAt < TOOLTIP_WARM_MS ? 0 : delay);
+export { TOOLTIP_HOVER_DELAY } from "./model";
 /** True inside an explicit <Tooltip>, so a built-in icon tooltip never doubles up with it. */
 const InsideTooltipContext = createContext(false);
 
@@ -110,7 +105,7 @@ export function Tooltip({ content, children, color = "default", size: sizeProp =
   const setOpen = (next: boolean) => {
     if (next === openRef.current) return;
     openRef.current = next;
-    if (!next) lastTooltipClosedAt = Date.now();
+    if (!next) markTooltipClosed();
     setStateOpen(next);
     onOpenChange?.(next);
   };
@@ -213,7 +208,7 @@ export function useIconTooltip(label: ReactNode | false | undefined, { placement
   const timer = useRef<number | undefined>(undefined);
   const clear = () => window.clearTimeout(timer.current);
   const open = (el: HTMLElement, wait: number) => { clear(); if (wait <= 0) setAnchor(el); else timer.current = window.setTimeout(() => setAnchor(el), wait); };
-  const close = () => { clear(); setAnchor((was) => { if (was) lastTooltipClosedAt = Date.now(); return null; }); };
+  const close = () => { clear(); setAnchor((was) => { if (was) markTooltipClosed(); return null; }); };
   // Hiding fades out at XFast from the last anchor (tooltip.css); Escape dismisses at once.
   const presence = usePresence(Boolean(anchor), 80);
   // The last anchor shown, kept while the tooltip fades out (state adjusted during render, not a ref written in it).
@@ -253,22 +248,10 @@ export function useIconTooltip(label: ReactNode | false | undefined, { placement
 
 function IconTooltipLayer({ anchor, placement, closing = false, children }: { anchor: HTMLElement; placement: "top" | "bottom"; closing?: boolean; children: ReactNode }) {
   const layer = useRef<HTMLSpanElement>(null);
-  const [position, setPosition] = useState<{ top: number; left: number; side: "top" | "bottom" } | null>(null);
+  const [position, setPosition] = useState<IconTooltipPosition | null>(null);
   useLayoutEffect(() => {
     const el = layer.current; if (!el) return;
-    // Measured in viewport px; written in the layer's own px, which differ inside a scaled frame (layer-space.ts).
-    const space = fixedLayerSpace(el.parentElement);
-    const rect = anchor.getBoundingClientRect(), gap = 8 * space.scale, edge = 4;
-    const width = el.offsetWidth * space.scale, height = el.offsetHeight * space.scale;
-    // Where it can be seen: the viewport, or inside a fixed containing block the part of it nothing clips (a Zen Studio
-    // frame clips its content: the tip flips and moves to stay inside, 2026-10-15).
-    const bounds = space.block ? visibleBounds(space.block) : { top: 0, left: 0, right: document.documentElement.clientWidth, bottom: window.innerHeight };
-    let side = placement;
-    if (side === "top" && rect.top - height - gap < bounds.top + edge) side = "bottom";
-    else if (side === "bottom" && rect.bottom + height + gap > bounds.bottom - edge) side = "top";
-    const top = side === "top" ? rect.top - height - gap : rect.bottom + gap;
-    const left = Math.min(Math.max(bounds.left + edge, rect.left + rect.width / 2 - width / 2), bounds.right - width - edge);
-    setPosition({ top: (top - space.top) / space.scale, left: (left - space.left) / space.scale, side });
+    setPosition(iconTooltipPosition(anchor, el, placement));
   }, [anchor, placement]);
   return (
     <ZenPortal>

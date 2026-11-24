@@ -52,7 +52,11 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   Examples get every language too (user, 2026-10-03). P1 (picker, status manifest, not-ready state, parser; PR #398)
   and P2 (HTML + CSS: 26 components ready, 34/34 parity, CSS contract) built 2026-11-13 (plan §9–§10). P2b (portable
   example snippets) done 2026-11-19: seven slices #400–#410, all 505 examples are `*.example.tsx` files, baseline 0,
-  `examples/portable-subset` an error (plan §11). P3–P9 wait for approval; next by the user's order: Vue (P3).
+  `examples/portable-subset` an error (plan §11). P3 (Vue)
+  approved 2026-11-22 ("Làm codeview"), built (plan §12): web core `src/core` + parity harness (`vue:parity`, `vue:check`
+  in CI) + W1 39/39 in `platforms/vue` + the Vue emitter in the Code view. Next by the plan: P4 (Vue W2 then W3; MetricCard
+  and ToggleListItem wait there). Publishing `@zen-ds/vue` (private, no build yet) waits for the user. P4–P9 wait for
+  approval.
 - **ListItem Value in Figma — decided, not built (user, 2026-10-23: "not now"; 2026-10-13: "code first"):** code has
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user

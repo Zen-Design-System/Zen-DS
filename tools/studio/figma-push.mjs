@@ -236,7 +236,7 @@ const ITEM_ICON = { Segmented: "leading" };
 const TEXT_PROP = { InputConditionItem: "label" };
 /** Components whose `src` is a picture the plugin fills in (the instance's image layer). */
 const PICTURED = new Set(["Avatar", "Image", "Thumbnail", "AppShellAccount"]);
-/** Heading's text style when it sets none (src/components/Text/Text.tsx headingStyleByLevel). */
+/** Heading's text style when it sets none (src/components/Text/model.ts headingStyleByLevel). */
 export const HEADING_STYLE = { 1: "Heading/1", 2: "Heading/4", 3: "Heading/Subheading", 4: "Body/Extra/Bold", 5: "Body/Base/Bold", 6: "Body/Base/Bold" };
 /**
  * Code-only components (no Figma set) are drawn as a frame of their layers named by the component, in the layout their
@@ -489,9 +489,34 @@ function titleOf(text) {
   try { return header ? JSON.parse(header[1]).title ?? null : null; } catch { return null; }
 }
 
-/** A Board frame's id (figma-clip.mjs onlyFrame): "screen:<id>", "screen:<id>:<state>" for a Screen's state, "overlay:<id>". */
+/**
+ * The frame a layer on the canvas at `place` (board px) sits beside: the Screen or Overlay whose box is nearest it (a
+ * Screen as wide as its device or as drawn, as tall as drawn or its device's least; an Overlay hugs, so its corner), else
+ * the board's first Layer.
+ */
+function nearestFrame(elements, place, device) {
+  let best = null;
+  let bestGap = Infinity;
+  for (const element of elements) {
+    if (element.name !== "Screen" && element.name !== "Overlay") continue;
+    const x = Number(literalOf(element.props.x) ?? 0);
+    const y = Number(literalOf(element.props.y) ?? 0);
+    const own = literalOf(element.props.device) ?? device;
+    const width = literalOf(element.props.width);
+    const height = literalOf(element.props.height);
+    const w = typeof width === "number" ? width : element.name === "Overlay" ? 0 : DEVICE_WIDTH[own] ?? DEVICE_WIDTH.desktop;
+    const h = typeof height === "number" ? height : element.name === "Overlay" ? 0 : own === "phone" ? 844 : 900;
+    const gap = Math.hypot(Math.max(x - place.x, 0, place.x - x - w), Math.max(y - place.y, 0, place.y - y - h));
+    if (gap < bestGap) { best = element; bestGap = gap; }
+  }
+  return best ?? elements.find((element) => element.name === "Layer") ?? null;
+}
+
+/** A Board frame's id (figma-clip.mjs onlyFrame): "screen:<id>", "screen:<id>:<state>" for a Screen's state, "overlay:<id>",
+ *  "layer:<id>" for a layer on the canvas. */
 export function boardFrameId(element) {
   const literal = (name) => (element.props?.[name]?.kind === "literal" ? element.props[name].value : undefined);
+  if (element.name === "Layer") return `layer:${literal("id") ?? ""}`;
   const state = literal("state");
   return `${element.name === "Overlay" ? "overlay" : "screen"}:${literal("id") ?? ""}${state ? `:${state}` : ""}`;
 }
@@ -573,27 +598,30 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   };
   const doc = fragmentsAsRows({ ...shown, board: { ...shown.board, children: shown.board.children.map((node) => (node.kind === "element" && (node.name === "Screen" || node.name === "Overlay") ? atItsBreakpoint(node) : node.kind === "element" ? atBreakpoint(node, "desktop") : node)).filter(Boolean) } });
   const byCode = setsByCode(mapping);
-  // The frame to draw: the first Screen, or the one `frame` names (a Screen, a Screen's state, an Overlay; boardFrameId).
-  const boardFrames = doc.board.children.filter((child) => child.kind === "element" && (child.name === "Screen" || child.name === "Overlay"));
+  // The frame to draw: the first Screen, or the one `frame` names (a Screen, a Screen's state, an Overlay, a layer on the
+  // canvas; boardFrameId).
+  const boardFrames = doc.board.children.filter((child) => child.kind === "element" && (child.name === "Screen" || child.name === "Overlay" || child.name === "Layer"));
   const firstScreen = boardFrames.find((child) => child.name === "Screen") ?? null;
   // A page of one Overlay (Copy for Figma on an Overlay's frame) draws that Overlay.
   const screen = frameId ? boardFrames.find((child) => boardFrameId(child) === frameId) ?? null : firstScreen ?? boardFrames[0] ?? null;
   if (!screen) return { frame: null, notes: [frameId ? `the page has no frame ${frameId}` : "the page has no Screen"] };
   // An Overlay (a dialog, a sheet, a card the page opens) is drawn on the device of the page's Screens.
   const overlay = screen.name === "Overlay";
-  const device = literalOf((overlay ? firstScreen ?? screen : screen).props.device) ?? "desktop";
+  // A layer on the canvas (<Layer>, loose layers PR6): its one layer, in a frame the importer takes it out of onto the
+  // Figma page (Figma's top-level layer), at its place beside the page's first frame.
+  const loose = screen.name === "Layer";
+  const device = literalOf((overlay || loose ? firstScreen ?? screen : screen).props.device) ?? "desktop";
   // The Screen's layout: a phone's (and a tablet's in its phone layout) AppShell draws Pattern/AppShell/Mobile.
   const phoneLayout = screenLayout(device, literalOf(screen.props.layout)) === "mobile";
-  const frameWidth = DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop;
+  // A drawn frame (`<Screen frame width>`, the Frame tool) is as wide as it is drawn; a device's Screen, its device's width.
+  const drawnWidth = literalOf(screen.props.frame) === true ? literalOf(screen.props.width) : undefined;
+  const frameWidth = typeof drawnWidth === "number" ? drawnWidth : DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop;
   const boardElements = doc.board.children.filter((child) => child.kind === "element");
   // Sections (F4) are areas of the Studio board; the push sends one Screen.
   const sections = boardElements.filter((child) => child.name === "Section").length;
   if (sections) notes.push(`${sections} Section${sections > 1 ? "s" : ""} (areas of the board): not pushed`);
   const slices = boardElements.filter((child) => child.name === "Slice").length;
   if (slices) notes.push(`${slices} Slice${slices > 1 ? "s" : ""} (export areas of the board): not pushed`);
-  // Layers on the canvas (<Layer>, outside any frame; user 2026-11-20): the importer places frames only, so far.
-  const loose = boardElements.filter((child) => child.name === "Layer").length;
-  if (loose) notes.push(`${loose} layer${loose > 1 ? "s" : ""} on the canvas (outside any frame): not pushed yet`);
   const drawnAt = perBreakpoint.get(boardFrameId(screen));
   if (drawnAt?.resolved || drawnAt?.hidden) {
     const label = drawnAt.breakpoint[0].toUpperCase() + drawnAt.breakpoint.slice(1);
@@ -2792,7 +2820,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   // A Screen's state is its own frame, named after it ("People · empty").
   const screenState = overlay ? null : literalOf(screen.props.state);
   const screenTitle = literalOf(screen.props.title) ?? doc.header?.title ?? "Studio page";
-  const title = overlay ? overlayTitle ?? String(literalOf(screen.props.id) ?? "Overlay") : screenState ? `${screenTitle} · ${screenState}` : screenTitle;
+  const looseChild = loose ? screen.children.find((child) => child.kind === "element") ?? null : null;
+  const title = overlay ? overlayTitle ?? String(literalOf(screen.props.id) ?? "Overlay") : loose ? String(literalOf(looseChild?.props["data-name"]) ?? looseChild?.name ?? "Layer") : screenState ? `${screenTitle} · ${screenState}` : screenTitle;
   // The Screen's app frame (screen-chrome.mjs; builder runtime Screen): the desktop layout's Sidebar and Page header, the
   // mobile layout's Top and Bottom navigation, around the page. The other layout's parts wait for a device change.
   const active = screenLayout(device, literalOf(screen.props.layout));
@@ -2808,7 +2837,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   const shellPhone = Boolean(rootShell && !chrome && APP_SHELL_PHONE_PARTS.some((prop) => layerOf(rootShell, prop)));
   const layers = rootShell && !shellPhone ? rootShell.children.filter((child) => child.kind === "element") : placed;
   if (rootShell && chrome) for (const prop of APP_SHELL_MOBILE_BARS) if (layerOf(rootShell, prop)) notes.push(`AppShell ${prop}: ${MOBILE_BARS_NOTE}`);
-  const rootStack = !overlay && !chrome && layers.length === 1 && layers[0].name === "Stack";
+  const rootStack = !overlay && !loose && !chrome && layers.length === 1 && layers[0].name === "Stack";
   // Anything else on the Screen (an AppShell, a Container…) fills the frame's width, as it fills the Screen.
   const filled = (node) => (node.absolute ? node : { ...node, fillW: true });
   // The page's width: the frame's, less the desktop layout's Sidebar (an open Zen Sidebar; any other: unknown).
@@ -2830,7 +2859,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     const component = found ? convert(found, { direction: "column", stretch: false, width: null }) : null;
     return { component, notes: notes.slice(before), images: [...images] };
   }
-  const page = rootStack || overlay ? [] : layers.map((layer) => convert(layer, { direction: "column", stretch: true, width: pageWidth })).filter(Boolean).map(filled);
+  const page = rootStack || overlay || loose ? [] : layers.map((layer) => convert(layer, { direction: "column", stretch: true, width: pageWidth })).filter(Boolean).map(filled);
   const column = (name, children, extra = {}) => ({ type: "FRAME", name, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: children.filter(Boolean), ...extra });
   const part = (prop, parent) => (chromeOf(prop) ? convert(chromeOf(prop), parent) : null);
   let body = page;
@@ -2848,13 +2877,20 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   }
   // An Overlay's frame is as big as what it holds, with no canvas behind it, as Figma's overlay frames are (Prototype's
   // Open overlay shows it over the Screen).
+  // A layer on the canvas: as big as its layer, or as wide as its Layer's `width` (its layer fills it); `layer` tells the
+  // importer where it goes on the page (board px, counted from the frame nearest it, which the importer finds by its id).
+  const looseWidth = loose ? literalOf(screen.props.width) : undefined;
+  const placeOf = (element) => ({ x: Number(literalOf(element?.props.x) ?? 0), y: Number(literalOf(element?.props.y) ?? 0) });
+  const beside = loose ? nearestFrame(boardElements, placeOf(screen), device) : null;
   const root = overlay
     ? { type: "FRAME", name: title, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, hug: true, children: layers.map((layer) => convert(layer, { direction: "column", stretch: false, width: null })).filter(Boolean) }
+    : loose
+    ? { type: "FRAME", name: title, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, ...(typeof looseWidth === "number" ? { width: looseWidth } : { hug: true }), children: layers.map((layer) => convert(layer, { direction: "column", stretch: typeof looseWidth === "number", width: typeof looseWidth === "number" ? looseWidth : null })).filter(Boolean).map((node) => (typeof looseWidth === "number" ? filled(node) : node)), layer: { ...placeOf(screen), ...(typeof looseWidth === "number" ? { width: looseWidth } : {}), origin: placeOf(beside), ...(beside ? { anchor: boardFrameId(beside) } : {}) } }
     : rootStack ? frameNode(layers[0], codeProps(layers[0]), figmaIdOf(layers[0].id), { direction: "column", stretch: true, width: frameWidth }) : { type: "FRAME", name: title, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: body };
   // The Screen's own variable modes go on its frame (Studio Variables v2).
   const screenModes = frameModes(plain(screen.props.modes));
   if (screenModes) root.modes = { ...screenModes, ...(root.modes ?? {}) };
-  for (const element of [doc.board, screen]) for (const name of Object.keys(element.props)) if (!["id", "title", "device", "layout", "canvas", "height", "modes", "state", "onDelay", ...OVERLAY_PROPS, ...chromeProps].includes(name) && !DRAWN_BY_PULL.has(name)) notes.push(`${element.name} ${name}: not pushed`);
+  for (const element of loose ? [doc.board] : [doc.board, screen]) for (const name of Object.keys(element.props)) if (!["id", "title", "device", "layout", "canvas", "height", "modes", "state", "onDelay", ...OVERLAY_PROPS, ...chromeProps, ...(typeof drawnWidth === "number" ? ["frame", "width"] : [])].includes(name) && !DRAWN_BY_PULL.has(name)) notes.push(`${element.name} ${name}: not pushed`);
   // Figma's overlay settings (position, background, close on click outside) are read-only to a plugin: a hand step.
   if (overlay) {
     const position = literalOf(screen.props.position);
@@ -2874,14 +2910,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   // A drawn frame's own fill (`<Screen frame surface>`, user 2026-11-11) instead of the Canvas.
   const ownFill = literalOf(screen.props.frame) === true ? FRAME_FILL[literalOf(screen.props.surface)] : undefined;
   const screenHeight = literalOf(screen.props.height);
-  const frame = overlay ? { ...root, name: title } : {
-    ...root, name: title, width: DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop,
+  const frame = overlay || loose ? { ...root, name: title } : {
+    ...root, name: title, width: frameWidth,
     ...(root.fill || root.fillStyle ? {} : { fill: ownFill ?? `Background/Canvas/${canvas}` }),
     minH: typeof screenHeight === "number" ? screenHeight : device === "phone" ? 844 : 900,
     ...(doc.header?.figma?.file ? { file: doc.header.figma.file } : {}),
   };
   // A Screen's After delay: Figma's After delay on the frame itself.
-  if (!overlay && screen.props.onDelay?.kind === "proto") {
+  if (!overlay && !loose && screen.props.onDelay?.kind === "proto") {
     handled.add(`${screen.id}/onDelay`);
     const { skipped, ...reaction } = reactionOfValue("onDelay", screen.props.onDelay, startVars);
     for (const note of skipped ?? []) notes.push(`Screen onDelay: ${note} (left out of its actions)`);
@@ -2891,7 +2927,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   // An action on a part the push does not draw as a layer (a component's own prop holding a layer): named, not lost.
   const unhandled = protoActionsIn(screen) - handled.size;
   if (unhandled > 0) notes.push(`${unhandled} interaction${unhandled > 1 ? "s" : ""} on parts drawn without their own layer: not pushed`);
-  if (doc.header?.figma?.node) frame.id = doc.header.figma.node;
+  if (doc.header?.figma?.node && !loose) frame.id = doc.header.figma.node;
   // Layers the push draws itself (a Table's rows and cells, a data slot's items, a section) take their parent's key and
   // their place, so importing the page again finds them too.
   const keyed = (node, parentKey, place) => {
@@ -2988,16 +3024,22 @@ export function figmaPackage(text, { mapping, nestedLayers = {}, page = {}, newI
   // Every Screen, Screen state and Overlay of the Board, each a frame (the first Screen is `frame`, as before): the
   // Prototype tab's actions lead from one to another (figma-proto.mjs reactions name the frame by its id).
   const board = docFromText(text, newId ? { newId } : {}).doc?.board;
-  const ids = (board?.children ?? []).filter((child) => child.kind === "element" && (child.name === "Screen" || child.name === "Overlay")).map(boardFrameId);
+  // Layers on the canvas too (loose layers PR6): each a frame the importer takes its layer out of.
+  const boardFrames = (board?.children ?? []).filter((child) => child.kind === "element" && (child.name === "Screen" || child.name === "Overlay" || child.name === "Layer"));
+  const ids = boardFrames.map(boardFrameId);
+  // Where each is on the board (a free board's x / y): the importer puts a new frame at its place counted from the first
+  // frame's, as the board has them.
+  const places = new Map(boardFrames.map((child) => [boardFrameId(child), { x: literalOf(child.props.x), y: literalOf(child.props.y) }]).filter(([, place]) => typeof place.x === "number" && typeof place.y === "number"));
+  const entry = (id, made) => ({ id, frame: made, ...(places.has(id) ? { place: places.get(id) } : {}) });
   const firstId = ids.find((id) => id.startsWith("screen:")) ?? ids[0];
-  const frames = [{ id: firstId, frame }];
+  const frames = [entry(firstId, frame)];
   const notes = [...firstNotes];
   const images = new Set(firstImages);
   const components = [...(firstComponents ?? [])];
   for (const id of ids.filter((each) => each !== firstId)) {
     const made = figmaFromPage(text, { mapping, nestedLayers, newId, pages, pageId: page.id, frame: id, locale });
     if (!made.frame) { notes.push(...made.notes); continue; }
-    frames.push({ id, frame: made.frame });
+    frames.push(entry(id, made.frame));
     for (const note of made.notes) if (!notes.includes(note)) notes.push(note);
     for (const src of made.images) images.add(src);
     for (const component of made.components ?? []) if (!components.some((known) => known.page === component.page && known.local === component.local)) components.push(component);

@@ -83,14 +83,22 @@ export function LoosePosition({ frameId }: { frameId: string }) {
   const localPage = useStudio((state) => state.localPage);
   const editable = useStudio((state) => canEdit(state));
   const box = useFrameBox(frameId);
-  const write = (change: FrameBoxChange) => { if (localPage) void setFrameBoxes(localPage, new Map([[frameId, change]]), "Move layer"); };
+  const write = (change: FrameBoxChange, label = "Move layer") => { if (localPage) void setFrameBoxes(localPage, new Map([[frameId, change]]), label); };
   const off = !editable || !localPage;
+  // A component that fills its Layer (the Layer has a width: a Top Navigation, a chart) takes its W here too, as its
+  // handles do (loose layers PR5); one that hugs sizes itself in Layout.
+  const sized = !elementOf(frameId)?.hasAttribute("data-hug");
   return (
     <InspectorSection title="Position">
       <div className="studio-frame-geometry__pair" data-prop="frame-position">
         <ScrubNumberField label="X" name="X" value={box?.x ?? null} disabled={off} onCommit={(x) => write({ x })} />
         <ScrubNumberField label="Y" name="Y" value={box?.y ?? null} disabled={off} onCommit={(y) => write({ y })} />
       </div>
+      {sized ? (
+        <div className="studio-frame-geometry__pair" data-prop="frame-size">
+          <ScrubNumberField label="W" name="Width" value={box?.width ?? null} min={1} disabled={off} onCommit={(width) => write({ width }, "Resize layer")} />
+        </div>
+      ) : null}
     </InspectorSection>
   );
 }

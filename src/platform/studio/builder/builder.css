@@ -41,6 +41,11 @@
 /* Relative: a layer drawn on the Screen sits at its X / Y (a frame without auto layout, Figma's). */
 .studio-builder-screen { position: relative; display: flow-root; min-height: max(var(--studio-screen-height, 900px), var(--studio-screen-overflow, 0px)); border-radius: inherit; background: var(--zen-color-background-canvas-default); color: var(--zen-color-content-neutral-strongest); }
 .studio-builder-screen[data-device="phone"] { min-height: max(var(--studio-screen-height, 844px), var(--studio-screen-overflow, 0px)); }
+/* A blur bar's backdrop (Top / Bottom Navigation's progressive blur) stops at a Screen on the board: a mask makes the
+   Screen its backdrop root, so the blur reads only what the Screen paints. It read the board's light canvas past the
+   frame's rounded corners, which greyed a dark Screen's corners (user 2026-11-23). On a phone the glass ends at the
+   screen's edge too. Play's stage behind its device takes the played mode, so its corners need no mask. */
+.studio-frame .studio-builder-screen:has(.zen-progressive-blur) { -webkit-mask-image: linear-gradient(#000 0 0); mask-image: linear-gradient(#000 0 0); }
 /* The app frame (Screen's sidebar · header, or top · bottom navigation): the Screen becomes a row (desktop) or a column
    (mobile) around its content, which keeps the page's own padding. The bottom bar sits at the screen's foot. */
 .studio-builder-screen[data-chrome] { display: flex; align-items: stretch; }

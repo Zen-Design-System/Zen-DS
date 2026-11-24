@@ -3,9 +3,9 @@
  * (the whole picture), Crop (a part of the picture stretched to the layer) or Tile (repeated at a scale of its own
  * size). Shape and the frames (Box, Stack, Grid) take the same props. This file turns them into a data attribute and
  * custom properties their CSS reads; an SVG shape (ellipse, polygon, star) paints the picture as a pattern
- * (`imagePattern`). Pure apart from the hook that reads a tiled picture's own size.
+ * (`imagePattern`). Framework-free (the web core, src/core): React's hook that reads a tiled picture's own size is
+ * use-image-fill.ts.
  */
-import { useEffect, useState } from "react";
 
 /** Figma's image scale modes. */
 export const imageFillModes = ["fill", "fit", "crop", "tile"] as const;
@@ -110,29 +110,26 @@ export function imagePattern({ imageFit, imageCrop, imageScale }: ImageFillProps
   return { tile, picture: { x: 0, y: 0, ...tile, preserveAspectRatio: mode === "fit" ? "xMidYMid meet" : "xMidYMid slice" } };
 }
 
+/** The picture a layer shows (its URL), or undefined for none or a blank one. */
+export const shownPicture = (image: unknown): string | undefined => (typeof image === "string" && image.trim() ? image : undefined);
+
 const pictureSizes = new Map<string, PictureSize>();
 
-/** A picture's own size once it has loaded (only when `wanted`: Tile needs it), else null. */
-export function usePictureSize(src: string | undefined, wanted: boolean): PictureSize | null {
-  const [, loaded] = useState(0);
-  useEffect(() => {
-    if (!src || !wanted || pictureSizes.has(src) || typeof window === "undefined") return undefined;
-    let live = true;
-    const probe = new window.Image();
-    probe.onload = () => {
-      if (probe.naturalWidth > 0) pictureSizes.set(src, { width: probe.naturalWidth, height: probe.naturalHeight });
-      if (live) loaded((count) => count + 1);
-    };
-    probe.src = src;
-    return () => { live = false; };
-  }, [src, wanted]);
-  return src && wanted ? pictureSizes.get(src) ?? null : null;
-}
+/** A picture's own size once it has loaded (pictureSizeProbe), else null. */
+export const knownPictureSize = (src: string): PictureSize | null => pictureSizes.get(src) ?? null;
 
-/** The image fill of a layer: `imageFillStyle` with the tiled picture's own size read when Tile needs it. */
-export function useImageFill(props: ImageFillProps): { attributes: Attributes; vars: Vars; mode: ImageFillMode | null; picture: PictureSize | null } {
-  const shown = typeof props.image === "string" && props.image.trim() ? props.image : undefined;
-  const picture = usePictureSize(shown, Boolean(shown) && imageFillMode(props.imageFit) === "tile");
-  const { attributes, vars } = imageFillStyle(props, picture);
-  return { attributes, vars, mode: (attributes["data-image"] as ImageFillMode | undefined) ?? null, picture };
+/**
+ * Loads a picture to read its own size (Tile needs it); `loaded` runs once it has, unless cancelled by the returned
+ * function first. Nothing when the size is known or there is no window (a server render).
+ */
+export function pictureSizeProbe(src: string, loaded: () => void): () => void {
+  if (pictureSizes.has(src) || typeof window === "undefined") return () => {};
+  let live = true;
+  const probe = new window.Image();
+  probe.onload = () => {
+    if (probe.naturalWidth > 0) pictureSizes.set(src, { width: probe.naturalWidth, height: probe.naturalHeight });
+    if (live) loaded();
+  };
+  probe.src = src;
+  return () => { live = false; };
 }

@@ -1,5 +1,6 @@
 import { useLayoutEffect, useState, type CSSProperties, type RefObject } from "react";
 import { flushSync } from "react-dom";
+import { visibleBounds } from "../_shared/layer-space";
 import { useStableCallback } from "../_shared/use-stable-callback";
 
 export type AnchoredSide = "bottom" | "top";
@@ -62,22 +63,8 @@ export function clampAnchoredLeft(left: number, width: number, boundsLeft: numbe
   return Math.max(boundsLeft + VIEWPORT_MARGIN, Math.min(left, boundsRight - VIEWPORT_MARGIN - width));
 }
 
-/** The viewport intersected with every ancestor that clips its overflow — the area the surface can
- * actually be seen in. `viewport: false`: the clipping ancestors alone (what scrolling the page cannot reveal). */
-export function visibleBounds(from: HTMLElement, { viewport = true }: { viewport?: boolean } = {}) {
-  let top = viewport ? 0 : -Infinity;
-  let left = viewport ? 0 : -Infinity;
-  let bottom = viewport ? document.documentElement.clientHeight : Infinity;
-  let right = viewport ? document.documentElement.clientWidth : Infinity;
-  for (let node: HTMLElement | null = from; node && node !== document.body && node !== document.documentElement; node = node.parentElement) {
-    const style = getComputedStyle(node);
-    if (style.overflowX === "visible" && style.overflowY === "visible") continue;
-    const rect = node.getBoundingClientRect();
-    if (style.overflowY !== "visible") { top = Math.max(top, rect.top); bottom = Math.min(bottom, rect.bottom); }
-    if (style.overflowX !== "visible") { left = Math.max(left, rect.left); right = Math.min(right, rect.right); }
-  }
-  return { top, left, bottom, right };
-}
+// visibleBounds lives in _shared/layer-space.ts (framework-free, so the web ports share it); re-exported for old imports.
+export { visibleBounds };
 
 /**
  * Places an absolutely positioned surface (Popover, Date Picker) against its anchor box: below it,

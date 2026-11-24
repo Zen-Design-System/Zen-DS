@@ -117,7 +117,9 @@ function literalsOf(info, node, depth = 0) {
     case "TSTypeOperator": {
       // keyof typeof object → the object's keys
       if (node.operator !== "keyof" || node.typeAnnotation.type !== "TSTypeQuery" || node.typeAnnotation.exprName.type !== "Identifier") return null;
-      const owner = declaring(info.file, node.typeAnnotation.exprName.name);
+      // The object may be shared rather than imported by the file (react-docgen writes TypographyStyleName out as
+      // `keyof typeof typographyStyles`, whichever file names the alias).
+      const owner = ownerOf(info.file, node.typeAnnotation.exprName.name);
       const object = owner?.objects.get(node.typeAnnotation.exprName.name);
       return object ? object.properties.map((p) => (p.key?.type === "StringLiteral" ? p.key.value : p.key?.type === "Identifier" ? p.key.name : null)).filter((k) => k !== null) : null;
     }
@@ -135,6 +137,7 @@ const SHARED_TYPE_FILES = {
   ZenScaleInput: "src/components/_shared/scale.ts", ZenScale: "src/components/_shared/scale.ts", ZenScaleLong: "src/components/_shared/scale.ts",
   ZenGap: "src/components/_shared/scale.ts", ZenPadding: "src/components/_shared/scale.ts", ZenRadius: "src/components/_shared/scale.ts",
   ContentTone: "src/components/_shared/contentTone.ts", TypographyStyleName: "src/tokens/typography.generated.ts",
+  typographyStyles: "src/tokens/typography.generated.ts",
 };
 
 function ownerOf(file, name, root) {
