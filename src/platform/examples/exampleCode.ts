@@ -26,3 +26,20 @@ export function demoFileOf(data: string): string {
 ${body}
 `;
 }
+
+/**
+ * demo.ts for a Vue app (Code view P3): its types from @zen-ds/vue. A type the Vue package does not have yet (a
+ * component not ported) leaves the import, and the declarations it annotated go without it (TypeScript infers them).
+ */
+export function vueDemoOf(demo: string, vueTypes: readonly string[]): string {
+  const dropped: string[] = [];
+  const text = demo.replace(/import type \{([^}]*)\} from "@zen-ds\/react";/, (_line, names: string) => {
+    const all = names.split(",").map((name) => name.trim()).filter(Boolean);
+    const kept = all.filter((name) => vueTypes.includes(name));
+    dropped.push(...all.filter((name) => !vueTypes.includes(name)));
+    return kept.length ? `import type { ${kept.join(", ")} } from "@zen-ds/vue";` : "";
+  });
+  if (!dropped.length) return text;
+  const uses = new RegExp(`\\b(${dropped.join("|")})\\b`);
+  return text.replace(/^(export const \w+): ([^=\n]+?) = /gm, (line, head: string, type: string) => (uses.test(type) ? `${head} = ` : line));
+}

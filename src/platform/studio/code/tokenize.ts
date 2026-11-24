@@ -4,8 +4,9 @@
  * JSX colours correctly inside expressions and expressions inside JSX.
  */
 
-/** `html`: markup (the HTML export), scanned as JSX markup. `markdown`: headings, code spans and fences (handoff.md). */
-export type CodeLanguage = "tsx" | "ts" | "css" | "json" | "bash" | "html" | "markdown";
+/** `html`: markup (the HTML export), scanned as JSX markup. `markdown`: headings, code spans and fences (handoff.md).
+ *  `vue`: a single-file component (the docs' Vue code). */
+export type CodeLanguage = "tsx" | "ts" | "css" | "json" | "bash" | "html" | "markdown" | "vue";
 
 export type TokenType =
   | "plain" | "punct" | "comment" | "keyword" | "string" | "number" | "literal" | "regex" | "function" | "type" | "property"
@@ -46,11 +47,24 @@ export function tokenize(code: string, language: CodeLanguage = "tsx"): CodeLine
     else if (language === "json") scanJson(code, out);
     else if (language === "bash") scanBash(code, out);
     else if (language === "markdown") scanMarkdown(code, out);
+    else if (language === "vue") scanVue(code, out);
     else scanScript(code, out, language === "tsx" || language === "html", language === "html");
     return toLines(out.tokens);
   } catch {
     return toLines([{ type: "plain", text: code }]);
   }
+}
+
+/** A Vue single-file component: what its <script> blocks hold as TypeScript, the rest (their tags, the template) as markup. */
+function scanVue(code: string, out: Output) {
+  let at = 0;
+  for (const match of code.matchAll(/(<script\b[^>]*>)([\s\S]*?)(?=<\/script>)/g)) {
+    const index = match.index ?? 0;
+    scanScript(code.slice(at, index + match[1].length), out, true, true);
+    scanScript(match[2], out, false, false);
+    at = index + match[0].length;
+  }
+  scanScript(code.slice(at), out, true, true);
 }
 
 /** Markdown, line by line: headings as keywords, fenced blocks and `code` spans as strings, the rest plain. */

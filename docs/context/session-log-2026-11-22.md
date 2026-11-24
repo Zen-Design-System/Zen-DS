@@ -35,3 +35,22 @@ the shape; this is what part 1 did and found.
   `visibleBounds` → `_shared/layer-space.ts`. Link keeps its defaults in the signature (the props docs read them there).
 - **Result:** 9/41 W1 ready, 202 cases 100%, vue-tsc clean. Static CI checks pass (tsc, usage selftest + check,
   guidelines, tokens/styles/icons, mcp, ai-ui, style, compile-api).
+
+## Code view P3, parts 2–3: the rest of W1 and the Vue emitter (tier L; same session)
+
+- **Parallel ports** (worktree `.claude/worktrees/code-view-vue-w1`, branch `zen/feat/code-view-vue-p3-w1-20261122`, from
+  part 1's commit): four agents — Layout + Text · Avatar, Progress, Skeleton · DockIcon, FileIcon, ColorSelector ·
+  AlertBanner, InlineMessage, EmptyState — and this session (Stepper, MetricWidget, ListItem, PageHeader). Each wrote the
+  fixture, snapshot React, moved the logic to `model.ts`, compared React (all unchanged), then ported. Result: W1 39/39,
+  1,254 cases. Process slip: the harness blocks writes into another worktree; some writes went there through the shell
+  before the switch, the rest through EnterWorktree (the sanctioned way). Told the user.
+- **Found on the way:** React 19 SSR adds `<link rel="preload" as="image">` before an `<img>` (dropped in the harness);
+  the harness read an all-string list (`hideOn`) as content; vue-tsc hit "union too complex" on a prop typed
+  `IconName | VNode` (Stepper: names as props, vnodes as slots); `rowSpan` is numbers only (a fixture said "full").
+- **Emitter** (`code/vue.ts`): over all 505 examples, 159 translate when every name is treated as ported (the rest use
+  code outside what it reads yet: helpers with statements, components of their own, hooks of unported components). Of the
+  examples whose components are all ported: 10/10, vue-tsc clean. Three examples spread `{ theme, children }` onto an
+  Avatar (Vue's v-bind would pass `children` as an attribute and lose the initials; vue-tsc cannot see it): rewritten as
+  JSX helpers with the same render, and the emitter now refuses such a spread.
+- **Not checked in a browser here:** the Vue components' client behaviour (tooltips, Stepper presses, Layout measuring) —
+  only server HTML and types. The playground test (`npm test -- tests/interaction/code-languages`) runs in the gate slot.
