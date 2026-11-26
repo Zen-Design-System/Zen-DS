@@ -3,6 +3,7 @@ export type RampName = "Zen" | "Tomato" | "Crimson" | "Pink" | "Plum" | "Purple"
 export type SupportFamily = "brand" | "neutral" | "red" | "crimson" | "pink" | "plum" | "purple" | "violet" | "indigo" | "blue" | "cyan" | "sky" | "teal" | "mint" | "green" | "yellow" | "golden" | "orange" | "bronze" | "brown";
 export type SectorTone = "solid" | "soft";
 export type ColourSource = { ramp: RampName; hex?: never; tint?: never } | { hex: string; ramp?: never; tint?: never };
+export type StatusSource = RampName | { hex: string };
 export type NeutralSource = ColourSource | { tint: "primary"; ramp?: never; hex?: never };
 export type StatusRole = "positive" | "negative" | "warning" | "info";
 export type ProjectModes = {
@@ -24,7 +25,8 @@ export type ProjectType = { fonts: Record<TypeRole, string>; scale: TypeScale | 
 export type ProjectTheme = {
   primary: ColourSource;
   neutral: NeutralSource;
-  status: Record<StatusRole, RampName>;
+  /** A shipped ramp's name, or a colour of the project's own (its ramp generated as the Primary's). */
+  status: Record<StatusRole, StatusSource>;
   chart: Array<{ family: SupportFamily; tone: SectorTone }>;
   modes: ProjectModes;
   type: ProjectType;
@@ -77,7 +79,10 @@ export function normalizeLocale(input: unknown): ProjectLocale;
 export function tintedNeutralAnchor(primaryHex: string): string;
 export function suggestedChart(primaryHex: string): ProjectTheme["chart"];
 export function chartFollowsPrimary(theme: ProjectTheme): boolean;
-export function projectPalettes(theme: ProjectTheme): { primary: Palette; neutral: Palette; onBrand: { light: OnBrand; dark: OnBrand } };
+/** A status role's ramp: an alias of a shipped ramp, or the generated ramp of its own colour; `lc`: white text on step 9 (APCA). */
+export type StatusPalette = ({ anchor: string; alias: RampName; lc: number } | (Palette & { alias: null; lc: number }));
+export function projectPalettes(theme: ProjectTheme): { primary: Palette; neutral: Palette; status: Record<StatusRole, StatusPalette>; onBrand: { light: OnBrand; dark: OnBrand } };
+export function statusAnchor(source: StatusSource): string;
 export function projectThemeCss(id: string, theme: ProjectTheme, options?: { name?: string; brand?: string; fontUrl?: (file: string) => string | null }): string;
 export function projectModes(theme: ProjectTheme): ProjectModes;
 export function projectBaseValues(theme: ProjectTheme): Record<string, string>;
