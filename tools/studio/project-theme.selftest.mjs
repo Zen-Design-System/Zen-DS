@@ -162,4 +162,27 @@ ok(() => assert.equal(chartFollowsPrimary({ ...defaultProjectTheme(), primary: {
 ok(() => assert.equal(chartFollowsPrimary({ ...defaultProjectTheme(), primary: { ramp: "Blue" } }), true), "untouched Zen palette follows any Primary");
 ok(() => assert.equal(chartFollowsPrimary({ ...defaultProjectTheme(), chart: [{ family: "red", tone: "soft" }, ...defaultProjectTheme().chart.slice(1)] }), false), "a picked sector stops following");
 
+// Status colours of the project's own (user, 2026-11-26): a shipped ramp's name as before, or { hex } with a generated ramp.
+{
+  const read = (status) => normalizeProject({ id: "status-check", name: "Status", theme: { status } });
+  const own = read({ positive: { hex: "#0a7d4f" }, warning: "Orange" });
+  ok(() => assert.deepEqual(own.project.theme.status, { positive: { hex: "#0A7D4F" }, negative: "Tomato", warning: "Orange", info: "Blue" }), "a status colour of its own is kept (upper case), names stay names");
+  ok(() => assert.deepEqual(own.errors, []), "no errors for a ramp name or a colour");
+  ok(() => assert.equal(read({ info: { hex: RAMPS.Indigo.toLowerCase() } }).project.theme.status.info, "Indigo"), "a shipped ramp's step 9 is that ramp");
+  const bad = read({ negative: { hex: "red" }, info: 12 });
+  ok(() => assert.deepEqual([bad.project.theme.status.negative, bad.project.theme.status.info, bad.errors.length], ["Tomato", "Blue", 2]), "a bad colour falls back to Zen's ramp, named in the errors");
+  const theme = own.project.theme;
+  const palettes = projectPalettes(theme);
+  const generated = generateExpectedPalette("#0A7D4F", false, palettes.neutral.darkBackground);
+  ok(() => assert.deepEqual([palettes.status.positive.alias, palettes.status.positive.lightSolid, palettes.status.warning.alias], [null, generated.lightSolid, "Orange"]), "its ramp generated as the Primary's; a name stays an alias");
+  ok(() => assert.ok(palettes.status.positive.lc > 60 && palettes.status.warning.lc > 0), "white text's APCA contrast on step 9");
+  const css = projectThemeCss("status-check", theme);
+  ok(() => assert.match(css, new RegExp(`--zen-light-positive-9: ${generated.lightSolid[8].toUpperCase()};`)), "CSS: the generated steps");
+  ok(() => assert.match(css, /--zen-dark-positive-alpha-12: #/), "CSS: dark and alpha steps too");
+  ok(() => assert.match(css, /--zen-light-warning-9: var\(--zen-light-orange-9\);/), "CSS: a named ramp stays an alias");
+  const values = projectBaseValues(theme);
+  ok(() => assert.deepEqual([values["Light/Positive/9"], values["Dark/Warning/9"]], [generated.lightSolid[8].toUpperCase(), "{Dark/Orange/9}"]), "Figma values: the colour's hex, a name's alias");
+  ok(() => assert.equal(projectThemeCss("zen", defaultProjectTheme()).includes("--zen-light-positive-9: var(--zen-light-grass-9);"), true), "an old project's status CSS is unchanged");
+}
+
 console.log(`project-theme selftest: ${checks} checks passed`);
