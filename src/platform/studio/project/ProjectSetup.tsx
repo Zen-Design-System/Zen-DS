@@ -167,8 +167,10 @@ function SetupLayer({ setup: current }: { setup: Exclude<Setup, null> }) {
       </ChromeScope>
       <div className="studio-project-setup__body">
         <ChromeScope as="aside" className="studio-project-setup__settings" aria-label="Project settings">
+          {/* The items hug their labels, as Figma's Tab-Bar: shared equally, "Typography" was squeezed to its text (user
+              2026-11-27: "Kích thướt tab kì quá"). */}
           <div className="studio-project-setup__tabs">
-            <Tabs aria-label="Settings" variant="subtle" size="sm" fullWidth idPrefix={panelId} value={group} onValueChange={(id) => openGroup(id as GroupId)} items={GROUPS.map(({ id, label }) => ({ id, label }))} />
+            <Tabs aria-label="Settings" variant="subtle" size="sm" idPrefix={panelId} value={group} onValueChange={(id) => openGroup(id as GroupId)} items={GROUPS.map(({ id, label }) => ({ id, label }))} />
           </div>
           <TabPanel idPrefix={panelId} id={group} className="studio-project-setup__panel">
           {group === "general" ? (
