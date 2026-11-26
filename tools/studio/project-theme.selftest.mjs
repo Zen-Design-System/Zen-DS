@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { generateExpectedPalette } from "./zen-ramp.generated.mjs";
-import { DEFAULT_LOCALE, FONT_FAMILIES, MAX_FONT_FAMILIES, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, SUPPORT_FAMILIES, defaultLibraries, defaultProjectTheme, normalizeLibraries, projectBaseValues, normalizeProject, projectIdFor, projectModes, projectPalettes, projectFontsUrl, projectFontStack, projectThemeCss, projectTypeScale, suggestedChart, chartFollowsPrimary, tintedNeutralAnchor, uploadedFontName } from "./project-theme.mjs";
+import { DEFAULT_LOCALE, FONT_FAMILIES, MAX_FONT_FAMILIES, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, SUPPORT_FAMILIES, defaultLibraries, defaultProjectTheme, normalizeLibraries, projectBaseValues, normalizeProject, projectIdFor, projectModes, projectPalettes, projectFontsUrl, projectFontStack, projectThemeCss, projectTypeScale, shippedTypeScale, TYPE_SCALE_MODES, suggestedChart, chartFollowsPrimary, tintedNeutralAnchor, uploadedFontName } from "./project-theme.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const collection = (file) => Object.values(JSON.parse(fs.readFileSync(path.join(root, "tokens/source/figma", file), "utf8")))[0];
@@ -201,6 +201,27 @@ ok(() => assert.equal(chartFollowsPrimary({ ...defaultProjectTheme(), chart: [{ 
   ok(() => assert.match(css, /--zen-typography-font-size-heading-1: 40px;/), "CSS: the step's size");
   ok(() => assert.match(css, /--zen-typography-letter-spacing-heading-1: -0\.46px;/), "CSS: its letter spacing");
   ok(() => assert.match(css, /--zen-typography-line-height-caption: 18px;/), "CSS: a line height set alone");
+}
+
+// The shipped modes' steps (Typography Configuration) and a Custom scale made from one (user, 2026-11-27: "luôn hiện như
+// plugin figma").
+{
+  const dashboard = shippedTypeScale("dashboard");
+  ok(() => assert.deepEqual([dashboard["heading-1"], dashboard["display-extra-1"], dashboard["label-small"]], [{ size: 28, lineHeight: 36, letterSpacing: -0.84 }, { size: 65, lineHeight: 72, letterSpacing: -2.88 }, { size: 9, lineHeight: 12, letterSpacing: 0 }]), "Dashboard's steps as tokens.css holds them");
+  ok(() => assert.equal(shippedTypeScale("popular")["heading-1"].size, 36), "Popular's Heading 1");
+  ok(() => assert.deepEqual(TYPE_SCALE_MODES.map((mode) => Object.keys(shippedTypeScale(mode)).length), [17, 17, 17]), "every mode has every step");
+  dashboard["heading-1"].size = 99;
+  ok(() => assert.equal(shippedTypeScale("dashboard")["heading-1"].size, 28), "a copy each time");
+  const read = (scale) => normalizeProject({ id: "from-check", name: "From", theme: { type: { scale } } });
+  const from = read({ base: 14, ratio: 1.14, from: "dashboard", steps: { "heading-1": { letterSpacing: -1 } } });
+  ok(() => assert.deepEqual(from.project.theme.type.scale, { base: 14, ratio: 1.14, from: "dashboard", steps: { "heading-1": { letterSpacing: -1 } } }), "a scale keeps the mode it started from");
+  ok(() => assert.deepEqual(projectTypeScale(from.project.theme.type.scale)["heading-1"], { size: 28, lineHeight: 36, letterSpacing: -1 }), "its steps over the mode's values");
+  ok(() => assert.deepEqual(projectTypeScale({ base: 14, ratio: 1.14 })["heading-1"], { size: 32, lineHeight: 40, letterSpacing: -0.76 }), "without it, the formula");
+  const bad = read({ base: 14, ratio: 1.14, from: "studio" });
+  ok(() => assert.deepEqual([bad.project.theme.type.scale, bad.errors.length], [{ base: 14, ratio: 1.14 }, 1]), "an unknown mode goes, named");
+  const css = projectThemeCss("from-check", from.project.theme);
+  ok(() => assert.match(css, /--zen-typography-font-size-display-extra-1: 65px;/), "CSS: the mode's values");
+  ok(() => assert.match(css, /--zen-typography-letter-spacing-heading-1: -1px;/), "CSS: a step's own");
 }
 
 console.log(`project-theme selftest: ${checks} checks passed`);
