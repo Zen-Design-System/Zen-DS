@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { headerFigma, headerLayoutGuides, withHeaderCanvas, headerProject, headerTitle, withHeaderGuides, withHeaderLayoutGuides, withHeaderOs, withHeaderProject, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type CanvasBackground, type LayoutGuide, type PageGuide, type RevisionReason } from "./pageModel";
+import { headerFigma, headerLayoutGuides, withHeaderCanvas, headerProject, headerPrototypeBackground, withHeaderPrototypeBackground, headerTitle, withHeaderGuides, withHeaderLayoutGuides, withHeaderOs, withHeaderProject, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type CanvasBackground, type LayoutGuide, type PageGuide, type RevisionReason } from "./pageModel";
 import type { PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
 import { fitFigma, joinFigma, validateFigma, type PageFigma } from "../../../../../tools/studio/page-figma.mjs";
 
@@ -343,6 +343,19 @@ export async function setPageCanvas(id: string, canvas: CanvasBackground): Promi
   if (text === page.text) return;
   const header = { ...(page.doc?.header ?? {}) };
   if (canvas === "canvas") delete header.canvas; else header.canvas = canvas;
+  await putPage(id, text, { title: page.title, reason: "edit", ...(page.doc ? { doc: { ...page.doc, header } } : {}) });
+}
+
+/** Play's stage colour (header `prototypeBackground`, Prototype settings › Background): written with the page, outside
+ *  ⌘Z (as its canvas background). The default, Neutral/Solid, is no header key. */
+export async function setPagePrototypeBackground(id: string, fill: string): Promise<void> {
+  const page = await getPage(id);
+  if (!page) throw new Error("The page is gone");
+  const text = withHeaderPrototypeBackground(page.text, fill);
+  if (text === page.text) return;
+  const header = { ...(page.doc?.header ?? {}) };
+  const own = headerPrototypeBackground(text);
+  if (own) header.prototypeBackground = own; else delete header.prototypeBackground;
   await putPage(id, text, { title: page.title, reason: "edit", ...(page.doc ? { doc: { ...page.doc, header } } : {}) });
 }
 

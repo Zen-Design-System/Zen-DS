@@ -2710,7 +2710,116 @@ export const rows = [
       return `moon on Tasks → Play dark: Screen, Bottom Sheet (${tasksSheet.brightness}/255), toast, bar offers Light mode · Night (modes dark): Bottom Sheet ${nightSheet.brightness}/255`;
     },
   },
+  {
+    id: "FW-296", feature: "Play's stage takes the opposite of the played page by default (user 2026-11-26: \"dark thì nền prototype là nền sáng, light thì nền tối\"): Background/Neutral/Solid, dark round a light page and light round a dark one, with the chrome Light and with the chrome Dark; the device keeps an edge on a dark stage and the Screen keeps its own light or dark", wp: "play stage 2026-11-26", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await step("seed the page", () => seededPage(ctx, darkFramePage, /theme: "dark"/));
+      const menu = async (item) => {
+        await page.getByRole("button", { name: "Zen Studio menu" }).first().click();
+        await page.getByRole("menu", { name: "Zen Studio" }).getByRole("menuitem", { name: item, exact: true }).click();
+      };
+      await playStage(page);
+      const light = await stageLook(page);
+      expectStage(light, { stage: "dark", screen: "light" }, "chrome Light, Play light");
+      await step("Play › Dark mode", () => playing(page).getByRole("button", { name: "Dark mode" }).click());
+      await until(async () => (await playing(page).getAttribute("data-theme")) === "dark", { message: "Play dark" });
+      const dark = await stageLook(page);
+      expectStage(dark, { stage: "light", screen: "dark" }, "chrome Light, Play dark");
+      await page.keyboard.press("Escape");
+      await until(async () => (await playing(page).count()) === 0, { message: "Escape leaves Play" });
+      try {
+        await step("Zen Studio menu › Dark mode", () => menu("Dark mode"));
+        await until(async () => (await page.locator(".studio-app").first().getAttribute("data-theme")) === "dark", { message: "the chrome dark" });
+        await playStage(page);
+        const chromeDark = await stageLook(page);
+        expectStage(chromeDark, { stage: "dark", screen: "light" }, "chrome Dark, Play light");
+        await page.keyboard.press("Escape");
+        await until(async () => (await playing(page).count()) === 0, { message: "Escape leaves Play" });
+        return `stage ${light.stage}/255 round a light Screen (${light.screen}), ${dark.stage}/255 round a dark one (${dark.screen}), ${chromeDark.stage}/255 with the chrome Dark; the device's edge on the dark stage`;
+      } finally {
+        if ((await page.locator(".studio-app").first().getAttribute("data-theme")) === "dark") await menu("Light mode");
+      }
+    },
+  },
+  {
+    id: "FW-297", feature: "Prototype settings › Background (user 2026-11-26: \"nền cho phép user chỉnh sửa bằng picker\", \"picker tự do không chỉ chọn token\"): with nothing selected the Prototype tab offers the stage colour, Auto (Neutral / Solid) by default; a variable (Black-Solid) and a typed hex (#F4D35E) are written as prototypeBackground in the page's header and Play paints them round a light and a dark page alike, its stage side following; Neutral / Solid goes back to Auto", wp: "play stage 2026-11-26", timeout: 75_000,
+    async run(ctx) {
+      const { page, id } = await step("seed the page", () => seededPage(ctx, darkFramePage, /theme: "dark"/));
+      const header = async () => ((await pageText(page, id)) ?? "").split("\n")[0];
+      const color = page.locator('#studio-right [data-prop="prototype-background"]').getByRole("combobox", { name: "Background color" });
+      const variable = page.locator('#studio-right [data-prop="prototype-background-variable"]');
+      const pick = async (query, name) => {
+        await variable.getByRole("combobox").or(variable.getByRole("button")).first().click();
+        const search = page.getByPlaceholder("Search colors");
+        await search.waitFor({ state: "visible", timeout: 5000 });
+        await search.fill(query);
+        await page.getByRole("option", { name }).first().click();
+      };
+      const leave = async () => {
+        await page.keyboard.press("Escape");
+        await until(async () => (await playing(page).count()) === 0, { message: "Escape leaves Play" });
+      };
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await prototypeTab(page);
+      await color.waitFor({ state: "visible", timeout: 5000 });
+      const auto = { value: await color.inputValue(), placeholder: await color.getAttribute("placeholder"), variable: (await variable.innerText()).replace(/\s+/g, " ").trim() };
+      if (auto.value !== "" || auto.placeholder !== "Auto" || !/Neutral \/ Solid/.test(auto.variable)) throw new Error(`Background does not start at Auto (Neutral / Solid): ${JSON.stringify(auto)}`);
+      // A variable.
+      await step("Variable › Black-Solid", () => pick("black", /^Black-Solid/));
+      await until(async () => (await header()).includes('"prototypeBackground":"black"'), { message: "prototypeBackground black written" });
+      await playStage(page);
+      const blackLight = await stageLook(page);
+      await step("Play › Dark mode", () => playing(page).getByRole("button", { name: "Dark mode" }).click());
+      await until(async () => (await playing(page).getAttribute("data-theme")) === "dark", { message: "Play dark" });
+      const blackDark = await stageLook(page);
+      for (const [look, what] of [[blackLight, "Play light"], [blackDark, "Play dark"]]) if (look.stage > 30 || look.stageSide !== "dark") throw new Error(`${what}: the stage is not the picked black: ${JSON.stringify(look)}`);
+      await leave();
+      // Any colour: typed in the field (the picker writes the same value).
+      await step("Background › #F4D35E", async () => {
+        await color.click();
+        await color.fill("#F4D35E");
+        await color.press("Enter");
+        await page.keyboard.press("Escape");
+      });
+      await until(async () => (await header()).includes('"prototypeBackground":"#F4D35E"'), { message: "prototypeBackground #F4D35E written" });
+      await playStage(page);
+      const painted = await playing(page).evaluate((player) => getComputedStyle(player).backgroundColor);
+      const yellow = await stageLook(page);
+      if (painted !== "rgb(244, 211, 94)" || yellow.stageSide !== "light") throw new Error(`Play's stage is not the typed #F4D35E on its light side: ${painted}, ${JSON.stringify(yellow)}`);
+      await leave();
+      // Back to Auto.
+      await step("Variable › Neutral / Solid", () => pick("neutral solid", /^Neutral \/ Solid/));
+      await until(async () => !(await header()).includes("prototypeBackground"), { message: "Auto leaves the header" });
+      return `Auto (Neutral / Solid) · Black-Solid written: stage ${blackLight.stage}/255 round a light page, ${blackDark.stage}/255 round a dark one · #F4D35E written: stage ${painted}, side light · Neutral / Solid: no header key`;
+    },
+  },
 ];
+
+/** Play from the page's first Screen (FW-296, FW-297). */
+async function playStage(page) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("ControlOrMeta+Alt+Enter");
+  await playing(page).waitFor({ state: "visible", timeout: 5000 });
+  await until(async () => (await playScreen(page)) === "tasks", { message: "Play starts on Tasks" });
+}
+
+/** Play's stage and Screen brightness (0–255), the stage side Player.tsx read, and whether the device frame has an edge. */
+const stageLook = (page) => playing(page).evaluate((player) => {
+  const brightness = (element) => { const [r, g, b] = (getComputedStyle(element).backgroundColor.match(/[\d.]+/g) ?? ["255", "255", "255"]).map(Number); return Math.round((r + g + b) / 3); };
+  const screen = player.querySelector(".studio-builder-screen");
+  const edge = player.querySelector(".studio-device-frame");
+  return { stage: brightness(player), stageSide: player.getAttribute("data-stage"), screen: screen ? brightness(screen) : null, edge: edge ? /0px 0px 0px 1px/.test(getComputedStyle(edge).boxShadow) : null };
+});
+
+/** The stage dark or light as asked, its side read so, an edge on the device on a dark stage, the Screen as asked. */
+function expectStage(look, want, what) {
+  if (want.stage === "dark" ? look.stage > 30 : look.stage < 220) throw new Error(`${what}: the stage is not ${want.stage} (${look.stage}/255)`);
+  if (look.stageSide !== want.stage) throw new Error(`${what}: the stage side reads ${look.stageSide}, not ${want.stage}`);
+  if (want.stage === "dark" && look.edge !== true) throw new Error(`${what}: the device frame has no edge on the dark stage`);
+  if (want.screen === "light" ? look.screen < 200 : look.screen > 60) throw new Error(`${what}: the Screen is not ${want.screen} (${look.screen}/255)`);
+}
 
 /** A phone Screen with a Bottom Sheet and a toast, and one whose own modes are dark (FW-295). */
 const darkFramePage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}

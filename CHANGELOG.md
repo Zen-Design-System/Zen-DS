@@ -14,6 +14,11 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: Play's stage takes the opposite of the page being played, so the UI stands out on it: dark round a light
+  page, light round a dark one, whatever the Studio's own light or dark. Prototype settings › Background (Prototype tab,
+  nothing selected) sets another colour, kept with the page, as Figma's prototype background: any colour (type a hex or
+  use the colour picker) or a Zen background variable; Neutral / Solid goes back to Auto. The phone keeps a faint edge
+  on a dark stage.
 - Zen Studio: in Layers, a row dropped above or below a frame's row (or beside a layer on the canvas) leaves its frame
   for the canvas, where it shows; a layer on the canvas dropped into a frame without auto layout keeps where it shows.
   Several selected layers drag together: out of their frame onto the canvas, into a frame (each at its spot when the

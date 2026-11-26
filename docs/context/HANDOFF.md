@@ -101,7 +101,10 @@ Last updated: 2026-11-22.
   `FLAT_GROUPS` for components without Figma groups); `shell/modes.ts` `setStudioTheme` (chrome only) and
   `setPreviewTheme` (the frames). E2E I-35…I-38, S-08, S-09. Detail: session log 2026-10-27. Play's theme (2026-11-24):
   Play's own pick › the played frame's moon (`frameOverrides`) › the Screen's `modes.theme` › the canvas's, on the whole
-  layer (`proto/Player.tsx`), as Present does; E2E FW-295.
+  layer (`proto/Player.tsx`), as Present does; E2E FW-295. Play's stage (2026-11-26) is Background/Neutral/Solid in
+  Play's mode (the opposite of the page) or the page's `prototypeBackground` (a `#RRGGBB` or a fill key; Prototype settings › Background,
+  `proto/prototypeBackground.ts`); `data-stage` (its painted side) colours what sits on it. Present of example frames
+  keeps the page's Canvas. E2E FW-296, FW-297.
 - **Studio UI/UX review (2026-10-27, docs only):** `docs/research/studio-ux-review-2026-10-27.md` — five hands-on
   walks on the user's pages, the Figma-key E2E walk, axe, a UX-writing audit (40 strings), 15 screenshots. Ranked
   proposal §7 approved by the user 2026-10-27, in order: P0 double-click / Enter land on DOM parts with a CSS panel and ⌘A / ⌘D die after

@@ -7,13 +7,16 @@ import { Segmented } from "../../../../components/Segmented";
 import { Text } from "../../../../components/Text";
 import { Toggle } from "../../../../components/Toggle";
 import { typographyStyles } from "../../../../tokens/typography.generated";
-import { parseSrc } from "../../api";
+import { announceEditStatus, parseSrc } from "../../api";
 import { zoomToFrame } from "../../board/presentFrame";
 import { InspectorFields, InspectorRow, InspectorSection } from "../../inspector/Section";
-import { RowInputField, RowSelectField } from "../../inspector/rowFields";
+import { fillPalette } from "../../inspector/palettes";
+import { SwatchControl } from "../../inspector/PropField";
+import { RowColorField, RowInputField, RowSelectField } from "../../inspector/rowFields";
 import { canEdit, studioStore, useStudio } from "../../store";
 import type { PageNode, PageTree, PageValue } from "../render/renderPage";
-import { pageFile, usePage } from "../store/pageStore";
+import { headerPrototypeBackground } from "../store/pageModel";
+import { pageFile, setPagePrototypeBackground, usePage } from "../store/pageStore";
 import { usePageTree } from "../usePageTree";
 import { setStartScreen } from "../frameEdit";
 import { templateChoices, type TemplateChoice } from "../starters/fromTemplate";
@@ -32,6 +35,7 @@ import { turnOffPopover, turnOnPopover } from "./popoverEdit";
 import { OWN_POPOVER, POPOVER_TRIGGER, popoverIn } from "./popoverModel";
 import { PopoverRows } from "./PopoverRows";
 import { VariablesSection } from "./VariablesSection";
+import { DEFAULT_PROTOTYPE_BACKGROUND, PROTOTYPE_BACKGROUNDS, prototypeHex, prototypeToken } from "./prototypeBackground";
 import { ConditionalRows, defaultIfCode, defaultSetCode, setCode, SetVariableRows, type CreateVar } from "./VarActionRows";
 import { actionCode, addVarThen, pageVarsOf } from "./protoVars";
 
@@ -108,6 +112,8 @@ export function PrototypePanel() {
           />
         </div>
       </InspectorSection>
+      {/* Figma's Prototype settings, with nothing selected: the stage colour Play draws round the page. */}
+      {!subject && !selectedNode ? <PrototypeSettings id={localPage} text={page.text} disabled={!editable} /> : null}
       {/* The page's prototype variables (W-52 B2), with nothing selected: Figma's Local variables for the prototype. */}
       {!subject && !selectedNode ? <VariablesSection file={file} tree={tree} disabled={!editable} /> : null}
       {overlayNode ? (
@@ -121,6 +127,31 @@ export function PrototypePanel() {
       )}
       {scrolls ? <ScrollBehavior key={`scroll:${scrolls.loc}`} node={scrolls} file={file} disabled={!editable} /> : null}
     </div>
+  );
+}
+
+/** Prototype settings › Background (proto/prototypeBackground.ts), as Figma's fill row: any colour in the field (typed hex or
+ *  the picker), or a Color/Background variable from the list below it. Neither set is Auto, Neutral/Solid in Play's mode
+ *  (the opposite of the played page); picking Neutral / Solid goes back to it. Written in the page's header. */
+function PrototypeSettings({ id, text, disabled }: { id: string; text: string; disabled: boolean }) {
+  const own = headerPrototypeBackground(text);
+  const hex = prototypeHex(own);
+  const token = prototypeToken(own);
+  const set = (next: string, said: string) => void setPagePrototypeBackground(id, next).then(() => announceEditStatus({ kind: "unchanged", message: `Prototype background → ${said}`, at: Date.now() }));
+  return (
+    <InspectorSection title="Prototype settings">
+      <InspectorFields
+        name="prototype-background"
+        labels={["Background"]}
+        fields={[<RowColorField key="color" size="sm" aria-label="Background color" value={hex ?? ""} placeholder={token ? fillPalette.label(token) : "Auto"} colorPicker disabled={disabled}
+          onValueChange={(value) => { const next = prototypeHex(value); if (next && next !== hex) set(next, next); }} />]}
+      />
+      <InspectorFields
+        name="prototype-background-variable"
+        labels={["Variable"]}
+        fields={[<SwatchControl key="variable" label="Background variable" value={token} fallback={hex ? undefined : DEFAULT_PROTOTYPE_BACKGROUND} disabled={disabled} options={[...PROTOTYPE_BACKGROUNDS]} palette={fillPalette} onSet={(next) => set(next, fillPalette.label(next))} />]}
+      />
+    </InspectorSection>
   );
 }
 
