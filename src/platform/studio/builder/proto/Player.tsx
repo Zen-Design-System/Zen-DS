@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { IconButton } from "../../../../components/Button";
 import { Icon } from "../../../../components/Icon";
 import { ZenPortalProvider } from "../../../../components/Portal";
@@ -13,6 +13,7 @@ import { pageKey, studioStore, useStudio } from "../../store";
 import type { StudioPreviewSettings } from "../../types";
 import { frameOf } from "../render/frames";
 import type { PageNode } from "../render/renderPage";
+import { headerPrototypeBackground } from "../store/pageModel";
 import { pageFile, usePage } from "../store/pageStore";
 import { usePageTree } from "../usePageTree";
 import { useUploadsVersion } from "../assets/uploads";
@@ -21,6 +22,7 @@ import { CLICKABLE, itemElement, layerElements } from "./protoDom";
 import { overlayTitleOf, protoSourcesOf } from "./protoModel";
 import { literal, PlayScreens, usePlayFlow } from "./playFlow";
 import { isPlaying, PLAY_PREFIX, stopPlay } from "./playStart";
+import { isDarkPaint, prototypeBackgroundPaint } from "./prototypeBackground";
 import { DEVICE_WIDTH, PageOsContext, pageOsOf, ProtoContext, SimulatedDeviceContext, type PageDevice } from "./runtime";
 import { viewportBreakpoint } from "./versions";
 import { screenViewOf } from "../screenViews";
@@ -106,6 +108,14 @@ function PlayLayer({ id, start, portalRef, toastRef }: { id: string; start: stri
   const frameTheme = useStudio((state) => (playedFrame ? state.frameOverrides[pageKey(state.page, state.collection, state.localPage)]?.[playedFrame]?.theme : undefined));
   const theme = own.theme ?? frameTheme ?? modesTheme(screen) ?? canvasModes.theme;
   const modes: StudioPreviewSettings = { ...canvasModes, ...own, theme };
+  // The stage round the device (prototypeBackground.ts): the page's colour, else Neutral/Solid in Play's mode. What sits on
+  // it (the device's edge, the drag grips, the scrollbars) reads its painted colour, light or dark (builder.css).
+  const stageFill = prototypeBackgroundPaint(page ? headerPrototypeBackground(page.text) : undefined);
+  const [stage, setStage] = useState<"dark" | "light">(theme === "dark" ? "light" : "dark");
+  useLayoutEffect(() => {
+    const layer = layerRef.current;
+    if (layer) setStage(isDarkPaint(getComputedStyle(layer).backgroundColor) ? "dark" : "light");
+  }, [stageFill, theme, brand, modes.contrast]);
   const setMode = useCallback((key: ModeKey, value: string) => setOwn((current) => ({ ...current, [key]: value })), []);
   const [framed, setFramed] = useState(true);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -243,7 +253,7 @@ function PlayLayer({ id, start, portalRef, toastRef }: { id: string; start: stri
   const barTitle = !screenTitle || screenTitle === title ? title : screenTitle.startsWith(title) && /^\s*[·—–:|-]/.test(screenTitle.slice(title.length)) ? screenTitle : `${title} · ${screenTitle}`;
 
   return (
-    <div ref={layerRef} className="studio-present studio-player" role="dialog" aria-label={`${title}, playing`} tabIndex={-1} data-device={device} {...previewAttributes(modes, brand)}>
+    <div ref={layerRef} className="studio-present studio-player" role="dialog" aria-label={`${title}, playing`} tabIndex={-1} data-device={device} data-stage={stage} style={{ "--studio-play-stage": stageFill } as CSSProperties} {...previewAttributes(modes, brand)}>
       <PresentBar title={barTitle} theme={modes.theme} onToggleTheme={() => setMode("theme", modes.theme === "dark" ? "light" : "dark")} modes={modes} onModeChange={setMode} onExit={exit} modesScope="Only while playing"
         viewport={shown} onViewportChange={setViewport} viewportScale={fit.scale} autoWidth={DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop} framed={framed} onFramedChange={setFramed}
         leading={<>

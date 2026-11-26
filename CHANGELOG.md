@@ -14,6 +14,15 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio project settings: each status color (Positive, Negative, Warning, Info) takes a color of the project's
+  own, not only a shipped ramp. The field beside it opens on the current color to adjust it, or takes a new one; its
+  ramp is generated as the Primary's, and the section says when white text on it is hard to read. Projects that name a
+  ramp keep it unchanged.
+- Zen Studio: Play's stage takes the opposite of the page being played, so the UI stands out on it: dark round a light
+  page, light round a dark one, whatever the Studio's own light or dark. Prototype settings › Background (Prototype tab,
+  nothing selected) sets another colour, kept with the page, as Figma's prototype background: any colour (type a hex or
+  use the colour picker) or a Zen background variable; Neutral / Solid goes back to Auto. The phone keeps a faint edge
+  on a dark stage.
 - Zen Studio project settings: the Type tab is now Typography. With a custom type scale, a Text styles list shows every
   style (Display Extra 1 … Label Small) with its size, line height and letter spacing; any of them can be set by hand
   over what base and ratio make, and "Back to the scale" undoes it. The theme preview's numbers show letter spacing too.

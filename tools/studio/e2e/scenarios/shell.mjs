@@ -562,6 +562,65 @@ export const rows = [
     },
   },
   {
+    id: "FW-298", feature: "Status colors take a colour of the project's own (user 2026-11-26): each role's color field opens on its current colour; a typed colour makes it Custom with a ramp generated as the Primary's (the preview's CSS), a light one says white text is hard to read; a shipped ramp picked again is its name; project.json keeps { hex }", wp: "user 2026-11-26", timeout: 90_000,
+    async run(ctx) {
+      const project = "e2e-status";
+      const { defaultProjectTheme, RAMPS } = await import("../../project-theme.mjs");
+      const now = Date.now();
+      await ctx.api.writeProject({ id: project, name: "E2E Status", theme: defaultProjectTheme(), createdAt: now, updatedAt: now });
+      const folder = path.join(ctx.root, path.dirname(pagesDirOf(ctx.server.port)), "projects", project);
+      let stage = "open";
+      let shot = null;
+      try {
+        const { page } = await seededPage(ctx, fontsPage(project), /Quarterly plan/);
+        shot = page;
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Escape");
+        await page.getByRole("button", { name: "E2E Status settings" }).click();
+        const settings = page.getByRole("dialog", { name: "E2E Status · Settings" });
+        await settings.waitFor({ state: "visible", timeout: 5000 });
+        await settings.getByRole("tablist", { name: "Settings" }).getByRole("tab", { name: "Color" }).click();
+        const section = settings.locator("section", { has: page.getByRole("heading", { name: "Status colors" }) });
+        const field = (role) => section.getByRole("combobox", { name: `${role} color` });
+        const row = (role) => section.locator(`[data-prop="status-${role.toLowerCase()}"]`);
+        const draftCss = () => page.evaluate(() => document.getElementById("zen-studio-project-draft")?.textContent ?? "");
+        // Each color field shows the role's current colour (Zen's ramps).
+        const shown = [await field("Warning").inputValue(), await field("Info").inputValue()].map((value) => value.toUpperCase());
+        if (shown.join() !== [RAMPS.Yellow, RAMPS.Blue].join()) throw new Error(`the fields open on ${shown.join(", ")}, not Yellow and Blue`);
+        // A colour of its own: Custom, a generated ramp in the draft's CSS.
+        stage = "Warning colour";
+        await field("Warning").fill("#C2410C");
+        await field("Warning").press("Enter");
+        await until(async () => (await row("Warning").innerText()).includes("Custom"), { message: "Warning on Custom" });
+        await until(async () => /--zen-light-warning-9: #[0-9A-F]{6};/.test(await draftCss()), { message: "the draft's Warning ramp generated (no alias)" });
+        // A light one: white text is hard to read, said in the section's note.
+        stage = "Info colour";
+        await field("Info").fill("#FFE066");
+        await field("Info").press("Enter");
+        await until(async () => /White text hard to read on Info/.test(await section.innerText()), { message: "the hard-to-read note for Info" });
+        // A shipped ramp picked again is its name: the alias comes back, the note goes.
+        stage = "Info back on Blue";
+        await row("Info").locator("button").first().click();
+        // Blue is Info's Zen ramp: its option says so ("Blue Zen").
+        await page.getByRole("option", { name: /^Blue\b/ }).click();
+        await until(async () => /--zen-light-info-9: var\(--zen-light-blue-9\);/.test(await draftCss()), { message: "Info back on Blue's alias" });
+        if (/hard to read/.test(await section.innerText())) throw new Error("the note stays after Blue");
+        await settings.locator(".studio-project-setup__settings").screenshot({ path: ".qa/studio-e2e/shell-FW-298-status.png" }).catch(() => undefined);
+        await settings.getByRole("button", { name: "Save", exact: true }).click();
+        await settings.waitFor({ state: "hidden", timeout: 8000 });
+        const saved = () => JSON.parse(fs.readFileSync(path.join(folder, "project.json"), "utf8")).theme.status;
+        await until(() => JSON.stringify(saved()) === JSON.stringify({ positive: "Grass", negative: "Tomato", warning: { hex: "#C2410C" }, info: "Blue" }), { message: "project.json's status" })
+          .catch((error) => { throw new Error(`${error.message}: ${JSON.stringify(saved())}`); });
+        return "fields open on Yellow / Blue · #C2410C → Custom, generated ramp · #FFE066 → hard to read · Blue → alias · saved { hex }";
+      } catch (error) {
+        await shot?.screenshot({ path: ".qa/studio-e2e/shell-FW-298-failed.png" }).catch(() => undefined);
+        throw new Error(`${stage}: ${error.message}`);
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
     id: "FW-299", feature: "Typography (the Type tab renamed) with a custom scale lists every text style with its size, line height and letter spacing (user 2026-11-26): a value set on Heading 1 writes its own --zen-typography-* in the draft and shows in the preview's numbers, Back to the scale undoes it, project.json keeps the step's own values", wp: "user 2026-11-26", timeout: 90_000,
     async run(ctx) {
       const project = "e2e-type-steps";

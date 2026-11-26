@@ -44,8 +44,9 @@
 /* A blur bar's backdrop (Top / Bottom Navigation's progressive blur) stops at a Screen on the board: a mask makes the
    Screen its backdrop root, so the blur reads only what the Screen paints. It read the board's light canvas past the
    frame's rounded corners, which greyed a dark Screen's corners (user 2026-11-23). On a phone the glass ends at the
-   screen's edge too. Play's stage behind its device takes the played mode, so its corners need no mask. */
-.studio-frame .studio-builder-screen:has(.zen-progressive-blur) { -webkit-mask-image: linear-gradient(#000 0 0); mask-image: linear-gradient(#000 0 0); }
+   screen's edge too. In Play the same: a device box without a frame has rounded corners on the black stage, and the
+   Bottom Navigation's blur greyed them with the stage's black (2026-11-26). */
+:is(.studio-frame, .studio-player__device) .studio-builder-screen:has(.zen-progressive-blur) { -webkit-mask-image: linear-gradient(#000 0 0); mask-image: linear-gradient(#000 0 0); }
 /* The app frame (Screen's sidebar · header, or top · bottom navigation): the Screen becomes a row (desktop) or a column
    (mobile) around its content, which keeps the page's own padding. The bottom bar sits at the screen's foot. */
 .studio-builder-screen[data-chrome] { display: flex; align-items: stretch; }
@@ -167,7 +168,24 @@
 .studio-player__stage { display: flex; min-height: 100%; box-sizing: border-box; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px); }
 .studio-player__device { position: relative; height: calc(100cqh - 2 * var(--zen-spacing-padding-xlarge, 24px)); overflow: clip; align-self: flex-start; container-type: size; border-radius: var(--zen-corner-radius-large, 16px); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
 .studio-player__stage[data-viewport="auto"] { padding: 0; }
-.studio-player__stage[data-viewport="auto"] .studio-player__device { width: 100%; height: 100cqh; border-radius: 0; box-shadow: none; }
+.studio-player__stage[data-viewport="auto"] .studio-player__device { width: 100%; height: 100cqh; border-radius: 0; background: var(--zen-color-background-canvas-default); box-shadow: none; }
+/* The stage (user 2026-11-26: "nền nên là đen để nổi phần UI lên", then "dark thì nền prototype là nền sáng, light thì nền
+   tối … picker"): Background/Neutral/Solid in Play's mode, the opposite of the played page, dark round a light page and
+   light round a dark one, whatever the chrome; or the page's own colour (Prototype settings › Background, Player.tsx
+   --studio-play-stage). Player.tsx reads the painted colour into data-stage, and what sits on the stage takes the static
+   overlay colours of that side, so it shows on any colour: the device's edge and the viewport box's ring on a dark stage
+   (Border/Overlay; the black bezel shows on a light one), the drag grips (White- or Black-Overlay), the scrollbars. The
+   device takes the page's Canvas under its Screens (a Screen sliding away never shows the stage). */
+.studio-present.studio-player { background: var(--studio-play-stage, var(--zen-color-background-neutral-solid-default)); }
+.studio-player[data-stage="dark"] .studio-present__scroll { color-scheme: dark; }
+.studio-player[data-stage="light"] .studio-present__scroll { color-scheme: light; }
+.studio-player__device { color-scheme: normal; }
+/* The box's ring and the grips stay under board.css's hover and drag rules (their Info blue wins): :where() keeps the
+   stage side out of their weight. */
+.studio-player[data-stage="dark"] .studio-device-frame,
+:where(.studio-player[data-stage="dark"]) .studio-player__stage .studio-present__fit[data-viewport="fixed"] > .studio-player__device { box-shadow: 0 0 0 1px var(--zen-color-border-overlay-subtle-default), var(--zen-style-shadow-bottom-level-1-shadow); }
+:where(.studio-player[data-stage="dark"]) .studio-viewport-handles .studio-viewport-handles__hit:is([data-axis="x"], [data-axis="x-start"], [data-axis="y"])::after { background: var(--zen-color-background-white-overlay-default); }
+:where(.studio-player[data-stage="light"]) .studio-viewport-handles .studio-viewport-handles__hit:is([data-axis="x"], [data-axis="x-start"], [data-axis="y"])::after { background: var(--zen-color-background-black-overlay-default); }
 .studio-player__device > .studio-player__screens { display: flex; height: 100%; flex-direction: column; overflow: auto; }
 /* Play's and Present's toasts (walk 2026-10-29 W-45): their layer stands in the device, the page margin plus the device's
    safe area (--zen-safe-area-bottom / -top) from its foot or top, over the home indicator or under the status bar, as a
