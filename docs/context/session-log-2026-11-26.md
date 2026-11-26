@@ -72,6 +72,43 @@ handed back; the black version never shipped.
 - Gate `npm run qa -- --isolated --files=…` PASS: static steps, Studio E2E 465 works · 0 broken in 5 shards, no retries.
   `npm run build` passes.
 
+## Theme preview: a card with a picture is two frames (tier S, Bug session)
+
+User: "Card preview trong setting dự án ảnh và card border đang không đồng tâm".
+- **First fix:** picture radius = card radius − card padding. It gave a square picture: Small card 16 − 16 = 0.
+- **Options shown:** A (square picture), B (card at XSmall spacing) and C (full-bleed picture top).
+- **User's rule:** "padding ảnh và padding text khác nhau. chia làm 2 frame. frame chứa ảnh padding để bo góc đồng tâm.
+  Padding text thì như card. Bổ sung guide này vào skill".
+
+Branch `zen/fix/studio-preview-card-concentric-20261126`, on main f0c1985f.
+
+- **`project/ThemePreview.tsx` + `project.css`.** The picture cards (Cards "Track your trips", "Gain control"; the
+  Website hero) are two frames:
+  - the card pads nothing (`__media-card`);
+  - `__media` pads the picture by Card-padding-xsmall, and its radius is `calc(var(--zen-card-radius) -
+    var(--zen-card-padding-xsmall))` (`CARD_MEDIA`);
+  - `__media-text` keeps `--zen-card-padding`;
+  - the hero's grid takes gap none: the frames' paddings space it.
+- **Measured** on a private server (rounded, compact): picture radius = card radius − 8. Cards: 16 → 8, text frame 16.
+  Hero: 24 → 16, text frame 24.
+- **Skills.** The rule is in `zen-component-usage/SKILL.md` (design rules), `zen-figma-design/references/
+  screen-rules.md` (beside the concentric rule) and `zen-build-qa/SKILL.md` (radius checks).
+- Gate `npm run qa -- --isolated --files=…` PASS: static steps, Studio E2E 463 works · 0 broken in 5 shards (B-33,
+  PT-57 loaded twice, a known Chromium load cut). Merged origin/main 73493bf1 (#430, #431): CHANGELOG and this log keep
+  both sides, main's first.
+
+## Audit: card titles at 390 dark keep Figma, baselined (tier XS, branch zen/fix/card-title-one-style-20261126)
+
+CI's dark audit on main warned `outline-siblings` on chart@390-dark (Finance dashboard: "Revenue" body-extra-medium
+beside "Waiting for payment" heading-subheading) and templates@390-dark (Dashboard: "Billable hours by team" beside
+"Recent activity").
+
+- Source: the ChartCard title, `Chart.tsx` `zen-chart-card__title`, is Body/Extra/Medium as in Figma (Chart Card ›
+  Header › Title, `docs/figma-contracts/chart-card.json`). The ListBox and Card titles beside it are Heading/Subheading.
+- The user chose "Baseline, giữ như Figma" for this warning on 2026-10-21 (commit 43bb55a7), and again on 2026-11-26.
+  The keys were there for 1512, 390, 320 and 1512-dark; only 390-dark was missing. CI's dark run covers 1512 and 390.
+- `tools/platform-audit/quality-baseline.json`: the two 390-dark keys, total 139 → 141. No UI change.
+
 ## Typography tab: text styles set by hand, letter spacing (tier M, Bug session)
 
 User: "Phần chỉnh Type trong setting thiếu chỉnh letter spacing và cho chỉnh typescale tuỳ ý. Tab Type nên đổi thành
@@ -102,3 +139,6 @@ f0c1985f.
 - **Merged origin/main 73493bf1 (#430, #431)** before the gate: ProjectSetup imports both, FW-298 and FW-299 both kept,
   CHANGELOG and this log keep both sides, main's first. FW-299 first broke on its own locator: the scale's select opens
   from a button named "Scale Dashboard", not a combobox "Type scale".
+- **Gate `npm run qa -- --isolated --files=…` PASS:** static steps, Studio E2E 467 works · 0 broken in 5 shards (B-27 on
+  retry, a Chromium load cut). Then merged origin/main c4b3f9a8 (#432, #433): the code merged clean (ThemePreview,
+  project.css), CHANGELOG and this log keep both sides, main's first.

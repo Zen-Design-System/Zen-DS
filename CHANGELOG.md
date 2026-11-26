@@ -23,6 +23,9 @@ How to maintain it:
   nothing selected) sets another colour, kept with the page, as Figma's prototype background: any colour (type a hex or
   use the colour picker) or a Zen background variable; Neutral / Solid goes back to Auto. The phone keeps a faint edge
   on a dark stage.
+- Zen Studio project settings: the theme preview's cards with a picture are two frames, the picture's padded by
+  Card-padding-xsmall with its corner concentric with the card's, the text's with the card's padding. The rule is in the
+  skills (zen-component-usage, zen-figma-design screen rules, zen-build-qa).
 - Zen Studio project settings: the Type tab is now Typography. With a custom type scale, a Text styles list shows every
   style (Display Extra 1 … Label Small) with its size, line height and letter spacing; any of them can be set by hand
   over what base and ratio make, and "Back to the scale" undoes it. The theme preview's numbers show letter spacing too.

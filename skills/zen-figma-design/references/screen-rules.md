@@ -105,6 +105,10 @@ Components own their inner padding and gap; never change them. Between elements,
   12, rows 8, last row → rule 16.
 - Nested corners are concentric: inner radius = outer radius − the inset between them (a swatch 10px inside a 12px
   field → 2, `Corner-Radius/2XSmall`; a picker area 12px inside a 16px popover → 4, `Corner-Radius/XSmall`).
+- A card with a picture is two frames (user 2026-11-26): the card has no padding; the picture's frame pads it by
+  `Card-padding-xsmall` (8) and the picture's radius is the card's minus 8 (Spacing Small, `Corner-Radius/Large` 16 →
+  `Corner-Radius/Small` 8; Medium, 2XLarge 24 → Large 16); the text's frame keeps the card's padding
+  (`Card-padding-small` / `-medium`). A picture inset by the card's own padding is not concentric, or square.
 - Surfaces use `Card-padding-medium` / `Card-padding-small`; a strip inside a surface (toolbar, summary, footer) has
   `Spacing/Padding/Small` above and below and the surface's own side inset.
 

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { AlertBanner } from "../../../components/AlertBanner";
 import { Avatar, AvatarStack } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
@@ -99,15 +99,21 @@ const spendSeries = [
   { id: "travel", label: "Travel", color: brandStep("soft") },
 ];
 
+/**
+ * A card with a picture is two frames (user 2026-11-26: "padding ảnh và padding text khác nhau. chia làm 2 frame"): the
+ * picture's frame (.studio-theme-preview__media) pads it by Card-padding-xsmall, so the picture's corner is the card's
+ * radius minus that padding, concentric in every corner radius mode; the text's frame (…__media-text) keeps the card's
+ * padding. The card itself pads nothing (…__media-card).
+ */
+const CARD_MEDIA = { "--zen-image-radius": "max(0px, calc(var(--zen-card-radius) - var(--zen-card-padding-xsmall, 8px)))" } as CSSProperties;
+
 function CardsGallery() {
   const press = usePress();
   return (
     <Grid columns={useColumns(3, 2)} gap="md">
-      <Card theme="subtle" color="brand" spacing="sm">
-        <Stack gap="lg">
-          <Image src={photoSantorini} alt="White houses above the sea in Santorini" ratio={4 / 3} radius="lg" />
-          <Heading level={3} textStyle="Display/4" tone="accent-strongest">Track your trips</Heading>
-        </Stack>
+      <Card theme="subtle" color="brand" spacing="sm" className="studio-theme-preview__media-card">
+        <div className="studio-theme-preview__media"><Image src={photoSantorini} alt="White houses above the sea in Santorini" ratio={4 / 3} style={CARD_MEDIA} /></div>
+        <div className="studio-theme-preview__media-text"><Heading level={3} textStyle="Display/4" tone="accent-strongest">Track your trips</Heading></div>
       </Card>
       <Card theme="default" spacing="sm">
         <Stack gap="xs">
@@ -116,11 +122,9 @@ function CardsGallery() {
           <StackBarChart aria-label="Expenses per month by category, Jan – Jun 2026" data={spend} series={spendSeries} height={200} animate={false} format={money} />
         </Stack>
       </Card>
-      <Card theme="solid" color="accent" spacing="sm">
-        <Stack gap="lg">
-          <Image src={photoSnow} alt="Snow on the peaks above a valley" ratio={4 / 3} radius="lg" />
-          <Heading level={3} textStyle="Display/4">Gain control</Heading>
-        </Stack>
+      <Card theme="solid" color="accent" spacing="sm" className="studio-theme-preview__media-card">
+        <div className="studio-theme-preview__media"><Image src={photoSnow} alt="Snow on the peaks above a valley" ratio={4 / 3} style={CARD_MEDIA} /></div>
+        <div className="studio-theme-preview__media-text"><Heading level={3} textStyle="Display/4">Gain control</Heading></div>
       </Card>
       <Card theme="default" spacing="sm">
         <Stack gap="md">
@@ -275,9 +279,9 @@ function WebsiteGallery() {
   const two = useColumns(2, 1);
   return (
     <Stack gap="lg">
-      <Card theme="subtle" color="brand">
-        <Grid columns={two} gap="lg">
-          <Stack gap="md" align="start" justify="center">
+      <Card theme="subtle" color="brand" className="studio-theme-preview__media-card">
+        <Grid columns={two} gap="none">
+          <Stack gap="md" align="start" justify="center" className="studio-theme-preview__media-text">
             <Badge theme="accent" size="sm">New · Shared trips</Badge>
             <Heading level={3} textStyle="Display/3" tone="accent-strongest">Plan every trip in one place</Heading>
             <Text textStyle="Body/Base/Regular" tone="base">Budgets, bookings and the people you travel with, on one calm page.</Text>
@@ -286,7 +290,7 @@ function WebsiteGallery() {
               <Button level="tertiary" startIcon="icon-play-circle-line" onClick={press("Watch the tour")}>Watch the tour</Button>
             </Stack>
           </Stack>
-          <Image src={photoRooftops} alt="Terracotta rooftops of an old town" ratio={4 / 3} radius="xl" />
+          <div className="studio-theme-preview__media"><Image src={photoRooftops} alt="Terracotta rooftops of an old town" ratio={4 / 3} style={CARD_MEDIA} /></div>
         </Grid>
       </Card>
       <Grid columns={useColumns(3, 1)} gap="md">

@@ -51,7 +51,9 @@ Whether you need a card, and for which elements, follows your tier (`AGENTS.md` 
 - **Radius.** Containers use `--zen-corner-radius-{2-xsmall … xgiant}`; controls `--zen-corner-radius-action-<size>`;
   fields `--zen-corner-radius-input-<size>`; circles `--zen-corner-radius-rounded`. Radius modes (Rounded, Smooth,
   Standard, Luxury) only work through tokens. **Concentric corners:** outer radius = inner radius + inset (list card:
-  Padding/2XSmall + Corner-Radius/XLarge around Large rows).
+  Padding/2XSmall + Corner-Radius/XLarge around Large rows). A card with a picture is two frames: the picture's frame
+  padded by `--zen-card-padding-xsmall`, the picture's radius `calc(var(--zen-card-radius) - var(--zen-card-padding-xsmall))`,
+  the text's frame padded by `--zen-card-padding`, the card padding nothing (user 2026-11-26).
 - **Colour roles.** Text and icons use `Color/Content/*`: neutral Strongest / Base / Light = primary / secondary /
   tertiary; colour families use Strongest/Base for text on their Subtle fill and Light only for highlights; the Lights
   group (Accent, Warning, Support/Yellow) never uses Light for text. Fills use `Color/Background/*` by layer: Canvas

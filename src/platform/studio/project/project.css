@@ -236,6 +236,12 @@ button.studio-project-setup__font-row:focus-visible { outline: none; box-shadow:
 .studio-theme-preview__sectors { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; }
 .studio-theme-preview__sectors > li { display: grid; justify-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .studio-theme-preview__sector { display: block; width: 100%; height: 40px; border-radius: var(--zen-corner-radius-small, 8px); }
+/* A card with a picture is two frames (user 2026-11-26): the card pads nothing; the picture's frame pads it by
+   Card-padding-xsmall (its corner is the card's radius minus that: ThemePreview CARD_MEDIA, concentric), the text's frame
+   by the card's own padding. */
+.studio-theme-preview .zen-card.studio-theme-preview__media-card { padding: 0; }
+.studio-theme-preview__media { padding: var(--zen-card-padding-xsmall, 8px); }
+.studio-theme-preview__media-text { padding: var(--zen-card-padding); }
 .studio-theme-preview__ramp { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .studio-theme-preview__steps { display: grid; grid-template-columns: repeat(12, 1fr); overflow: hidden; margin: 0; padding: 0; border-radius: var(--zen-corner-radius-small, 8px); list-style: none; }
 .studio-theme-preview__step { height: 28px; }
