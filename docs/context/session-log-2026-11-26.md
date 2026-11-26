@@ -71,3 +71,28 @@ handed back; the black version never shipped.
   (FW-296's first version failed on main's CSS); prototype group 66/66, no retries; baseline records both.
 - Gate `npm run qa -- --isolated --files=…` PASS: static steps, Studio E2E 465 works · 0 broken in 5 shards, no retries.
   `npm run build` passes.
+
+## Theme preview: a card with a picture is two frames (tier S, Bug session)
+
+User: "Card preview trong setting dự án ảnh và card border đang không đồng tâm".
+- **First fix:** picture radius = card radius − card padding. It gave a square picture: Small card 16 − 16 = 0.
+- **Options shown:** A (square picture), B (card at XSmall spacing) and C (full-bleed picture top).
+- **User's rule:** "padding ảnh và padding text khác nhau. chia làm 2 frame. frame chứa ảnh padding để bo góc đồng tâm.
+  Padding text thì như card. Bổ sung guide này vào skill".
+
+Branch `zen/fix/studio-preview-card-concentric-20261126`, on main f0c1985f.
+
+- **`project/ThemePreview.tsx` + `project.css`.** The picture cards (Cards "Track your trips", "Gain control"; the
+  Website hero) are two frames:
+  - the card pads nothing (`__media-card`);
+  - `__media` pads the picture by Card-padding-xsmall, and its radius is `calc(var(--zen-card-radius) -
+    var(--zen-card-padding-xsmall))` (`CARD_MEDIA`);
+  - `__media-text` keeps `--zen-card-padding`;
+  - the hero's grid takes gap none: the frames' paddings space it.
+- **Measured** on a private server (rounded, compact): picture radius = card radius − 8. Cards: 16 → 8, text frame 16.
+  Hero: 24 → 16, text frame 24.
+- **Skills.** The rule is in `zen-component-usage/SKILL.md` (design rules), `zen-figma-design/references/
+  screen-rules.md` (beside the concentric rule) and `zen-build-qa/SKILL.md` (radius checks).
+- Gate `npm run qa -- --isolated --files=…` PASS: static steps, Studio E2E 463 works · 0 broken in 5 shards (B-33,
+  PT-57 loaded twice, a known Chromium load cut). Merged origin/main 73493bf1 (#430, #431): CHANGELOG and this log keep
+  both sides, main's first.
