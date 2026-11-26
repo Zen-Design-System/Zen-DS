@@ -1,4 +1,4 @@
-import { InputField, SelectField, type InputFieldProps, type SelectFieldProps } from "../../../components/Input";
+import { ColorField, InputField, SelectField, type ColorFieldProps, type InputFieldProps, type SelectFieldProps } from "../../../components/Input";
 import { useInlineLabel } from "./Section";
 
 /*
@@ -15,4 +15,9 @@ export function RowSelectField(props: SelectFieldProps) {
 export function RowInputField(props: InputFieldProps) {
   const label = useInlineLabel();
   return <InputField {...props} layout={label ? "inline" : props.layout} label={label ?? props.label} />;
+}
+
+export function RowColorField(props: ColorFieldProps) {
+  const label = useInlineLabel();
+  return <ColorField {...props} layout={label ? "inline" : props.layout} label={label ?? props.label} />;
 }

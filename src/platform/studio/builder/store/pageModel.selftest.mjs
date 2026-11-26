@@ -2,7 +2,7 @@
 // Self-test of the builder PageStore's pure rules (./pageModel.ts, imported directly: Node strips the types): header
 // title, ids, hash, revisions, Trash, and the sync plan with a folder mirror.
 // Run: node src/platform/studio/builder/store/pageModel.selftest.mjs
-import { headerOs, headerProject, headerTitle, idFromFileName, withHeaderOs, withHeaderProject, keepsRevision, planSync, REVISION_GAP_MS, slugOf, textHash, trashDaysLeft, trashExpired, TRASH_MS, withHeaderTitle, withScreenTitles } from "./pageModel.ts";
+import { headerOs, headerProject, headerPrototypeBackground, headerTitle, idFromFileName, withHeaderOs, withHeaderProject, withHeaderPrototypeBackground, keepsRevision, planSync, REVISION_GAP_MS, slugOf, textHash, trashDaysLeft, trashExpired, TRASH_MS, withHeaderTitle, withScreenTitles } from "./pageModel.ts";
 
 const failures = [];
 let passed = 0;
@@ -23,6 +23,14 @@ check("rename keeps other header keys", withHeaderTitle('// @zen-page {"format":
 check("rename without a header", withHeaderTitle("abc", "B"), "abc");
 // Mobile OS (header `os`, 2026-10-10): iOS is the default and is never written.
 check("os unset is iOS", headerOs(page("A")), "ios");
+// Play's stage colour (Prototype settings › Background): absent is the default, Neutral/Solid.
+check("prototype background unset", headerPrototypeBackground(page("A")), undefined);
+check("prototype background written", withHeaderPrototypeBackground('// @zen-page {"format":1,"title":"A"}\nrest', "black"), '// @zen-page {"format":1,"title":"A","prototypeBackground":"black"}\nrest');
+check("prototype background read", headerPrototypeBackground('// @zen-page {"format":1,"prototypeBackground":"accent-solid"}\n'), "accent-solid");
+check("prototype background hex written", withHeaderPrototypeBackground('// @zen-page {"format":1}\nrest', "#1F6FEB"), '// @zen-page {"format":1,"prototypeBackground":"#1F6FEB"}\nrest');
+check("prototype background hex read", headerPrototypeBackground('// @zen-page {"format":1,"prototypeBackground":"#1F6FEB"}\n'), "#1F6FEB");
+check("prototype background junk ignored", headerPrototypeBackground('// @zen-page {"format":1,"prototypeBackground":"url(x)"}\n'), undefined);
+check("prototype background default removes it", withHeaderPrototypeBackground('// @zen-page {"format":1,"prototypeBackground":"black"}\nrest', "neutral-solid"), '// @zen-page {"format":1}\nrest');
 check("os android written", withHeaderOs('// @zen-page {"format":1,"title":"A"}\nrest', "android"), '// @zen-page {"format":1,"title":"A","os":"android"}\nrest');
 check("os read back", headerOs('// @zen-page {"format":1,"title":"A","os":"android"}\nrest'), "android");
 check("os iOS removes the key", withHeaderOs('// @zen-page {"format":1,"title":"A","os":"android","x":2}\r\nrest', "ios"), '// @zen-page {"format":1,"title":"A","x":2}\r\nrest');
