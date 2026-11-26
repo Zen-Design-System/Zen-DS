@@ -16,8 +16,8 @@ import { previewValueLabel } from "../shell/modes";
 import { useStudio } from "../store";
 import {
   DEFAULT_LOCALE, FONT_FAMILIES, MODE_VALUES, PRIMARY_RAMPS, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, STATUS_ROLES, SUPPORT_FAMILIES, SUPPORT_LABELS, TYPE_ROLES, TYPE_SCALE_LIMITS,
-  chartFollowsPrimary, defaultProjectTheme, projectFontStack, projectPalettes, projectTypeScale, suggestedChart,
-  type ProjectLocale, type ProjectModes, type ProjectTheme, type RampName, type StatusRole, type SupportFamily, type TypeRole, type TypeScale, type UploadedFont,
+  chartFollowsPrimary, defaultProjectTheme, projectFontStack, projectPalettes, projectTypeScale, statusAnchor, suggestedChart,
+  type ProjectLocale, type ProjectModes, type ProjectTheme, type RampName, type StatusRole, type StatusSource, type SupportFamily, type TypeRole, type TypeScale, type UploadedFont,
 } from "../../../../tools/studio/project-theme.mjs";
 import { uploadOf } from "../builder/assets/uploads";
 import { openProjectHome } from "./activeProject";
@@ -246,11 +246,32 @@ function ColorSettings({ theme, swatches, onChange }: { theme: ProjectTheme; swa
   const setPrimary = (primary: ProjectTheme["primary"]) =>
     onChange({ ...theme, primary, ...(follows ? { chart: suggestedChart(primary.ramp ? RAMPS[primary.ramp] : primary.hex!) } : {}) });
   const neutralKind = theme.neutral.tint ? "tint" : theme.neutral.hex ? "custom" : "gray";
-  const statusField = (role: StatusRole) => (
-    <SelectField key={role} size="sm" layout="inline" label={STATUS_LABEL[role]} value={theme.status[role]} popoverSearch leading={dot(RAMPS[theme.status[role]])}
-      onValueChange={(value) => set("status", { ...theme.status, [role]: value as RampName })}
-      options={PRIMARY_RAMPS.map((ramp) => ({ value: ramp, label: RAMP_LABEL[ramp], leading: dot(RAMPS[ramp]), ...(ramp === STATUS_ROLES[role] ? { meta: "Zen" } : {}) }))} />
-  );
+  // A status colour (user, 2026-11-26: "cho phép thêm màu mới vào chứ k chỉ chọn màu có sẵn, hoặc cho chỉnh từ chính màu
+  // hiện tại"): a shipped ramp, or any colour in the field beside it, which opens on the current one.
+  const statusRow = (role: StatusRole) => {
+    const source = theme.status[role];
+    const anchor = statusAnchor(source);
+    const own = typeof source !== "string";
+    const setStatus = (next: StatusSource) => set("status", { ...theme.status, [role]: next });
+    return (
+      <Fields key={role} name={`status-${role}`} columns="minmax(0, 1fr) 112px" fields={[
+        <SelectField key="ramp" size="sm" layout="inline" label={STATUS_LABEL[role]} value={own ? "custom" : source} popoverSearch leading={dot(anchor)}
+          onValueChange={(value) => { if (value !== "custom") setStatus(value as RampName); }}
+          options={[
+            ...(own ? [{ value: "custom", label: "Custom", leading: dot(anchor) }] : []),
+            ...PRIMARY_RAMPS.map((ramp) => ({ value: ramp, label: RAMP_LABEL[ramp], leading: dot(RAMPS[ramp]), ...(ramp === STATUS_ROLES[role] ? { meta: "Zen" } : {}) })),
+          ]} />,
+        <ColorField key="color" size="sm" layout="inline" aria-label={`${STATUS_LABEL[role]} color`} value={anchor} colorPicker
+          onValueChange={(value) => {
+            if (!/^#[0-9a-f]{6}$/i.test(value) || value.toUpperCase() === anchor.toUpperCase()) return;
+            const next = rampOrHex(value);
+            setStatus(next.ramp ?? { hex: next.hex! });
+          }} />,
+      ]} />
+    );
+  };
+  // White text on a status colour of the project's own (its solids' Content/On-Colors) that APCA finds hard to read.
+  const hardToRead = (Object.keys(STATUS_ROLES) as StatusRole[]).filter((role) => typeof theme.status[role] !== "string" && palettes.status[role].lc < 60);
 
   return (
     <>
@@ -278,8 +299,8 @@ function ColorSettings({ theme, swatches, onChange }: { theme: ProjectTheme; swa
         <RampStrip palette={palettes.neutral.lightSolid} label="Neutral, Light" />
       </Section>
 
-      <Section title="Status colors">
-        {(Object.keys(STATUS_ROLES) as StatusRole[]).map((role) => <Fields key={role} name={`status-${role}`} fields={[statusField(role)]} />)}
+      <Section title="Status colors" note={hardToRead.length ? `White text hard to read on ${hardToRead.map((role) => `${STATUS_LABEL[role]} · Lc ${palettes.status[role].lc}`).join(", ")}` : undefined}>
+        {(Object.keys(STATUS_ROLES) as StatusRole[]).map(statusRow)}
       </Section>
 
       <Section title="Chart colors" note={follows ? <SectionNote text="Suggested from Primary" more="Sectors 1 and 2 follow Primary and Neutral, 3–7 follow Primary until you pick one." /> : "Sectors 1 and 2 follow Primary and Neutral"}
