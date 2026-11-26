@@ -233,6 +233,39 @@ export function withHeaderCanvas(text: string, canvas: CanvasBackground): string
   return `${match[1]}${JSON.stringify(canvas === "canvas" ? rest : { ...rest, canvas })}${match[3]}${text.slice(match[0].length)}`;
 }
 
+/** A stage colour the header may hold: a Color/Background key of Shape's fill list ("black", "accent-solid") or any
+ *  colour as `#RRGGBB` (the free picker). */
+const PROTOTYPE_BACKGROUND = /^(?:[a-z][a-z0-9-]*|#[0-9A-F]{6})$/;
+
+/** Play's stage colour when the page sets one (Figma's Prototype settings › Background; header `prototypeBackground`): a
+ *  fill key or a `#RRGGBB`; undefined for the default, Neutral/Solid. */
+export function headerPrototypeBackground(text: string): string | undefined {
+  const match = HEADER.exec(text);
+  try {
+    const value = match ? (JSON.parse(match[2]) as { prototypeBackground?: unknown }).prototypeBackground : undefined;
+    return typeof value === "string" && PROTOTYPE_BACKGROUND.test(value) ? value : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** The text with the header's `prototypeBackground` set (undefined, the default "neutral-solid" or an unreadable value
+ *  leaves it out). */
+export function withHeaderPrototypeBackground(text: string, fill: string | undefined): string {
+  const match = HEADER.exec(text);
+  if (!match) return text;
+  let value: Record<string, unknown>;
+  try {
+    value = JSON.parse(match[2]) as Record<string, unknown>;
+  } catch {
+    return text;
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return text;
+  const { prototypeBackground: _old, ...rest } = value;
+  const own = fill && fill !== "neutral-solid" && PROTOTYPE_BACKGROUND.test(fill) ? fill : undefined;
+  return `${match[1]}${JSON.stringify(own ? { ...rest, prototypeBackground: own } : rest)}${match[3]}${text.slice(match[0].length)}`;
+}
+
 /** A page id from a title or file name: "Checkout flow" → "checkout-flow" (Vietnamese marks dropped). */
 export function slugOf(value: string): string {
   return value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "page";

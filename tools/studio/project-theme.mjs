@@ -181,6 +181,24 @@ function colourSource(value, ramps, fallback, path, errors, { tint = false } = {
   return { ...fallback };
 }
 
+/**
+ * A status role's colour (user, 2026-11-26: "Phần status color … cho phép thêm màu mới vào chứ k chỉ chọn màu có sẵn"):
+ * a shipped ramp's name, as projects always wrote it, or `{ hex }` for a colour of the project's own, whose ramp is
+ * generated as the Primary's. A colour that is a shipped ramp's step 9 is that ramp.
+ */
+function statusSource(value, fallback, path, errors) {
+  if (typeof value === "string" && PRIMARY_RAMPS.includes(value)) return value;
+  if (value && typeof value === "object" && typeof value.hex === "string" && HEX.test(value.hex)) {
+    const hex = value.hex.toUpperCase();
+    return PRIMARY_RAMPS.find((name) => RAMPS[name] === hex) ?? { hex };
+  }
+  if (value !== undefined) errors.push(`${path}: ${JSON.stringify(value)} is not a ramp name or { hex: "#RRGGBB" }`);
+  return fallback;
+}
+
+/** A status role's colour as its step 9: the shipped ramp's, or the project's own. */
+export const statusAnchor = (source) => (typeof source === "string" ? RAMPS[source] : source.hex);
+
 /** A face's weight: one of FONT_WEIGHTS, or a variable font's [min, max] within 1–1000; null when neither. */
 function faceWeight(value) {
   if (FONT_WEIGHTS.includes(value)) return value;
@@ -216,7 +234,7 @@ export function normalizeTheme(input, errors = []) {
   const base = defaultProjectTheme();
   const theme = input && typeof input === "object" ? input : {};
   const status = {};
-  for (const [role, ramp] of Object.entries(STATUS_ROLES)) status[role] = pick(theme.status?.[role], PRIMARY_RAMPS, ramp, `theme.status.${role}`, errors);
+  for (const [role, ramp] of Object.entries(STATUS_ROLES)) status[role] = statusSource(theme.status?.[role], ramp, `theme.status.${role}`, errors);
   const chart = base.chart.map((fallback, index) => {
     const slot = Array.isArray(theme.chart) ? theme.chart[index] : undefined;
     if (slot === undefined) return fallback;
@@ -356,7 +374,14 @@ export function projectPalettes(theme) {
     const text = calculateOnBrandColor(fill);
     return { default: text, hover: calculateOnBrandStateColor(solid[9], text), pressed: calculateOnBrandStateColor(solid[10], text), lc: Math.round(Math.abs(apcaContrast(text === "#ffffff" ? "#ffffff" : "#000000", fill))) };
   };
-  return { primary, neutral, onBrand: { light: on(primary.lightSolid), dark: on(primary.darkSolid) } };
+  // The status roles: a shipped ramp stays an alias; a colour of the project's own gets its ramp generated as the
+  // Primary's. `lc`: the APCA contrast of their solids' text (Content/On-Colors, white) on step 9.
+  const status = Object.fromEntries(Object.entries(theme.status).map(([role, source]) => {
+    const anchor = statusAnchor(source);
+    const lc = Math.round(Math.abs(apcaContrast("#ffffff", anchor)));
+    return [role, typeof source === "string" ? { anchor, alias: source, lc } : { ...generateExpectedPalette(anchor, false, neutral.darkBackground), anchor, alias: null, lc }];
+  }));
+  return { primary, neutral, status, onBrand: { light: on(primary.lightSolid), dark: on(primary.darkSolid) } };
 }
 
 const kebab = (name) => name.toLowerCase();
@@ -389,7 +414,7 @@ export function projectThemeCss(id, theme, { name, brand = projectBrand(id), fon
   const base = [
     ...rampLines("brand", palettes.primary),
     ...rampLines("neutral", palettes.neutral),
-    ...Object.entries(theme.status).flatMap(([role, ramp]) => rampLines(role, { alias: ramp })),
+    ...Object.entries(palettes.status).flatMap(([role, palette]) => rampLines(role, palette)),
     ...["light", "dark"].flatMap((side) => ["default", "hover", "pressed"].map((state) => `  --zen-${side}-on-brand-${state}: ${cssHex(palettes.onBrand[side][state])};`)),
   ];
   const chart = theme.chart.flatMap((slot, index) => {
@@ -458,7 +483,7 @@ export function projectBaseValues(theme) {
   };
   ramp("Brand", palettes.primary);
   ramp("Neutral", palettes.neutral);
-  for (const [role, name] of Object.entries(theme.status)) ramp(capital(role), { alias: name });
+  for (const [role, palette] of Object.entries(palettes.status)) ramp(capital(role), palette);
   for (const side of ["light", "dark"]) for (const state of ["default", "hover", "pressed"]) values[`${capital(side)}/On-Brand-${capital(state)}`] = palettes.onBrand[side][state].toUpperCase();
   return values;
 }
