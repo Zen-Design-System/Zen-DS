@@ -640,7 +640,8 @@ export const rows = [
         await settings.waitFor({ state: "visible", timeout: 5000 });
         await settings.getByRole("tablist", { name: "Settings" }).getByRole("tab", { name: "Typography", exact: true }).click();
         stage = "custom scale";
-        await settings.getByRole("combobox", { name: "Type scale" }).click();
+        // The scale's select opens its list from a button named by its label and value ("Scale Dashboard").
+        await settings.locator('[data-prop="type-scale"]').getByRole("button", { name: /^Scale\b/ }).click();
         await page.getByRole("option", { name: /^Custom/ }).click();
         const styles = settings.locator("section", { has: page.getByRole("heading", { name: "Text styles" }) });
         await styles.waitFor({ state: "visible", timeout: 5000 });

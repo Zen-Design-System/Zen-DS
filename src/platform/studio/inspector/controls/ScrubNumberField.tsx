@@ -22,8 +22,9 @@ export function ScrubNumberField({
   placeholder = "—",
   onCommit,
 }: {
-  /** The leading mark ("X", "Y", an icon) the pointer scrubs. */
-  label: ReactNode;
+  /** The leading mark ("X", "Y", an icon) the pointer scrubs. Without one the field is typed only, as a table's cell
+   * under a heading that names its column (Project settings › Typography › Text styles). */
+  label?: ReactNode;
   /** Accessible name ("X", "Rotation", "Arc start"). */
   name: string;
   value: number | null;
@@ -120,7 +121,7 @@ export function ScrubNumberField({
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
         onBlur={() => { if (draft !== null) commit(evaluateNumber(draft, value)); }}
-        leading={(
+        leading={label === undefined ? undefined : (
           <span
             className={`studio-scrub-field__label ${typographyStyles["Body/Small/Medium"]}`}
             data-disabled={disabled || undefined}

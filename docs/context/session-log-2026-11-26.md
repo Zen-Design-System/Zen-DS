@@ -88,12 +88,17 @@ f0c1985f.
 - **UI (`project/ProjectSetup.tsx`).**
   - The tab is "Typography".
   - With Custom, a "Text styles" section lists every step: its name, then size, line height and letter spacing
-    (`ScrubNumberField`, the inspector's scrub fields, icons for each), on one grid `minmax(0, 1fr) 52px 52px 60px
-    24px`.
+    (`ScrubNumberField`, the inspector's typed number fields), as a table: one row of icons names the columns, the
+    cells hold the numbers alone, on one grid `minmax(0, 1fr) 44px 44px 56px 24px` (`STEP_COLUMNS`).
+  - Met in the FW-299 shot: an icon in each 52px cell left 10px for the value ("78" read "7", "-3.87" "-3.").
+    `ScrubNumberField` takes no label now for a table cell (typed only, no scrub); the cells show 78, 88, -3.87 whole.
   - A step with its own values is named in the strongest tone and has a "Back to the scale" button. A value set back
     to the made one is no longer the step's own.
 - **Preview (`project/ThemePreview.tsx`).** A text style's numbers read "size / line height · letter spacing" when it
   has some letter spacing.
 - **E2E.** S-13's locators now say Typography. FW-299 is new: set Heading 1, read the draft and the preview, Back to
   the scale, saved steps.
-- **Tests.** project-theme selftest: 2107 checks, 8 new.
+- **Tests.** project-theme selftest: 2107 checks, 8 new (2110 after the merge).
+- **Merged origin/main 73493bf1 (#430, #431)** before the gate: ProjectSetup imports both, FW-298 and FW-299 both kept,
+  CHANGELOG and this log keep both sides, main's first. FW-299 first broke on its own locator: the scale's select opens
+  from a button named "Scale Dashboard", not a combobox "Type scale".

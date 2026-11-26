@@ -234,6 +234,9 @@ function Fields({ name, fields, columns }: { name?: string; fields: ReactNode[];
   return <div className="studio-project-setup__fields" data-prop={name} style={columns ? { gridTemplateColumns: columns } : undefined}>{fields}</div>;
 }
 
+/** Text styles' columns: the style's name, size, line height, letter spacing (room for "-19.99"), Back to the scale. */
+const STEP_COLUMNS = "minmax(0, 1fr) 44px 44px 56px 24px";
+
 /** A colour's dot, leading its field and its options. */
 const dot = (color: string | undefined) => <span className="studio-project-setup__dot" style={{ background: color }} aria-hidden="true" />;
 
@@ -490,17 +493,26 @@ function TypographySettings({ theme, onChange }: { theme: ProjectTheme; onChange
       </Section>
       {scale && shown ? (
         <Section title="Text styles" note={<SectionNote text="Size, line height, letter spacing in px" more="Base and ratio make every style; a value set here stays when they change. Back to the scale undoes it." />}>
+          {/* A table: the numbers alone in their cells, under icons that name the columns (an icon in each cell left 10px
+              for 78 in a 52px field). */}
+          <Fields name="step-heads" columns={STEP_COLUMNS} fields={[
+            <span key="name" aria-hidden="true" />,
+            ...([["size", "icon-type-01-line", "Size"], ["line", "icon-line-height-line", "Line height"], ["letter", "icon-letter-spacing-01-line", "Letter spacing"]] as const).map(([key, icon, title]) => (
+              <span key={key} className="studio-project-setup__step-head" title={title}><Icon name={icon} size="sm" decorative /></span>
+            )),
+            <span key="reset" aria-hidden="true" />,
+          ]} />
           {TYPE_SCALE_STEPS.map((token) => {
             const label = stepLabel(token);
             const own = Boolean(scale.steps?.[token]);
             return (
-              <Fields key={token} name={`step-${token}`} columns="minmax(0, 1fr) 52px 52px 60px 24px" fields={[
+              <Fields key={token} name={`step-${token}`} columns={STEP_COLUMNS} fields={[
                 <Text key="name" as="span" textStyle="Body/Small/Regular" tone={own ? "strongest" : "base"} className="studio-project-setup__step" title={label}>{label}</Text>,
-                <ScrubNumberField key="size" label={<Icon name="icon-type-01-line" size="sm" decorative />} name={`${label} size`} value={shown[token].size}
+                <ScrubNumberField key="size" name={`${label} size`} value={shown[token].size}
                   min={TYPE_STEP_LIMITS.size.min} max={TYPE_STEP_LIMITS.size.max} onCommit={(value) => setStep(token, "size", value)} />,
-                <ScrubNumberField key="line" label={<Icon name="icon-line-height-line" size="sm" decorative />} name={`${label} line height`} value={shown[token].lineHeight}
+                <ScrubNumberField key="line" name={`${label} line height`} value={shown[token].lineHeight}
                   min={TYPE_STEP_LIMITS.lineHeight.min} max={TYPE_STEP_LIMITS.lineHeight.max} onCommit={(value) => setStep(token, "lineHeight", value)} />,
-                <ScrubNumberField key="letter" label={<Icon name="icon-letter-spacing-01-line" size="sm" decorative />} name={`${label} letter spacing`} value={shown[token].letterSpacing} round={2}
+                <ScrubNumberField key="letter" name={`${label} letter spacing`} value={shown[token].letterSpacing} round={2}
                   min={TYPE_STEP_LIMITS.letterSpacing.min} max={TYPE_STEP_LIMITS.letterSpacing.max} onCommit={(value) => setStep(token, "letterSpacing", value)} />,
                 own
                   ? <IconButton key="reset" icon="icon-reverse-left-line" aria-label={`${label} back to the scale`} tooltip="Back to the scale" appearance="flat" level="secondary" size="xs" onClick={() => resetStep(token)} />
