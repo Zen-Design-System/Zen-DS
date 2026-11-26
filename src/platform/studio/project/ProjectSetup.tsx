@@ -11,13 +11,14 @@ import { Heading, Text } from "../../../components/Text";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { announceEditStatus } from "../api";
 import { SectionNote } from "../inspector/Section";
+import { ScrubNumberField } from "../inspector/controls/ScrubNumberField";
 import { ChromeScope } from "../shell/ChromeScope";
 import { previewValueLabel } from "../shell/modes";
 import { useStudio } from "../store";
 import {
   DEFAULT_LOCALE, FONT_FAMILIES, MODE_VALUES, PRIMARY_RAMPS, PROJECT_LOCALES, RAMPS, SECTOR_NAMES, STATUS_ROLES, SUPPORT_FAMILIES, SUPPORT_LABELS, TYPE_ROLES, TYPE_SCALE_LIMITS,
-  chartFollowsPrimary, defaultProjectTheme, projectFontStack, projectPalettes, projectTypeScale, suggestedChart,
-  type ProjectLocale, type ProjectModes, type ProjectTheme, type RampName, type StatusRole, type SupportFamily, type TypeRole, type TypeScale, type UploadedFont,
+  TYPE_SCALE_STEPS, TYPE_STEP_LIMITS, chartFollowsPrimary, defaultProjectTheme, projectFontStack, projectPalettes, projectTypeScale, suggestedChart,
+  type ProjectLocale, type ProjectModes, type ProjectTheme, type RampName, type StatusRole, type SupportFamily, type TypeRole, type TypeScale, type TypeStep, type UploadedFont,
 } from "../../../../tools/studio/project-theme.mjs";
 import { uploadOf } from "../builder/assets/uploads";
 import { openProjectHome } from "./activeProject";
@@ -50,6 +51,8 @@ export const useProjectSetup = (): Setup => useSyncExternalStore(subscribe, () =
 const say = (kind: "saved" | "error", message: string) => announceEditStatus({ kind, message, at: Date.now() });
 const RAMP_LABEL: Record<RampName, string> = Object.fromEntries(Object.keys(RAMPS).map((name) => [name, name])) as Record<RampName, string>;
 const STATUS_LABEL: Record<StatusRole, string> = { positive: "Positive", negative: "Negative", warning: "Warning", info: "Info" };
+/** A type scale step's name as its text style reads ("heading-1" → "Heading 1", "display-extra-1" → "Display Extra 1"). */
+const stepLabel = (token: string) => token.split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join(" ");
 const RADIUS_LABEL: Record<ProjectModes["radius"], string> = { rounded: "Rounded", smooth: "Smooth", standard: "Standard", luxury: "Luxury" };
 
 /** The settings' tabs, and the preview tab each opens on (a change inside one never switches it: user, 2026-11-07). */
@@ -57,7 +60,7 @@ type GroupId = "general" | "color" | "typography" | "components";
 const GROUPS: Array<{ id: GroupId; label: string; preview?: GalleryId }> = [
   { id: "general", label: "General" },
   { id: "color", label: "Color", preview: "cards" },
-  { id: "typography", label: "Type", preview: "typography" },
+  { id: "typography", label: "Typography", preview: "typography" },
   { id: "components", label: "Style", preview: "components" },
 ];
 
@@ -362,10 +365,33 @@ function TypographySettings({ theme, onChange }: { theme: ProjectTheme; onChange
     if (id === "custom") { if (!scale) setType({ scale: { base: MODE_BASE[theme.modes.typography], ratio: 1.14 } }); return; }
     onChange({ ...theme, modes: { ...theme.modes, typography: id as ProjectModes["typography"] }, type: { ...theme.type, scale: null } });
   };
-  const setScale = (key: keyof TypeScale, value: number | null) => {
+  const setScale = (key: "base" | "ratio", value: number | null) => {
     if (!scale || value === null) return;
     const { min, max } = TYPE_SCALE_LIMITS[key];
     setType({ scale: { ...scale, [key]: Math.min(max, Math.max(min, value)) } });
+  };
+  // Each step of a custom scale, set by hand over what base and ratio make (user, 2026-11-26: "cho chỉnh typescale tuỳ
+  // ý", letter spacing too): a value back at the made one is no longer the step's own.
+  const made = useMemo(() => (scale ? projectTypeScale({ base: scale.base, ratio: scale.ratio }) : null), [scale?.base, scale?.ratio]);
+  const shown = scale ? projectTypeScale(scale) : null;
+  const withSteps = (steps: NonNullable<TypeScale["steps"]>): TypeScale => ({ base: scale!.base, ratio: scale!.ratio, ...(Object.keys(steps).length ? { steps } : {}) });
+  const setStep = (token: string, key: keyof TypeStep, value: number) => {
+    if (!scale || !made) return;
+    const { min, max } = TYPE_STEP_LIMITS[key];
+    const within = Math.min(max, Math.max(min, value));
+    const next = key === "letterSpacing" ? Math.round(within * 100) / 100 : Math.round(within);
+    const own: Partial<TypeStep> = { ...scale.steps?.[token] };
+    if (next === made[token][key]) delete own[key];
+    else own[key] = next;
+    const steps = { ...scale.steps };
+    if (Object.keys(own).length) steps[token] = own;
+    else delete steps[token];
+    setType({ scale: withSteps(steps) });
+  };
+  const resetStep = (token: string) => {
+    if (!scale?.steps) return;
+    const { [token]: _gone, ...steps } = scale.steps;
+    setType({ scale: withSteps(steps) });
   };
   useEffect(() => loadFontSamples(FONT_FAMILIES.filter((family) => family !== "Inter")), []);
   const sample = (stack: string) => <span className="studio-project-setup__font-sample" style={{ fontFamily: stack }} aria-hidden="true">Ag</span>;
@@ -441,6 +467,28 @@ function TypographySettings({ theme, onChange }: { theme: ProjectTheme; onChange
           ]} />
         ) : null}
       </Section>
+      {scale && shown ? (
+        <Section title="Text styles" note={<SectionNote text="Size, line height, letter spacing in px" more="Base and ratio make every style; a value set here stays when they change. Back to the scale undoes it." />}>
+          {TYPE_SCALE_STEPS.map((token) => {
+            const label = stepLabel(token);
+            const own = Boolean(scale.steps?.[token]);
+            return (
+              <Fields key={token} name={`step-${token}`} columns="minmax(0, 1fr) 52px 52px 60px 24px" fields={[
+                <Text key="name" as="span" textStyle="Body/Small/Regular" tone={own ? "strongest" : "base"} className="studio-project-setup__step" title={label}>{label}</Text>,
+                <ScrubNumberField key="size" label={<Icon name="icon-type-01-line" size="sm" decorative />} name={`${label} size`} value={shown[token].size}
+                  min={TYPE_STEP_LIMITS.size.min} max={TYPE_STEP_LIMITS.size.max} onCommit={(value) => setStep(token, "size", value)} />,
+                <ScrubNumberField key="line" label={<Icon name="icon-line-height-line" size="sm" decorative />} name={`${label} line height`} value={shown[token].lineHeight}
+                  min={TYPE_STEP_LIMITS.lineHeight.min} max={TYPE_STEP_LIMITS.lineHeight.max} onCommit={(value) => setStep(token, "lineHeight", value)} />,
+                <ScrubNumberField key="letter" label={<Icon name="icon-letter-spacing-01-line" size="sm" decorative />} name={`${label} letter spacing`} value={shown[token].letterSpacing} round={2}
+                  min={TYPE_STEP_LIMITS.letterSpacing.min} max={TYPE_STEP_LIMITS.letterSpacing.max} onCommit={(value) => setStep(token, "letterSpacing", value)} />,
+                own
+                  ? <IconButton key="reset" icon="icon-reverse-left-line" aria-label={`${label} back to the scale`} tooltip="Back to the scale" appearance="flat" level="secondary" size="xs" onClick={() => resetStep(token)} />
+                  : <span key="reset" aria-hidden="true" />,
+              ]} />
+            );
+          })}
+        </Section>
+      ) : null}
     </>
   );
 }

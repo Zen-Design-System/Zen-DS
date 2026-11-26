@@ -105,6 +105,8 @@ export function projectFontStack(id, theme, family) {
 /** The roles Typography Configuration names a family for (the plugin's Sans, Heading, Display, Button). */
 export const TYPE_ROLES = ["sans", "heading", "display", "button"];
 export const TYPE_SCALE_LIMITS = { base: { min: 10, max: 24 }, ratio: { min: 1, max: 1.62 } };
+/** What a step of a custom scale can be set to by hand (px): its size, line height and letter spacing. */
+export const TYPE_STEP_LIMITS = { size: { min: 4, max: 240 }, lineHeight: { min: 4, max: 320 }, letterSpacing: { min: -20, max: 20 } };
 /* The plugin's Type Scale rows (zen-ds-figma-plugin src/ui/main.js TYPESCALE_PREVIEW_ROWS): token, steps from the base,
    line-height ratio, and the curated sizes / line heights it keeps at base 14 and 16 with ratio 1.14. */
 const TYPE_SCALE_ROWS = [
@@ -115,8 +117,20 @@ const TYPE_SCALE_ROWS = [
   ["body-small", -1, 1.333, 12, 16, 14, 20], ["caption", -2, 1.6, 10, 16, 12, 16], ["label-small", -4, 1.5, 8, 12, 10, 16],
 ];
 
-/** A type scale's sizes, as the plugin computes them: `{ "heading-1": { size, lineHeight, letterSpacing } … }` (px). */
-export function projectTypeScale({ base, ratio }) {
+/** The steps of a type scale, largest first: the Typography tokens a custom scale sets. */
+export const TYPE_SCALE_STEPS = TYPE_SCALE_ROWS.map(([token]) => token);
+
+/**
+ * A type scale's sizes: `{ "heading-1": { size, lineHeight, letterSpacing } … }` (px). Base and ratio make every step as
+ * the plugin computes them; `steps` holds what was set by hand on a step (user, 2026-11-26: "cho chỉnh typescale tuỳ ý",
+ * letter spacing too), over the made value.
+ */
+export function projectTypeScale({ base, ratio, steps }) {
+  const made = madeTypeScale(base, ratio);
+  return steps ? Object.fromEntries(Object.entries(made).map(([token, value]) => [token, { ...value, ...steps[token] }])) : made;
+}
+
+function madeTypeScale(base, ratio) {
   const preset = (base === 14 || base === 16) && Math.abs(ratio - 1.14) < 0.000001;
   return Object.fromEntries(TYPE_SCALE_ROWS.map(([token, offset, lhRatio, fs14, lh14, fs16, lh16]) => {
     let size;
@@ -211,6 +225,26 @@ function normalizeUploads(input, errors) {
   return out;
 }
 
+/** A custom scale's steps set by hand, made safe: known steps only, each value a number within TYPE_STEP_LIMITS (sizes
+ *  and line heights whole px, letter spacing to 0.01 px); null when none is left. */
+function typeSteps(input, errors) {
+  if (input === undefined || input === null) return null;
+  if (typeof input !== "object") { errors.push("theme.type.scale.steps: not an object"); return null; }
+  const out = {};
+  for (const [token, step] of Object.entries(input)) {
+    if (!TYPE_SCALE_STEPS.includes(token) || !step || typeof step !== "object") { errors.push(`theme.type.scale.steps.${token}: not a step of the scale`); continue; }
+    const own = {};
+    for (const [key, { min, max }] of Object.entries(TYPE_STEP_LIMITS)) {
+      const value = step[key];
+      if (value === undefined) continue;
+      if (typeof value !== "number" || !Number.isFinite(value) || value < min || value > max) { errors.push(`theme.type.scale.steps.${token}.${key}: ${JSON.stringify(value)} is not ${min}–${max} px`); continue; }
+      own[key] = key === "letterSpacing" ? Math.round(value * 100) / 100 : Math.round(value);
+    }
+    if (Object.keys(own).length) out[token] = own;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
 /** A theme made safe: every field present, every value one Studio knows. */
 export function normalizeTheme(input, errors = []) {
   const base = defaultProjectTheme();
@@ -233,8 +267,11 @@ export function normalizeTheme(input, errors = []) {
   if (rawScale && typeof rawScale === "object") {
     const { base: size, ratio } = rawScale;
     const within = (value, { min, max }) => typeof value === "number" && Number.isFinite(value) && value >= min && value <= max;
-    if (within(size, TYPE_SCALE_LIMITS.base) && within(ratio, TYPE_SCALE_LIMITS.ratio)) scale = { base: Math.round(size), ratio: Math.round(ratio * 1000) / 1000 };
-    else errors.push(`theme.type.scale: ${JSON.stringify(rawScale)} needs a base of 10–24 and a ratio of 1–1.62`);
+    if (within(size, TYPE_SCALE_LIMITS.base) && within(ratio, TYPE_SCALE_LIMITS.ratio)) {
+      scale = { base: Math.round(size), ratio: Math.round(ratio * 1000) / 1000 };
+      const steps = typeSteps(rawScale.steps, errors);
+      if (steps) scale.steps = steps;
+    } else errors.push(`theme.type.scale: ${JSON.stringify(rawScale)} needs a base of 10–24 and a ratio of 1–1.62`);
   } else if (rawScale !== undefined && rawScale !== null) errors.push(`theme.type.scale: ${JSON.stringify(rawScale)} is not a scale`);
   return {
     primary: colourSource(theme.primary, PRIMARY_RAMPS, base.primary, "theme.primary", errors),

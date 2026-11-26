@@ -127,6 +127,8 @@
 .studio-project-setup__strip > li { height: 16px; }
 .studio-project-setup__sectors { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: 0; list-style: none; }
 .studio-project-setup__sector { height: 20px; border-radius: var(--zen-corner-radius-xsmall, 4px); }
+/* A text style's name beside its size, line height and letter spacing (Typography › Text styles): one line, cut. */
+.studio-project-setup__step { overflow: hidden; align-self: center; text-overflow: ellipsis; white-space: nowrap; }
 .studio-project-setup__tiles { display: grid; grid-template-columns: repeat(var(--studio-tiles, 4), minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-project-setup__tile {
   display: grid;

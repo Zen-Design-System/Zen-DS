@@ -14,7 +14,9 @@ export type ProjectModes = {
 };
 export type TypeRole = "sans" | "heading" | "display" | "button";
 /** A type scale: the Body/Base size and the ratio between steps (the Zen Figma plugin's Type Scale). */
-export type TypeScale = { base: number; ratio: number };
+export type TypeStep = { size: number; lineHeight: number; letterSpacing: number };
+/** A custom scale: base and ratio make every step; `steps` holds what was set by hand on a step, over that. */
+export type TypeScale = { base: number; ratio: number; steps?: Record<string, Partial<TypeStep>> };
 /** One file of an uploaded font: its weight (a variable font's [min, max]), its style, whether it has Vietnamese letters. */
 export type FontFace = { file: string; weight: number | [number, number]; style: "normal" | "italic"; vietnamese: boolean };
 /** A font the project uploaded: its family name and files. */
@@ -61,7 +63,9 @@ export function freeFontFamily(family: string, taken?: string[]): boolean;
 export function projectFontStack(id: string, theme: ProjectTheme, family: string): string;
 export const TYPE_ROLES: TypeRole[];
 export const TYPE_SCALE_LIMITS: { base: { min: number; max: number }; ratio: { min: number; max: number } };
-export function projectTypeScale(scale: TypeScale): Record<string, { size: number; lineHeight: number; letterSpacing: number }>;
+export function projectTypeScale(scale: TypeScale): Record<string, TypeStep>;
+export const TYPE_SCALE_STEPS: string[];
+export const TYPE_STEP_LIMITS: Record<keyof TypeStep, { min: number; max: number }>;
 export function projectFontsUrl(theme: ProjectTheme): string | null;
 export function defaultProjectTheme(): ProjectTheme;
 export function projectBrand(id: string): string;

@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio project settings: the Type tab is now Typography. With a custom type scale, a Text styles list shows every
+  style (Display Extra 1 … Label Small) with its size, line height and letter spacing; any of them can be set by hand
+  over what base and ratio make, and "Back to the scale" undoes it. The theme preview's numbers show letter spacing too.
 - Zen Studio: in Layers, a row dropped above or below a frame's row (or beside a layer on the canvas) leaves its frame
   for the canvas, where it shows; a layer on the canvas dropped into a frame without auto layout keeps where it shows.
   Several selected layers drag together: out of their frame onto the canvas, into a frame (each at its spot when the

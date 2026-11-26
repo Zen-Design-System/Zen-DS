@@ -403,7 +403,7 @@ export const rows = [
   },
   {
     // User 2026-11-10: "làm upload font riêng từng project".
-    id: "S-13", feature: "Project fonts: Project settings › Type (its tab shows the Typography preview; Color shows Cards) › Upload takes a WOFF2 (InterVariable as AcmeSans-Variable: Acme Sans, Variable) and refuses a PNG with its reason; two JetBrains Mono files become one font whose row warns and whose styles (Regular, Bold) show 400 and 700 and the Zen weights it lacks; Display's Upload font… gives Display the font uploaded; Acme Sans picked for Heading and saved (removed later from its ⋯ menu), the canvas heading draws in its face (loaded from this browser), the project's fonts/ folder and theme.css hold it, a fresh browser gets the file from the dev server; Remove puts Heading back on Inter", wp: "user 2026-11-10", timeout: 120_000,
+    id: "S-13", feature: "Project fonts: Project settings › Typography (its tab shows the Typography preview; Color shows Cards) › Upload takes a WOFF2 (InterVariable as AcmeSans-Variable: Acme Sans, Variable) and refuses a PNG with its reason; two JetBrains Mono files become one font whose row warns and whose styles (Regular, Bold) show 400 and 700 and the Zen weights it lacks; Display's Upload font… gives Display the font uploaded; Acme Sans picked for Heading and saved (removed later from its ⋯ menu), the canvas heading draws in its face (loaded from this browser), the project's fonts/ folder and theme.css hold it, a fresh browser gets the file from the dev server; Remove puts Heading back on Inter", wp: "user 2026-11-10", timeout: 120_000,
     async run(ctx) {
       const project = "e2e-fonts";
       const family = "Acme Sans (e2e-fonts)";
@@ -428,7 +428,7 @@ export const rows = [
           await settings.getByRole("tablist", { name: "Settings" }).getByRole("tab", { name }).click();
           await until(async () => (await previewTab()).trim() === tab, { message: `${name} shows the ${tab} preview` });
         };
-        await openGroup("Type", "Typography");
+        await openGroup("Typography", "Typography");
         const upload = settings.locator('input[data-e2e="upload-fonts"]');
         await upload.setInputFiles({ name: "logo.png", mimeType: "image/png", buffer: Buffer.from("89504e470d0a1a0a0000000d49484452", "hex") });
         await until(async () => /Not uploaded: logo\.png \(not a WOFF2, WOFF, TTF or OTF font\)/.test(await statusText(page)), { message: "the PNG refused with its reason" });
@@ -501,7 +501,7 @@ export const rows = [
         }
         // Remove: Heading back on Inter, the project without the font.
         const again = await openSettings();
-        await again.getByRole("tablist", { name: "Settings" }).getByRole("tab", { name: "Type" }).click();
+        await again.getByRole("tablist", { name: "Settings" }).getByRole("tab", { name: "Typography" }).click();
         await again.getByRole("button", { name: "Acme Sans actions" }).click();
         await page.getByRole("menuitem", { name: "Remove font" }).click();
         await again.getByRole("list", { name: "Fonts" }).getByRole("button", { name: /^Acme Sans(?! actions)/ }).waitFor({ state: "detached", timeout: 5000 });
@@ -556,6 +556,63 @@ export const rows = [
         const want = JSON.stringify(suggestedChart(RAMPS.Violet));
         await until(() => JSON.stringify(JSON.parse(fs.readFileSync(path.join(folder, "project.json"), "utf8")).theme.chart) === want, { message: "project.json's chart = the suggestion from Violet" });
         return `Blue → ${reads(suggestedChart(RAMPS.Blue)).join(", ")} · Sector 3 Red kept on Violet · wand → ${suggestedChart(RAMPS.Violet).map((slot) => slot.family).join(", ")} · saved`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "FW-299", feature: "Typography (the Type tab renamed) with a custom scale lists every text style with its size, line height and letter spacing (user 2026-11-26): a value set on Heading 1 writes its own --zen-typography-* in the draft and shows in the preview's numbers, Back to the scale undoes it, project.json keeps the step's own values", wp: "user 2026-11-26", timeout: 90_000,
+    async run(ctx) {
+      const project = "e2e-type-steps";
+      const { defaultProjectTheme } = await import("../../project-theme.mjs");
+      const now = Date.now();
+      await ctx.api.writeProject({ id: project, name: "E2E Steps", theme: defaultProjectTheme(), createdAt: now, updatedAt: now });
+      const folder = path.join(ctx.root, path.dirname(pagesDirOf(ctx.server.port)), "projects", project);
+      let stage = "open";
+      let shot = null;
+      try {
+        const { page } = await seededPage(ctx, fontsPage(project), /Quarterly plan/);
+        shot = page;
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Escape");
+        await page.getByRole("button", { name: "E2E Steps settings" }).click();
+        const settings = page.getByRole("dialog", { name: "E2E Steps · Settings" });
+        await settings.waitFor({ state: "visible", timeout: 5000 });
+        await settings.getByRole("tablist", { name: "Settings" }).getByRole("tab", { name: "Typography", exact: true }).click();
+        stage = "custom scale";
+        await settings.getByRole("combobox", { name: "Type scale" }).click();
+        await page.getByRole("option", { name: /^Custom/ }).click();
+        const styles = settings.locator("section", { has: page.getByRole("heading", { name: "Text styles" }) });
+        await styles.waitFor({ state: "visible", timeout: 5000 });
+        const draftCss = () => page.evaluate(() => document.getElementById("zen-studio-project-draft")?.textContent ?? "");
+        const set = async (name, value) => { const field = styles.getByRole("spinbutton", { name }); await field.fill(String(value)); await field.press("Enter"); };
+        stage = "Heading 1 size and letter spacing";
+        await set("Heading 1 size", 40);
+        await until(async () => /--zen-typography-font-size-heading-1: 40px;/.test(await draftCss()), { message: "Heading 1 at 40px in the draft" });
+        await set("Heading 1 letter spacing", -1);
+        await until(async () => /--zen-typography-letter-spacing-heading-1: -1px;/.test(await draftCss()), { message: "Heading 1's letter spacing -1px in the draft" });
+        const heading = page.locator(".studio-theme-preview").getByText("Heading/1", { exact: true }).locator("xpath=..");
+        await until(async () => /40 \/ \d+ · -1/.test(await heading.innerText()), { message: "the preview reads 40 / … · -1 for Heading/1" })
+          .catch(async (error) => { throw new Error(`${error.message}: ${await heading.innerText()}`); });
+        stage = "back to the scale";
+        const back = styles.getByRole("button", { name: "Heading 1 back to the scale" });
+        await back.click();
+        await until(async () => /--zen-typography-font-size-heading-1: 32px;/.test(await draftCss()) && /--zen-typography-letter-spacing-heading-1: -0\.76px;/.test(await draftCss()), { message: "Heading 1 back at the scale's 32px / -0.76px" });
+        await back.waitFor({ state: "hidden", timeout: 5000 });
+        stage = "save";
+        await set("Heading 1 letter spacing", -1);
+        await until(async () => /--zen-typography-letter-spacing-heading-1: -1px;/.test(await draftCss()), { message: "letter spacing -1px again" });
+        await settings.locator(".studio-project-setup__settings").screenshot({ path: ".qa/studio-e2e/shell-FW-299-styles.png" }).catch(() => undefined);
+        await settings.getByRole("button", { name: "Save", exact: true }).click();
+        await settings.waitFor({ state: "hidden", timeout: 8000 });
+        const saved = () => JSON.parse(fs.readFileSync(path.join(folder, "project.json"), "utf8")).theme.type.scale;
+        await until(() => JSON.stringify(saved()) === JSON.stringify({ base: 14, ratio: 1.14, steps: { "heading-1": { letterSpacing: -1 } } }), { message: "project.json's scale" })
+          .catch((error) => { throw new Error(`${error.message}: ${JSON.stringify(saved())}`); });
+        return "Custom → Text styles · Heading 1 40px, -1 → draft + preview · back to 32 / -0.76 · saved { steps: heading-1 -1 }";
+      } catch (error) {
+        await shot?.screenshot({ path: ".qa/studio-e2e/shell-FW-299-failed.png" }).catch(() => undefined);
+        throw new Error(`${stage}: ${error.message}`);
       } finally {
         await ctx.studio({ fresh: true });
       }
