@@ -62,11 +62,21 @@ jobs:
       - name: Package (pack, install in a temp app, budgets, zen-usage, MCP, zen-ds)
         run: npm run verify:package
 
+  # Light and dark run as two jobs side by side, each with its own dev server. One after the other they took 32–37 min on
+  # main (2026-11-24/26: light 16–21, dark 16–17, setup 2), and pages that did not answer in 180 s (each costs 3 min, then
+  # passes in a new browser) cancelled #427 at 45 min twice. 35 leaves each job room for about four more of those.
   platform-audit:
-    name: Platform audit
+    name: Platform audit (${{ matrix.mode }})
     runs-on: ubuntu-latest
-    # The audit takes 24–25 minutes now (pages, 320px, dark); 30 cancelled a PR's run on 2026-10-16.
-    timeout-minutes: 45
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mode: light
+            flags: ""
+          - mode: dark
+            flags: "-- --dark"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -83,8 +93,8 @@ jobs:
         run: |
           npx vite --port 5173 --strictPort > vite.log 2>&1 &
           npx --yes wait-on@8 --timeout 120000 http://localhost:5173
-      - name: DOM, a11y, overflow, contrast and edge checks (light, then dark)
-        run: npm run platform:audit && npm run platform:audit -- --dark
+      - name: DOM, a11y, overflow, contrast and edge checks (${{ matrix.mode }})
+        run: npm run platform:audit ${{ matrix.flags }}
       # A page that does not answer is reported with the step it was in and whether the dev server still answered; the
       # server's own log tells the rest.
       - name: Dev server log
