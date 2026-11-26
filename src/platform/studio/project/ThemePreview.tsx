@@ -438,7 +438,9 @@ function TypeRow({ style, sample, revision }: { style: TypographyStyleName; samp
     const node = ref.current;
     if (!node) return;
     const computed = getComputedStyle(node);
-    setMetrics(`${Math.round(parseFloat(computed.fontSize))} / ${Math.round(parseFloat(computed.lineHeight))}`);
+    // Letter spacing beside size / line height when the style has some (project settings set it per style, 2026-11-26).
+    const tracking = Math.round((parseFloat(computed.letterSpacing) || 0) * 100) / 100;
+    setMetrics(`${Math.round(parseFloat(computed.fontSize))} / ${Math.round(parseFloat(computed.lineHeight))}${tracking ? ` · ${tracking}` : ""}`);
   }, [revision]);
   return (
     <Stack gap="3xs">

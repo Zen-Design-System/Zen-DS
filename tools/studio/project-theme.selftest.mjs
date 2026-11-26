@@ -185,4 +185,22 @@ ok(() => assert.equal(chartFollowsPrimary({ ...defaultProjectTheme(), chart: [{ 
   ok(() => assert.equal(projectThemeCss("zen", defaultProjectTheme()).includes("--zen-light-positive-9: var(--zen-light-grass-9);"), true), "an old project's status CSS is unchanged");
 }
 
+// A custom scale's steps set by hand (user, 2026-11-26: "cho chỉnh typescale tuỳ ý", letter spacing too).
+{
+  const read = (scale) => normalizeProject({ id: "type-check", name: "Type", theme: { type: { scale } } });
+  const own = read({ base: 16, ratio: 1.2, steps: { "heading-1": { size: 40.4, letterSpacing: -0.456 }, caption: { lineHeight: 18 } } });
+  ok(() => assert.deepEqual(own.project.theme.type.scale, { base: 16, ratio: 1.2, steps: { "heading-1": { size: 40, letterSpacing: -0.46 }, caption: { lineHeight: 18 } } }), "steps kept, whole px sizes, letter spacing to 0.01");
+  ok(() => assert.deepEqual(own.errors, []), "no errors for steps within the limits");
+  const scale = projectTypeScale(own.project.theme.type.scale);
+  const made = projectTypeScale({ base: 16, ratio: 1.2 });
+  ok(() => assert.deepEqual(scale["heading-1"], { ...made["heading-1"], size: 40, letterSpacing: -0.46 }), "a step's own values over the made ones");
+  ok(() => assert.deepEqual([scale.caption.lineHeight, scale.caption.size, scale["body-base"]], [18, made.caption.size, made["body-base"]]), "the rest as made");
+  const bad = read({ base: 16, ratio: 1.2, steps: { "heading-9": { size: 20 }, "heading-2": { size: 900, lineHeight: "40" } } });
+  ok(() => assert.deepEqual([bad.project.theme.type.scale, bad.errors.length], [{ base: 16, ratio: 1.2 }, 3], "an unknown step and values out of range go, named"));
+  const css = projectThemeCss("type-check", own.project.theme);
+  ok(() => assert.match(css, /--zen-typography-font-size-heading-1: 40px;/), "CSS: the step's size");
+  ok(() => assert.match(css, /--zen-typography-letter-spacing-heading-1: -0\.46px;/), "CSS: its letter spacing");
+  ok(() => assert.match(css, /--zen-typography-line-height-caption: 18px;/), "CSS: a line height set alone");
+}
+
 console.log(`project-theme selftest: ${checks} checks passed`);

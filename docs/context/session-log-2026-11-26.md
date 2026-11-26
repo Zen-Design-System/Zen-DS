@@ -108,3 +108,37 @@ beside "Waiting for payment" heading-subheading) and templates@390-dark (Dashboa
 - The user chose "Baseline, giữ như Figma" for this warning on 2026-10-21 (commit 43bb55a7), and again on 2026-11-26.
   The keys were there for 1512, 390, 320 and 1512-dark; only 390-dark was missing. CI's dark run covers 1512 and 390.
 - `tools/platform-audit/quality-baseline.json`: the two 390-dark keys, total 139 → 141. No UI change.
+
+## Typography tab: text styles set by hand, letter spacing (tier M, Bug session)
+
+User: "Phần chỉnh Type trong setting thiếu chỉnh letter spacing và cho chỉnh typescale tuỳ ý. Tab Type nên đổi thành
+Typography". Asked: per step, as Figma (the user's pick). Branch `zen/feat/studio-type-scale-steps-20261126`, from main
+f0c1985f.
+
+- **Model (`tools/studio/project-theme.mjs` + `.d.mts`).**
+  - `theme.type.scale = { base, ratio, steps? }`: `steps[token]` holds `{ size?, lineHeight?, letterSpacing? }` set by
+    hand.
+  - `typeSteps` keeps known steps only, within `TYPE_STEP_LIMITS` (size 4–240, line height 4–320, letter spacing ±20
+    px); whole px, letter spacing to 0.01.
+  - `projectTypeScale` puts a step's own values over what base and ratio make (`madeTypeScale`). `TYPE_SCALE_STEPS` is
+    the token order. theme.css writes them as before.
+- **UI (`project/ProjectSetup.tsx`).**
+  - The tab is "Typography".
+  - With Custom, a "Text styles" section lists every step: its name, then size, line height and letter spacing
+    (`ScrubNumberField`, the inspector's typed number fields), as a table: one row of icons names the columns, the
+    cells hold the numbers alone, on one grid `minmax(0, 1fr) 44px 44px 56px 24px` (`STEP_COLUMNS`).
+  - Met in the FW-299 shot: an icon in each 52px cell left 10px for the value ("78" read "7", "-3.87" "-3.").
+    `ScrubNumberField` takes no label now for a table cell (typed only, no scrub); the cells show 78, 88, -3.87 whole.
+  - A step with its own values is named in the strongest tone and has a "Back to the scale" button. A value set back
+    to the made one is no longer the step's own.
+- **Preview (`project/ThemePreview.tsx`).** A text style's numbers read "size / line height · letter spacing" when it
+  has some letter spacing.
+- **E2E.** S-13's locators now say Typography. FW-299 is new: set Heading 1, read the draft and the preview, Back to
+  the scale, saved steps.
+- **Tests.** project-theme selftest: 2107 checks, 8 new (2110 after the merge).
+- **Merged origin/main 73493bf1 (#430, #431)** before the gate: ProjectSetup imports both, FW-298 and FW-299 both kept,
+  CHANGELOG and this log keep both sides, main's first. FW-299 first broke on its own locator: the scale's select opens
+  from a button named "Scale Dashboard", not a combobox "Type scale".
+- **Gate `npm run qa -- --isolated --files=…` PASS:** static steps, Studio E2E 467 works · 0 broken in 5 shards (B-27 on
+  retry, a Chromium load cut). Then merged origin/main c4b3f9a8 (#432, #433): the code merged clean (ThemePreview,
+  project.css), CHANGELOG and this log keep both sides, main's first.
