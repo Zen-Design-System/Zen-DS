@@ -411,8 +411,14 @@ function ComponentsGallery({ theme }: { theme: Theme }) {
 /* The text styles the Typography mode sizes (user, 2026-11-06: the theme page had no typography part): each style's
    name, a sample in it, and its size / line height read off the sample, so a mode change shows in numbers too. */
 const HEADING_STYLES = [
+  // Every step the Text styles table sets, Display-Extra/1 first (user, 2026-11-27: "hiện đủ các style bên phần preview").
+  { style: "Display-Extra/1", sample: "Plan ahead" },
+  { style: "Display-Extra/2", sample: "Plan ahead" },
+  { style: "Display-Extra/3", sample: "Plan ahead" },
   { style: "Display/1", sample: "Plan every trip" },
+  { style: "Display/2", sample: "Plan every trip" },
   { style: "Display/3", sample: "Plan every trip" },
+  { style: "Display/4", sample: "Plan every trip" },
   { style: "Heading/1", sample: "Quarterly revenue" },
   { style: "Heading/2", sample: "Quarterly revenue" },
   { style: "Heading/3", sample: "Open invoices" },
@@ -457,7 +463,7 @@ function TypographyGallery({ revision }: { revision: string }) {
   const press = usePress();
   return (
     <Stack gap="md">
-      {/* Display and headings across the column: a large scale's Display/1 needs the width. */}
+      {/* Display and headings across the column: a large scale's Display-Extra/1 needs the width. */}
       <Card theme="default" spacing="sm">
         <Stack gap="md">{HEADING_STYLES.map((row) => <TypeRow key={row.style} {...row} revision={revision} />)}</Stack>
       </Card>

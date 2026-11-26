@@ -658,7 +658,8 @@ export const rows = [
         stage = "back to the scale";
         const back = styles.getByRole("button", { name: "Heading 1 back to the scale" });
         await back.click();
-        await until(async () => /--zen-typography-font-size-heading-1: 32px;/.test(await draftCss()) && /--zen-typography-letter-spacing-heading-1: -0\.76px;/.test(await draftCss()), { message: "Heading 1 back at the scale's 32px / -0.76px" });
+        // Custom starts from the mode's own values (2026-11-27): Dashboard's Heading 1 is 28 / -0.84.
+        await until(async () => /--zen-typography-font-size-heading-1: 28px;/.test(await draftCss()) && /--zen-typography-letter-spacing-heading-1: -0\.84px;/.test(await draftCss()), { message: "Heading 1 back at Dashboard's 28px / -0.84px" });
         await back.waitFor({ state: "hidden", timeout: 5000 });
         stage = "save";
         await set("Heading 1 letter spacing", -1);
@@ -667,11 +668,94 @@ export const rows = [
         await settings.getByRole("button", { name: "Save", exact: true }).click();
         await settings.waitFor({ state: "hidden", timeout: 8000 });
         const saved = () => JSON.parse(fs.readFileSync(path.join(folder, "project.json"), "utf8")).theme.type.scale;
-        await until(() => JSON.stringify(saved()) === JSON.stringify({ base: 14, ratio: 1.14, steps: { "heading-1": { letterSpacing: -1 } } }), { message: "project.json's scale" })
+        await until(() => JSON.stringify(saved()) === JSON.stringify({ base: 14, ratio: 1.14, from: "dashboard", steps: { "heading-1": { letterSpacing: -1 } } }), { message: "project.json's scale" })
           .catch((error) => { throw new Error(`${error.message}: ${JSON.stringify(saved())}`); });
-        return "Custom → Text styles · Heading 1 40px, -1 → draft + preview · back to 32 / -0.76 · saved { steps: heading-1 -1 }";
+        return "Custom → Text styles · Heading 1 40px, -1 → draft + preview · back to Dashboard's 28 / -0.84 · saved { from: dashboard, steps: heading-1 -1 }";
       } catch (error) {
         await shot?.screenshot({ path: ".qa/studio-e2e/shell-FW-299-failed.png" }).catch(() => undefined);
+        throw new Error(`${stage}: ${error.message}`);
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "FW-300", feature: "Text styles always show, as the Figma plugin (user 2026-11-27: \"luôn hiện như plugin figma\", \"cho thanh kéo chọn nhóm để kéo như plugin\", \"hiện đủ các style bên phần preview\"): on Dashboard the table reads the mode's own values and the preview lists every style from Display-Extra/1; a value set there makes the scale Custom from Dashboard; the letter-spacing slider with Styles on Heading moves only the headings, live, springs back to 0, and one Undo takes the whole drag back; project.json keeps from: dashboard",
+    async run(ctx) {
+      const project = "e2e-type-nudge";
+      const { defaultProjectTheme } = await import("../../project-theme.mjs");
+      const now = Date.now();
+      await ctx.api.writeProject({ id: project, name: "E2E Nudge", theme: defaultProjectTheme(), createdAt: now, updatedAt: now });
+      const folder = path.join(ctx.root, path.dirname(pagesDirOf(ctx.server.port)), "projects", project);
+      let stage = "open";
+      let shot = null;
+      try {
+        const { page } = await seededPage(ctx, fontsPage(project), /Quarterly plan/);
+        shot = page;
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Escape");
+        await page.getByRole("button", { name: "E2E Nudge settings" }).click();
+        const settings = page.getByRole("dialog", { name: "E2E Nudge · Settings" });
+        await settings.waitFor({ state: "visible", timeout: 5000 });
+        await settings.getByRole("tablist", { name: "Settings" }).getByRole("tab", { name: "Typography", exact: true }).click();
+        stage = "the table on Dashboard";
+        const styles = settings.locator("section", { has: page.getByRole("heading", { name: "Text styles" }) });
+        await styles.waitFor({ state: "visible", timeout: 5000 });
+        const scaleButton = (value) => settings.locator('[data-prop="type-scale"]').getByRole("button", { name: new RegExp(`^Scale ${value}`) });
+        await scaleButton("Dashboard").waitFor({ state: "visible", timeout: 5000 });
+        const valueOf = (name) => styles.getByRole("spinbutton", { name }).inputValue();
+        const read = [await valueOf("Heading 1 size"), await valueOf("Display Extra 1 size"), await valueOf("Heading 1 letter spacing")];
+        if (read.join() !== "28,65,-0.84") throw new Error(`the table reads ${read.join(", ")}, not Dashboard's 28, 65, -0.84`);
+        stage = "every style in the preview";
+        const preview = page.locator(".studio-theme-preview");
+        for (const style of ["Display-Extra/1", "Display-Extra/2", "Display-Extra/3", "Display/2", "Display/4", "Label/Small/Medium"]) {
+          await preview.getByText(style, { exact: true }).first().waitFor({ state: "visible", timeout: 5000 });
+        }
+        stage = "a value on Dashboard";
+        const draftCss = () => page.evaluate(() => document.getElementById("zen-studio-project-draft")?.textContent ?? "");
+        const spacing = async (token) => Number((await draftCss()).match(new RegExp(`--zen-typography-letter-spacing-${token}: (-?[\\d.]+)px;`))?.[1]);
+        const field = styles.getByRole("spinbutton", { name: "Heading 1 letter spacing" });
+        await field.fill("-1");
+        await field.press("Enter");
+        await until(async () => /--zen-typography-letter-spacing-heading-1: -1px;/.test(await draftCss()) && /--zen-typography-font-size-display-extra-1: 65px;/.test(await draftCss()), { message: "Heading 1 at -1 over Dashboard's values (Display Extra 1 still 65px)" });
+        await scaleButton("Custom").waitFor({ state: "visible", timeout: 5000 });
+        stage = "Styles: Heading";
+        const nudge = settings.locator('[data-prop="step-nudge"]');
+        await nudge.getByRole("button", { name: /^Styles/ }).click();
+        await page.getByRole("option", { name: "Heading", exact: true }).click();
+        const before = { heading2: await spacing("heading-2"), display1: await spacing("display-1") };
+        stage = "drag the slider";
+        const slider = nudge.getByRole("slider", { name: "Letter spacing nudge" });
+        const box = await slider.boundingBox();
+        const y = box.y + box.height / 2;
+        await page.mouse.move(box.x + box.width / 2, y);
+        await page.mouse.down();
+        await page.mouse.move(box.x + box.width * 0.9, y, { steps: 8 });
+        await until(async () => (await spacing("heading-2")) > before.heading2, { message: "Heading 2's letter spacing grows while dragging" });
+        await page.mouse.up();
+        await until(async () => (await slider.getAttribute("aria-valuenow")) === "0", { message: "the slider back at 0 once let go" });
+        const after = { heading2: await spacing("heading-2"), display1: await spacing("display-1") };
+        if (!(after.heading2 > before.heading2) || after.display1 !== before.display1) throw new Error(`after the drag: ${JSON.stringify({ before, after })}`);
+        stage = "one Undo";
+        await settings.getByRole("button", { name: "Undo", exact: true }).click();
+        await until(async () => (await spacing("heading-2")) === before.heading2 && (await spacing("heading-1")) === -1, { message: "one Undo takes the whole drag back (Heading 1 keeps -1)" });
+        stage = "the ratio slider";
+        // Base and ratio are slider fields (user 2026-11-27: "phần scale có thể cho kéo hoặc điền bằng inline slider"): an
+        // arrow key steps the ratio, the formula takes over from Dashboard's values; one Undo puts them back.
+        const ratio = settings.getByRole("slider", { name: "Scale ratio" });
+        await ratio.press("ArrowRight");
+        await until(async () => (await ratio.getAttribute("aria-valuenow")) === "1.15" && !/--zen-typography-font-size-display-extra-1: 65px;/.test(await draftCss()), { message: "ratio 1.15 and the formula's Display Extra 1" });
+        await settings.getByRole("button", { name: "Undo", exact: true }).click();
+        await until(async () => (await ratio.getAttribute("aria-valuenow")) === "1.14" && /--zen-typography-font-size-display-extra-1: 65px;/.test(await draftCss()), { message: "one Undo: ratio 1.14, Dashboard's values" });
+        stage = "save";
+        await settings.getByRole("button", { name: "Save", exact: true }).click();
+        await settings.waitFor({ state: "hidden", timeout: 8000 });
+        const saved = () => JSON.parse(fs.readFileSync(path.join(folder, "project.json"), "utf8")).theme.type.scale;
+        await until(() => JSON.stringify(saved()) === JSON.stringify({ base: 14, ratio: 1.14, from: "dashboard", steps: { "heading-1": { letterSpacing: -1 } } }), { message: "project.json's scale" })
+          .catch((error) => { throw new Error(`${error.message}: ${JSON.stringify(saved())}`); });
+        return `Dashboard: 28 · 65 · -0.84 · preview from Display-Extra/1 · Heading 1 -1 → Custom from Dashboard · Heading nudge ${before.heading2} → ${after.heading2}, Display 1 kept, slider 0 · one Undo · ratio → 1.15 → Undo · saved { from: dashboard }`;
+      } catch (error) {
+        await shot?.screenshot({ path: `.qa/studio-e2e/shell-FW-300-failed.png` }).catch(() => undefined);
         throw new Error(`${stage}: ${error.message}`);
       } finally {
         await ctx.studio({ fresh: true });

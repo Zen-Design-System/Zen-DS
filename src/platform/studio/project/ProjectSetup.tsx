@@ -2,10 +2,11 @@ import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useSta
 import { Button, IconButton } from "../../../components/Button";
 import { ColorSelector } from "../../../components/ColorSelector";
 import { Icon } from "../../../components/Icon";
-import { ColorField, InputField, NumberField, SelectField } from "../../../components/Input";
+import { ColorField, InputField, SelectField } from "../../../components/Input";
 import { Menu } from "../../../components/Menu";
 import { ZenProvider, type ZenBrand } from "../../../components/Provider";
 import { Segmented } from "../../../components/Segmented";
+import { SliderField } from "../../../components/SliderField";
 import { TabPanel, Tabs } from "../../../components/Tabs";
 import { Heading, Text } from "../../../components/Text";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
@@ -97,7 +98,8 @@ function SetupLayer({ setup: current }: { setup: Exclude<Setup, null> }) {
   };
   const [swatches, setSwatches] = useState<DraftSwatches | null>(null);
   const theme = history.present;
-  const change = useCallback((next: ProjectTheme) => setHistory((h) => ({ past: [...h.past, h.present].slice(-100), present: next, future: [] })), []);
+  // `live`: a drag's next value replaces the present one, so the whole drag is one undo step (the letter-spacing nudge).
+  const change = useCallback((next: ProjectTheme, live = false) => setHistory((h) => (live ? { ...h, present: next } : { past: [...h.past, h.present].slice(-100), present: next, future: [] })), []);
   const undo = useCallback(() => setHistory((h) => (h.past.length ? { past: h.past.slice(0, -1), present: h.past[h.past.length - 1], future: [h.present, ...h.future] } : h)), []);
   const redo = useCallback(() => setHistory((h) => (h.future.length ? { past: [...h.past, h.present], present: h.future[0], future: h.future.slice(1) } : h)), []);
 
@@ -235,6 +237,11 @@ function Section({ title, note, actions, children }: { title: string; note?: Rea
 function Fields({ name, fields, columns }: { name?: string; fields: ReactNode[]; columns?: string }) {
   return <div className="studio-project-setup__fields" data-prop={name} style={columns ? { gridTemplateColumns: columns } : undefined}>{fields}</div>;
 }
+
+/** The nudge's groups, as the plugin's Target roles (no Button: the scale has no button step). */
+type StepGroup = "all" | "display" | "heading" | "body";
+const STEP_GROUPS: { id: StepGroup; label: string }[] = [{ id: "all", label: "All" }, { id: "display", label: "Display" }, { id: "heading", label: "Heading" }, { id: "body", label: "Body" }];
+const stepGroup = (token: string): StepGroup => (token.startsWith("display") ? "display" : token.startsWith("heading") || token === "subheading" ? "heading" : "body");
 
 /** Text styles' columns: the style's name, size, line height, letter spacing (room for "-19.99"), Back to the scale. */
 const STEP_COLUMNS = "minmax(0, 1fr) 44px 44px 56px 24px";
@@ -383,41 +390,93 @@ const UPLOAD = "zen-upload-font";
 /** The listed fonts that are serif (the rest are sans): a role list says which. */
 const SERIF = new Set(["Lora", "Playfair Display", "Fraunces", "Noto Serif", "Source Serif 4"]);
 
-function TypographySettings({ theme, onChange }: { theme: ProjectTheme; onChange: (next: ProjectTheme) => void }) {
+function TypographySettings({ theme, onChange }: { theme: ProjectTheme; onChange: (next: ProjectTheme, live?: boolean) => void }) {
   const { fonts, scale, uploads } = theme.type;
   const setType = (type: Partial<ProjectTheme["type"]>) => onChange({ ...theme, type: { ...theme.type, ...type } });
-  const tile = scale ? "custom" : theme.modes.typography;
+  const mode = theme.modes.typography;
+  const tile = scale ? "custom" : mode;
+  // A shipped mode as a scale: Custom starts from its values (Typography Configuration), not from the formula.
+  const fromMode = (of: ProjectTheme): TypeScale => of.type.scale ?? { base: MODE_BASE[of.modes.typography], ratio: 1.14, from: of.modes.typography };
   const pickScale = (id: string) => {
-    if (id === "custom") { if (!scale) setType({ scale: { base: MODE_BASE[theme.modes.typography], ratio: 1.14 } }); return; }
+    if (id === "custom") { if (!scale) setType({ scale: fromMode(theme) }); return; }
     onChange({ ...theme, modes: { ...theme.modes, typography: id as ProjectModes["typography"] }, type: { ...theme.type, scale: null } });
   };
-  const setScale = (key: "base" | "ratio", value: number | null) => {
-    if (!scale || value === null) return;
+  // A drag on a slider field is one undo step: its first value is a change, the next ones replace it until let go.
+  const dragging = useRef<string | null>(null);
+  const dragTo = (key: string, next: ProjectTheme) => {
+    const live = dragging.current === key;
+    dragging.current = key;
+    onChange(next, live);
+  };
+  // Base or ratio set by hand (dragged or typed, user 2026-11-27: "phần scale có thể cho kéo hoặc điền bằng inline
+  // slider"): the formula makes the steps from then on (`from` goes).
+  const setScale = (key: "base" | "ratio", value: number) => {
+    if (!scale) return;
     const { min, max } = TYPE_SCALE_LIMITS[key];
-    setType({ scale: { ...scale, [key]: Math.min(max, Math.max(min, value)) } });
+    const { from: _from, ...rest } = scale;
+    dragTo(key, { ...theme, type: { ...theme.type, scale: { ...rest, [key]: Math.min(max, Math.max(min, value)) } } });
   };
-  // Each step of a custom scale, set by hand over what base and ratio make (user, 2026-11-26: "cho chỉnh typescale tuỳ
-  // ý", letter spacing too): a value back at the made one is no longer the step's own.
-  const made = useMemo(() => (scale ? projectTypeScale({ base: scale.base, ratio: scale.ratio }) : null), [scale?.base, scale?.ratio]);
-  const shown = scale ? projectTypeScale(scale) : null;
-  const withSteps = (steps: NonNullable<TypeScale["steps"]>): TypeScale => ({ base: scale!.base, ratio: scale!.ratio, ...(Object.keys(steps).length ? { steps } : {}) });
-  const setStep = (token: string, key: keyof TypeStep, value: number) => {
-    if (!scale || !made) return;
+  // Every step shows, on a shipped mode too (user, 2026-11-27: "luôn hiện như plugin figma"); a value set on one makes
+  // the scale Custom from that mode. Each step of a custom scale is set by hand over what the scale makes (user,
+  // 2026-11-26: "cho chỉnh typescale tuỳ ý", letter spacing too): a value back at the made one is no longer the step's own.
+  const current = fromMode(theme);
+  const made = useMemo(() => projectTypeScale({ base: current.base, ratio: current.ratio, from: current.from }), [current.base, current.ratio, current.from]);
+  const shown = projectTypeScale(current);
+  const withSteps = (of: TypeScale, steps: NonNullable<TypeScale["steps"]>): TypeScale =>
+    ({ base: of.base, ratio: of.ratio, ...(of.from ? { from: of.from } : {}), ...(Object.keys(steps).length ? { steps } : {}) });
+  /** `of` with `values` on its steps: a value at the made one is dropped from the step's own. */
+  const ownSteps = (of: TypeScale, values: Record<string, Partial<TypeStep>>) => {
+    const ofMade = projectTypeScale({ base: of.base, ratio: of.ratio, from: of.from });
+    const steps = { ...of.steps };
+    for (const [token, set] of Object.entries(values)) {
+      const own: Partial<TypeStep> = { ...steps[token] };
+      for (const [key, value] of Object.entries(set) as [keyof TypeStep, number][]) {
+        if (value === ofMade[token][key]) delete own[key];
+        else own[key] = value;
+      }
+      if (Object.keys(own).length) steps[token] = own;
+      else delete steps[token];
+    }
+    return withSteps(of, steps);
+  };
+  const within = (key: keyof TypeStep, value: number) => {
     const { min, max } = TYPE_STEP_LIMITS[key];
-    const within = Math.min(max, Math.max(min, value));
-    const next = key === "letterSpacing" ? Math.round(within * 100) / 100 : Math.round(within);
-    const own: Partial<TypeStep> = { ...scale.steps?.[token] };
-    if (next === made[token][key]) delete own[key];
-    else own[key] = next;
-    const steps = { ...scale.steps };
-    if (Object.keys(own).length) steps[token] = own;
-    else delete steps[token];
-    setType({ scale: withSteps(steps) });
+    const kept = Math.min(max, Math.max(min, value));
+    return key === "letterSpacing" ? Math.round(kept * 100) / 100 || 0 : Math.round(kept);
   };
+  const setStep = (token: string, key: keyof TypeStep, value: number) => {
+    const next = within(key, value);
+    if (!scale && next === made[token][key]) return;
+    setType({ scale: ownSteps(current, { [token]: { [key]: next } }) });
+  };
+  // The plugin's nudge (Typeface › Target + slider): a drag moves the letter spacing of every style in the group by a
+  // share of its size (−2 … +2 %), from where the drag started, live; it springs back to 0 when let go (one undo step).
+  const [group, setGroup] = useState<StepGroup>("all");
+  const [nudge, setNudge] = useState(0);
+  const nudgeStart = useRef<ProjectTheme | null>(null);
+  const nudgeTo = (percent: number) => {
+    const start = nudgeStart.current ?? theme;
+    const live = nudgeStart.current !== null;
+    nudgeStart.current = start;
+    setNudge(percent);
+    const from = fromMode(start);
+    const before = projectTypeScale(from);
+    const values = Object.fromEntries(TYPE_SCALE_STEPS.filter((token) => group === "all" || stepGroup(token) === group)
+      .map((token) => [token, { letterSpacing: within("letterSpacing", before[token].letterSpacing + (before[token].size * percent) / 100) }]));
+    onChange({ ...start, type: { ...start.type, scale: ownSteps(from, values) } }, live);
+  };
+  /** A drag, an arrow key or a typed value ends when let go: pointer up, key up, focus back on the field after typing. */
+  const letGo = () => {
+    dragging.current = null;
+    if (nudgeStart.current === null) return;
+    nudgeStart.current = null;
+    setNudge(0);
+  };
+  const letGoOn = { onPointerUp: letGo, onPointerCancel: letGo, onKeyUp: letGo, onFocus: letGo, onBlur: letGo };
   const resetStep = (token: string) => {
     if (!scale?.steps) return;
     const { [token]: _gone, ...steps } = scale.steps;
-    setType({ scale: withSteps(steps) });
+    setType({ scale: withSteps(scale, steps) });
   };
   useEffect(() => loadFontSamples(FONT_FAMILIES.filter((family) => family !== "Inter")), []);
   const sample = (stack: string) => <span className="studio-project-setup__font-sample" style={{ fontFamily: stack }} aria-hidden="true">Ag</span>;
@@ -487,43 +546,53 @@ function TypographySettings({ theme, onChange }: { theme: ProjectTheme; onChange
             options={[...MODE_VALUES.typography.map((mode) => ({ value: mode, label: previewValueLabel("typography", mode), meta: `${MODE_BASE[mode]} px` })), { value: "custom", label: "Custom" }]} />,
         ]} />
         {scale ? (
-          <Fields fields={[
-            <NumberField key="base" size="sm" layout="inline" label="Base" aria-label="Base size in px" min={TYPE_SCALE_LIMITS.base.min} max={TYPE_SCALE_LIMITS.base.max} value={scale.base} onValueChange={(value) => setScale("base", value)} />,
-            <NumberField key="ratio" size="sm" layout="inline" label="Ratio" aria-label="Scale ratio" min={TYPE_SCALE_LIMITS.ratio.min} max={TYPE_SCALE_LIMITS.ratio.max} step={0.01} value={scale.ratio} onValueChange={(value) => setScale("ratio", value)} />,
-          ]} />
+          <div {...letGoOn}>
+            <Fields fields={[
+              <SliderField key="base" size="sm" label="Base" aria-label="Base size in px" min={TYPE_SCALE_LIMITS.base.min} max={TYPE_SCALE_LIMITS.base.max} step={1}
+                value={scale.base} onValueChange={(value) => setScale("base", value)} formatValue={(value) => `${value} px`} />,
+              <SliderField key="ratio" size="sm" label="Ratio" aria-label="Scale ratio" min={TYPE_SCALE_LIMITS.ratio.min} max={TYPE_SCALE_LIMITS.ratio.max} step={0.01}
+                value={scale.ratio} onValueChange={(value) => setScale("ratio", value)} formatValue={(value) => value.toFixed(2)} />,
+            ]} />
+          </div>
         ) : null}
       </Section>
-      {scale && shown ? (
-        <Section title="Text styles" note={<SectionNote text="Size, line height, letter spacing in px" more="Base and ratio make every style; a value set here stays when they change. Back to the scale undoes it." />}>
-          {/* A table: the numbers alone in their cells, under icons that name the columns (an icon in each cell left 10px
-              for 78 in a 52px field). */}
-          <Fields name="step-heads" columns={STEP_COLUMNS} fields={[
-            <span key="name" aria-hidden="true" />,
-            ...([["size", "icon-type-01-line", "Size"], ["line", "icon-line-height-line", "Line height"], ["letter", "icon-letter-spacing-01-line", "Letter spacing"]] as const).map(([key, icon, title]) => (
-              <span key={key} className="studio-project-setup__step-head" title={title}><Icon name={icon} size="sm" decorative /></span>
-            )),
-            <span key="reset" aria-hidden="true" />,
+      <Section title="Text styles" note={<SectionNote text="Size, line height, letter spacing in px" more="The scale makes every style; a value set here stays when it changes, and on Dashboard, Popular or Mobile makes the scale Custom. Back to the scale undoes it. The slider moves a group's letter spacing by a share of each size." />}>
+        <div {...letGoOn}>
+          <Fields name="step-nudge" fields={[
+            <SelectField key="group" size="sm" layout="inline" label="Styles" aria-label="Letter spacing group" value={group} onValueChange={(value) => setGroup(value as StepGroup)}
+              options={STEP_GROUPS.map(({ id, label }) => ({ value: id, label }))} />,
+            <SliderField key="nudge" size="sm" label={<Icon name="icon-letter-spacing-01-line" size="sm" decorative />} aria-label="Letter spacing nudge" min={-2} max={2} step={0.1}
+              value={nudge} onValueChange={nudgeTo} formatValue={(value) => `${value > 0 ? "+" : ""}${value.toFixed(1)}%`} />,
           ]} />
-          {TYPE_SCALE_STEPS.map((token) => {
-            const label = stepLabel(token);
-            const own = Boolean(scale.steps?.[token]);
-            return (
-              <Fields key={token} name={`step-${token}`} columns={STEP_COLUMNS} fields={[
-                <Text key="name" as="span" textStyle="Body/Small/Regular" tone={own ? "strongest" : "base"} className="studio-project-setup__step" title={label}>{label}</Text>,
-                <ScrubNumberField key="size" name={`${label} size`} value={shown[token].size}
-                  min={TYPE_STEP_LIMITS.size.min} max={TYPE_STEP_LIMITS.size.max} onCommit={(value) => setStep(token, "size", value)} />,
-                <ScrubNumberField key="line" name={`${label} line height`} value={shown[token].lineHeight}
-                  min={TYPE_STEP_LIMITS.lineHeight.min} max={TYPE_STEP_LIMITS.lineHeight.max} onCommit={(value) => setStep(token, "lineHeight", value)} />,
-                <ScrubNumberField key="letter" name={`${label} letter spacing`} value={shown[token].letterSpacing} round={2}
-                  min={TYPE_STEP_LIMITS.letterSpacing.min} max={TYPE_STEP_LIMITS.letterSpacing.max} onCommit={(value) => setStep(token, "letterSpacing", value)} />,
-                own
-                  ? <IconButton key="reset" icon="icon-reverse-left-line" aria-label={`${label} back to the scale`} tooltip="Back to the scale" appearance="flat" level="secondary" size="xs" onClick={() => resetStep(token)} />
-                  : <span key="reset" aria-hidden="true" />,
-              ]} />
-            );
-          })}
-        </Section>
-      ) : null}
+        </div>
+        {/* A table: the numbers alone in their cells, under icons that name the columns (an icon in each cell left 10px
+            for 78 in a 52px field). */}
+        <Fields name="step-heads" columns={STEP_COLUMNS} fields={[
+          <span key="name" aria-hidden="true" />,
+          ...([["size", "icon-type-01-line", "Size"], ["line", "icon-line-height-line", "Line height"], ["letter", "icon-letter-spacing-01-line", "Letter spacing"]] as const).map(([key, icon, title]) => (
+            <span key={key} className="studio-project-setup__step-head" title={title}><Icon name={icon} size="sm" decorative /></span>
+          )),
+          <span key="reset" aria-hidden="true" />,
+        ]} />
+        {TYPE_SCALE_STEPS.map((token) => {
+          const label = stepLabel(token);
+          const own = Boolean(scale?.steps?.[token]);
+          return (
+            <Fields key={token} name={`step-${token}`} columns={STEP_COLUMNS} fields={[
+              <Text key="name" as="span" textStyle="Body/Small/Regular" tone={own ? "strongest" : "base"} className="studio-project-setup__step" title={label}>{label}</Text>,
+              <ScrubNumberField key="size" name={`${label} size`} value={shown[token].size}
+                min={TYPE_STEP_LIMITS.size.min} max={TYPE_STEP_LIMITS.size.max} onCommit={(value) => setStep(token, "size", value)} />,
+              <ScrubNumberField key="line" name={`${label} line height`} value={shown[token].lineHeight}
+                min={TYPE_STEP_LIMITS.lineHeight.min} max={TYPE_STEP_LIMITS.lineHeight.max} onCommit={(value) => setStep(token, "lineHeight", value)} />,
+              <ScrubNumberField key="letter" name={`${label} letter spacing`} value={shown[token].letterSpacing} round={2}
+                min={TYPE_STEP_LIMITS.letterSpacing.min} max={TYPE_STEP_LIMITS.letterSpacing.max} onCommit={(value) => setStep(token, "letterSpacing", value)} />,
+              own
+                ? <IconButton key="reset" icon="icon-reverse-left-line" aria-label={`${label} back to the scale`} tooltip="Back to the scale" appearance="flat" level="secondary" size="xs" onClick={() => resetStep(token)} />
+                : <span key="reset" aria-hidden="true" />,
+            ]} />
+          );
+        })}
+      </Section>
     </>
   );
 }

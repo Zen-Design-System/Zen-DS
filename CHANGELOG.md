@@ -27,9 +27,13 @@ How to maintain it:
   Card-padding-xsmall with its corner concentric with the card's, the text's with the card's padding. The rule is in the
   skills (zen-component-usage, zen-figma-design screen rules, zen-build-qa).
 - Zen Studio project settings: the Type tab is now Typography, and the settings tabs hug their labels (shared equally,
-  "Typography" was squeezed to its text). With a custom type scale, a Text styles list shows every
-  style (Display Extra 1 … Label Small) with its size, line height and letter spacing; any of them can be set by hand
-  over what base and ratio make, and "Back to the scale" undoes it. The theme preview's numbers show letter spacing too.
+  "Typography" was squeezed to its text). A Text styles table always shows every style (Display Extra 1 … Label Small)
+  with its size, line height and letter spacing, as the Figma plugin: Dashboard, Popular and Mobile show their own
+  values, and a value set on one makes the scale Custom from it. Any value can be set by hand over what the scale makes,
+  and "Back to the scale" undoes it. A slider moves the letter spacing of a group (All, Display, Heading or Body) by a
+  share of each size, as the plugin's nudge; it springs back to 0 and a drag is one undo step. A custom scale's base and
+  ratio are slider fields: drag them, type a number or step with the arrow keys. The theme preview shows
+  every style, from Display-Extra/1, with its letter spacing.
 - Zen Studio: in Layers, a row dropped above or below a frame's row (or beside a layer on the canvas) leaves its frame
   for the canvas, where it shows; a layer on the canvas dropped into a frame without auto layout keeps where it shows.
   Several selected layers drag together: out of their frame onto the canvas, into a frame (each at its spot when the

@@ -20,6 +20,7 @@
 // per role and, optionally, a type scale (base size × ratio) — the Zen Figma plugin's Typeface and Type Scale tabs,
 // with the plugin's own formula, so Figma would get the same sizes. A project may also bring its own font files
 // (user, 2026-11-10: "làm upload font riêng từng project"): `theme.type.uploads`, written as @font-face rules.
+import typographyConfiguration from "../../tokens/source/figma/typography-configuration.json" with { type: "json" };
 import { calculateOnBrandColor, calculateOnBrandStateColor, apcaContrast, generateExpectedPalette, hexToOklch, oklchToHex } from "./zen-ramp.generated.mjs";
 
 export const PROJECT_ID = /^[a-z0-9][a-z0-9-]{0,47}$/;
@@ -120,13 +121,37 @@ const TYPE_SCALE_ROWS = [
 /** The steps of a type scale, largest first: the Typography tokens a custom scale sets. */
 export const TYPE_SCALE_STEPS = TYPE_SCALE_ROWS.map(([token]) => token);
 
+/** The shipped Typography modes a scale can start from. */
+export const TYPE_SCALE_MODES = ["dashboard", "popular", "mobile"];
+/* Each shipped mode's steps as Typography Configuration holds them (tokens/source/figma; "heading-1" is
+   Typography/Font-Size/Heading-1 …): Project settings shows them in its Text styles table (user, 2026-11-27: "luôn hiện
+   như plugin figma"), and a Custom scale made from a mode starts from them. */
+const SHIPPED_TYPE = (() => {
+  const values = new Map(typographyConfiguration["Typography Configuration"].tokens.map((token) => [token.name, token.valuesByMode]));
+  const title = (word) => word[0].toUpperCase() + word.slice(1);
+  return Object.fromEntries(TYPE_SCALE_MODES.map((mode) => {
+    const read = (kind, token) => values.get(`Typography/${kind}/${token.split("-").map(title).join("-")}`)?.[title(mode)] ?? 0;
+    return [mode, Object.fromEntries(TYPE_SCALE_STEPS.map((token) => [token, {
+      size: Math.round(read("Font-Size", token)),
+      lineHeight: Math.round(read("Line-Height", token)),
+      letterSpacing: Math.round(read("Letter-Spacing", token) * 100) / 100 || 0,
+    }]))];
+  }));
+})();
+
+/** A shipped Typography mode's steps (px), as projectTypeScale gives a scale's. */
+export function shippedTypeScale(mode) {
+  return Object.fromEntries(Object.entries(SHIPPED_TYPE[mode]).map(([token, value]) => [token, { ...value }]));
+}
+
 /**
  * A type scale's sizes: `{ "heading-1": { size, lineHeight, letterSpacing } … }` (px). Base and ratio make every step as
- * the plugin computes them; `steps` holds what was set by hand on a step (user, 2026-11-26: "cho chỉnh typescale tuỳ ý",
- * letter spacing too), over the made value.
+ * the plugin computes them, or `from` names the shipped mode the scale started from (its values, until base or ratio
+ * change); `steps` holds what was set by hand on a step (user, 2026-11-26: "cho chỉnh typescale tuỳ ý", letter spacing
+ * too), over the made value.
  */
-export function projectTypeScale({ base, ratio, steps }) {
-  const made = madeTypeScale(base, ratio);
+export function projectTypeScale({ base, ratio, from, steps }) {
+  const made = from ? shippedTypeScale(from) : madeTypeScale(base, ratio);
   return steps ? Object.fromEntries(Object.entries(made).map(([token, value]) => [token, { ...value, ...steps[token] }])) : made;
 }
 
@@ -287,6 +312,8 @@ export function normalizeTheme(input, errors = []) {
     const within = (value, { min, max }) => typeof value === "number" && Number.isFinite(value) && value >= min && value <= max;
     if (within(size, TYPE_SCALE_LIMITS.base) && within(ratio, TYPE_SCALE_LIMITS.ratio)) {
       scale = { base: Math.round(size), ratio: Math.round(ratio * 1000) / 1000 };
+      if (TYPE_SCALE_MODES.includes(rawScale.from)) scale.from = rawScale.from;
+      else if (rawScale.from !== undefined) errors.push(`theme.type.scale.from: ${JSON.stringify(rawScale.from)} is not a shipped Typography mode`);
       const steps = typeSteps(rawScale.steps, errors);
       if (steps) scale.steps = steps;
     } else errors.push(`theme.type.scale: ${JSON.stringify(rawScale)} needs a base of 10–24 and a ratio of 1–1.62`);
