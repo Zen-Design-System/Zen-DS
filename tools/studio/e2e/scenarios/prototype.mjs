@@ -2662,7 +2662,88 @@ export const rows = [
       }
     },
   },
+  {
+    id: "FW-295", feature: "Play takes the played frame's light or dark (user 2026-11-24: \"chạy prototype vẫn lỗi darkmode\"): a phone Screen set dark by its toolbar's moon plays dark, its Screen, its Bottom Sheet and its toast too, the bar offering Light mode; a Screen with modes={{ theme: \"dark\" }} plays its Bottom Sheet dark", wp: "bug 2026-11-24", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await step("seed the page", () => seededPage(ctx, darkFramePage, /theme: "dark"/));
+      const frame = page.locator('[data-studio-frame="screen:tasks"]');
+      const toolbar = page.locator('.studio-frame-toolbar[data-chrome-key="toolbar:screen:tasks"]');
+      await step("the frame toolbar's moon", async () => {
+        await page.locator('.studio-frame-label[data-chrome-key="label:screen:tasks"]').click();
+        await toolbar.getByRole("button", { name: "Show frame in dark mode" }).click();
+      });
+      await until(async () => (await frame.getAttribute("data-theme")) === "dark", { message: "the Tasks frame dark on the canvas" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      await until(async () => (await playScreen(page)) === "tasks", { message: "Play starts on Tasks" });
+      await page.mouse.move(page.viewportSize().width - 8, page.viewportSize().height - 8);
+      const dark = (look, what) => { if (look.theme !== "dark" || !look.inPlay || look.brightness > 60) throw new Error(`${what} is not dark in Play: ${JSON.stringify(look)}`); };
+      const layer = await playing(page).getAttribute("data-theme");
+      if (layer !== "dark") throw new Error(`Play's layer is ${layer} for a frame set dark on the canvas`);
+      dark(await layerLook(playing(page).locator(".studio-builder-screen").first()), "the Tasks Screen");
+      if (!(await playing(page).getByRole("button", { name: "Light mode" }).count())) throw new Error("the bar does not offer Light mode: it does not know the Screen plays dark");
+      // In Play's layer: the canvas behind it draws the Overlay's sheet too, in its own theme.
+      const sheet = playing(page).locator(".zen-bottom-sheet").filter({ hasText: "Task details" });
+      await step("Open sheet", () => playing(page).getByRole("button", { name: "Open sheet" }).click());
+      await sheet.waitFor({ state: "visible", timeout: 3000 });
+      const tasksSheet = await layerLook(sheet);
+      dark(tasksSheet, "the Bottom Sheet over Tasks");
+      await step("Done", () => sheet.getByRole("button", { name: "Done" }).click());
+      await until(async () => (await sheet.count()) === 0, { message: "Done closes the sheet" });
+      await step("Save (toast)", () => playing(page).getByRole("button", { name: "Save" }).click());
+      const toast = playing(page).locator(".zen-toast").filter({ hasText: "Saved" });
+      await toast.waitFor({ state: "visible", timeout: 3000 });
+      const look = await layerLook(toast);
+      if (look.theme !== "dark" || !look.inPlay) throw new Error(`the toast is not in the dark Play: ${JSON.stringify(look)}`);
+      // A Screen dark by its own modes (Apply variable mode), no moon on its frame.
+      await step("Next", () => playing(page).getByRole("button", { name: "Next" }).click());
+      await until(async () => (await playScreen(page)) === "night", { message: "Play on Night" });
+      await step("Open sheet on Night", () => playing(page).getByRole("button", { name: "Open sheet" }).click());
+      await sheet.waitFor({ state: "visible", timeout: 3000 });
+      const nightSheet = await layerLook(sheet);
+      dark(nightSheet, "the Bottom Sheet over a Screen with modes dark");
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      await until(async () => (await playing(page).count()) === 0, { message: "Escape leaves Play" });
+      return `moon on Tasks → Play dark: Screen, Bottom Sheet (${tasksSheet.brightness}/255), toast, bar offers Light mode · Night (modes dark): Bottom Sheet ${nightSheet.brightness}/255`;
+    },
+  },
 ];
+
+/** A phone Screen with a Bottom Sheet and a toast, and one whose own modes are dark (FW-295). */
+const darkFramePage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { BottomSheet, Button, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="tasks" title="Tasks" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text textStyle="Heading/4">Release notes</Text>
+          <Button level="primary" onClick={proto.open("details")}>Open sheet</Button>
+          <Button onClick={proto.toast({ title: "Saved" })}>Save</Button>
+          <Button onClick={proto.navigate("night")}>Next</Button>
+        </Stack>
+      </Screen>
+      <Screen id="night" title="Night" device="phone" modes={{ theme: "dark" }}>
+        <Stack gap="md" padding="lg">
+          <Button level="primary" onClick={proto.open("details")}>Open sheet</Button>
+        </Stack>
+      </Screen>
+      <Overlay id="details">
+        <BottomSheet title="Task details" primaryAction={{ label: "Done", onClick: proto.close() }}>
+          <Text tone="base">Write the release notes</Text>
+        </BottomSheet>
+      </Overlay>
+    </Board>
+  );
+}
+`;
 
 /** Two phone Screens that share a layer named Ball, smaller and higher on A, larger and lower on B (PT-64). */
 const smartPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}

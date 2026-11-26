@@ -49,6 +49,10 @@ How to maintain it:
   main moves (its <Component>), its layer drops the place it had in the old frame, and it stays selected. A click on a
   main component or an instance selects it, not a layer inside it, and Layers keeps its row (the diamond), also when its
   layer holds a single child.
+- Zen Studio: Play runs a Screen in the light or dark it shows on the canvas. A Screen set dark with its frame's moon
+  button played light, and a Screen dark by its own modes (Apply variable mode) played with light Bottom Sheets, menus,
+  toasts and a light stage around the phone. Now the whole Play takes the Screen's theme; Play's own Light/Dark button
+  still wins.
 - Zen Studio: the drawing tools work on the empty canvas, as in Figma: a Rectangle, Ellipse, Line, Arrow, Polygon, Star,
   text (T), Pen or Pencil path, or a picture dropped there lands as a layer on the canvas where it is drawn (its edges
   snap to the frames and layers beside it). "Draw inside a frame" no longer stops it. On a layer on the canvas that
