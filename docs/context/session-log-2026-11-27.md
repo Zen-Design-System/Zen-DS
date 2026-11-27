@@ -47,3 +47,20 @@ plugin", "luôn hiện như plugin figma", "hiện đủ các style bên phần 
   Base 14 px and Ratio 1.14 as slider fields; no field cuts its value; the preview lists Display-Extra/1 … Subheading.
 - **Gate `npm run qa -- --isolated --files=…` PASS:** static steps, Studio E2E 468 works · 0 broken in 5 shards (B-25,
   PT-15, PT-38 loaded twice, a Chromium load cut). User (via Giám sát): merge on green CI.
+
+## DockIcon's Theme has a control again (tier S, Bug session)
+
+User: "Dock Icon tại sao không chỉnh được theme?" (a DockIcon `theme="indigo"` selected in "AI Chat – Home Desktop").
+Branch `zen/fix/studio-dock-icon-theme-20261127`, from main ecd2268a.
+
+- **Cause.** `dockIconThemes` has 25 members (neutral, accent, 18 support colours, inverse, on-color, pale, surface,
+  emoji). `scripts/build-api.mjs` spells out unions up to `MAX_EXPANDED_UNION` = 24, so the API docs name the type
+  `DockIconTheme`. `propSchema.editorFor` had a branch for the other long named lists (ContentTone, ShapeFill,
+  ShapeStroke), none for this one: no control for DockIcon `theme` or Metric's two DockIconTheme props.
+- **Fix (`inspector/propSchema.ts`).** `DockIconTheme` / `(typeof dockIconThemes)[number]` → an enum of
+  `dockIconThemes`, as ContentTone.
+- **E2E FW-301** (new, inspector group; Giám sát's GO 12:23): DockIcon `theme` Indigo, MetricCard `iconTheme` Blue and
+  Metric `iconTheme` Green show in their controls, and Teal writes teal for each. Without the fix the row breaks (no
+  Theme control): checked with the change stashed.
+- **Gate `npm run qa -- --isolated --files=…` PASS:** static steps, Studio E2E 469 works · 0 broken in 5 shards (FW-301,
+  B-24, B-48, PT-25, PT-48 loaded twice, a Chromium load cut). User: "ok, CI xanh thì merge luôn".
