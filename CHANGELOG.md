@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- `@zen-ds/vue` 0.1.0 is ready to publish: `npm install @zen-ds/vue` with `import "@zen-ds/vue/styles.css"` (the same
+  stylesheet as React), wave 1's 39 components with their types. It publishes from its own tag (`vue-v0.1.0`); React's
+  release tags stay `vX.Y.Z`.
 - Zen Studio: a DockIcon's Theme (and the icon theme of a Metric or MetricCard) can be picked in the Inspector again. Its 25 themes are
   named DockIconTheme in the API docs, which left the Inspector with no list to offer.
 - Zen Studio project settings: each status color (Positive, Negative, Warning, Info) takes a color of the project's

@@ -25,6 +25,11 @@ Last updated: 2026-11-22.
   `npm run vue:check` (core boundary, parity, vue-tsc on TS 5, the examples' Vue) in CI. W1: 39/39 components, 1,254
   cases (MetricCard, ToggleListItem wait for W2: `waves.json` waits). The Code view writes Vue (`code/vue.ts` emitter,
   lazy): 10/10 all-ported examples and every all-ported playground type-check. Plan §12; P4–P9 need approval.
+- **`@zen-ds/vue` 0.1.0 release (2026-11-28, user via Giám sát: "3. OK"; P4 "2. Làm luôn"):** `npm run vue:build`
+  (`tools/code-languages/vue-build.mjs`: dist/, web core inside under dist/core, d.ts from TS 5, React's styles.css) and
+  `npm run vue:verify-package` (temp app `examples/vue-consumer-smoke`, CI). Tag `vue-vX.Y.Z` publishes (release.yml
+  `publish-vue`; React's tag filter is now `v[0-9]*`). Tag pushes stay with the user through Giám sát. After the first
+  publish, `src/platform/code/languages.ts` Vue `install` still says "not published yet".
 - **Code view P2b, portable examples (2026-11-13, user):** an example is a file, `examples/pages/<page>/<slug>.example.tsx`
   (default export rendered, its `?raw` shown via `examples/exampleCode.ts`; demo import `../../data` shows as `./demo`,
   Code header copies demo.ts). Imports only react, `@zen-ds/react`, the demo world; phone examples on `AppShell`, the

@@ -1,11 +1,13 @@
 name: Release
 
-# Publishes @zen-ds/react to the licensed registry (npm.dizai.studio) when a version tag is pushed:
-#   bump "version" in package.json, commit, then `git tag v0.4.0 && git push origin v0.4.0`.
-# The tag must match package.json. The tarball that passed verify:package is the one published.
+# Publishes to the licensed registry (npm.dizai.studio) when a version tag is pushed. Each package has its own tag:
+#   @zen-ds/react  bump "version" in package.json, commit, then `git tag v0.4.0 && git push origin v0.4.0`
+#   @zen-ds/vue    bump "version" in platforms/vue/package.json, commit, then `git tag vue-v0.1.0 && git push origin vue-v0.1.0`
+# The tag must match the package's version. The tarball that passed its verify script is the one published.
+# React's filter is v[0-9]*: a bare v* also matches vue-v… tags.
 on:
   push:
-    tags: ["v*"]
+    tags: ["v[0-9]*", "vue-v[0-9]*"]
 
 permissions:
   contents: read
@@ -20,6 +22,7 @@ env:
 jobs:
   publish:
     name: Verify and publish
+    if: ${{ !startsWith(github.ref_name, 'vue-') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -56,6 +59,51 @@ jobs:
       - name: Publish to npm.dizai.studio
         run: |
           tarball=$(ls -t ./dist-pack/*.tgz | head -n 1)  # ./ : a bare dir/file.tgz reads as a GitHub repo
+          auth=$(printf 'zen-publisher:%s' "$ZEN_REGISTRY_PUBLISH_KEY" | base64 -w0)
+          echo "::add-mask::$auth"
+          printf '//npm.dizai.studio/:_auth=%s\n' "$auth" > "$RUNNER_TEMP/.npmrc"
+          npm publish "$tarball" --registry "$REGISTRY" --userconfig "$RUNNER_TEMP/.npmrc"
+          rm -f "$RUNNER_TEMP/.npmrc"
+        env:
+          ZEN_REGISTRY_PUBLISH_KEY: ${{ secrets.ZEN_REGISTRY_PUBLISH_KEY }}
+
+  publish-vue:
+    name: Verify and publish @zen-ds/vue
+    if: ${{ startsWith(github.ref_name, 'vue-v') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Tag matches platforms/vue/package.json
+        run: |
+          version=$(node -p 'require("./platforms/vue/package.json").version')
+          if [ "$GITHUB_REF_NAME" != "vue-v$version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match platforms/vue/package.json version $version"
+            exit 1
+          fi
+
+      - run: npm ci
+      - name: Vue port matches React (web core, DOM and API parity, vue-tsc)
+        run: npm run vue:check
+      - name: Package (build, pack, install in a temp Vue app, vue-tsc, budgets, SSR)
+        run: npm run vue:verify-package
+
+      - name: Version not published yet
+        run: |
+          status=$(curl -s -o /dev/null -w '%{http_code}' -u "zen-publisher:$ZEN_REGISTRY_PUBLISH_KEY" \
+            "${REGISTRY}@zen-ds%2fvue/${GITHUB_REF_NAME#vue-v}")
+          if [ "$status" = 200 ]; then echo "::error::@zen-ds/vue ${GITHUB_REF_NAME#vue-v} is already published"; exit 1; fi
+        env:
+          ZEN_REGISTRY_PUBLISH_KEY: ${{ secrets.ZEN_REGISTRY_PUBLISH_KEY }}
+
+      - name: Publish to npm.dizai.studio
+        run: |
+          tarball=$(ls -t ./dist-pack/vue/*.tgz | head -n 1)  # ./ : a bare dir/file.tgz reads as a GitHub repo
           auth=$(printf 'zen-publisher:%s' "$ZEN_REGISTRY_PUBLISH_KEY" | base64 -w0)
           echo "::add-mask::$auth"
           printf '//npm.dizai.studio/:_auth=%s\n' "$auth" > "$RUNNER_TEMP/.npmrc"
