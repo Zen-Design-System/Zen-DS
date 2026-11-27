@@ -1,6 +1,7 @@
 import api from "../../api.generated.json";
 import { zenComponents } from "../builder/engine";
 import { contentTones } from "../../../components/_shared/contentTone";
+import { dockIconThemes } from "../../../components/DockIcon";
 import { boxSurfaces } from "../../../components/Layout";
 import { shapeFills, shapeStrokes } from "../../../components/Shape/paint";
 import { normalizeScale, zenMargins, zenScale, type ZenScaleInput } from "../../../components/_shared/scale";
@@ -247,6 +248,9 @@ export function editorFor(type: string): PropEditor {
     return { kind: "enum", options: [...new Set([...layers, ...members.map(stringLiteral).filter((member): member is string => member !== null), ...shapeFills])] };
   }
   if (members.includes("ShapeStroke") || members.includes("(typeof shapeStrokes)[number]")) return { kind: "enum", options: [...shapeStrokes] };
+  // DockIcon's 25 themes (neutral, accent, the support colours, inverse … emoji: past build-api's 24, so named in the
+  // docs): DockIcon's and Metric's icon theme had no control (user, 2026-11-27: "Dock Icon tại sao không chỉnh được theme?").
+  if (members.includes("DockIconTheme") || members.includes("(typeof dockIconThemes)[number]")) return { kind: "enum", options: [...dockIconThemes] };
   if (members.includes("(typeof headingLevels)[number]") || members.includes("HeadingLevel")) return { kind: "number-enum", options: [1, 2, 3, 4, 5, 6] };
   const literals: string[] = [];
   let allLiteral = true;

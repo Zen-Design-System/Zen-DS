@@ -14,6 +14,8 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a DockIcon's Theme (and the icon theme of a Metric or MetricCard) can be picked in the Inspector again. Its 25 themes are
+  named DockIconTheme in the API docs, which left the Inspector with no list to offer.
 - Zen Studio project settings: each status color (Positive, Negative, Warning, Info) takes a color of the project's
   own, not only a shipped ramp. The field beside it opens on the current color to adjust it, or takes a new one; its
   ramp is generated as the Primary's, and the section says when white text on it is hard to read. Projects that name a

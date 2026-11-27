@@ -730,6 +730,29 @@ export const rows = [
       return `"${shown}" · Alt → type="alt" · ⌘Z`;
     }),
   },
+  {
+    id: "FW-301", feature: "A DockIcon's Theme has a control (user 2026-11-27: \"Dock Icon tại sao không chỉnh được theme?\"): its 25 themes are named DockIconTheme in the API docs, past build-api's 24; the Inspector lists them for DockIcon theme and MetricCard / Metric iconTheme, shows the theme written, and Teal writes teal", wp: "user 2026-11-27", timeout: 60_000,
+    run: guarded("FW-301", async (ctx, hold) => {
+      const { page, id, text } = hold(await seededPage(ctx, dockPage, /Dr\. An/));
+      // Each layer's DockIconTheme prop: the control shows the theme written, and Teal writes teal.
+      const pick = async (component, prop, from) => {
+        await page.keyboard.press("Escape");
+        await deepClick(page, id, component);
+        await openPropertyGroup(page, prop).catch(() => undefined);
+        const control = page.locator(`#studio-right [data-prop="${prop}"]`).first();
+        await control.waitFor({ state: "visible", timeout: 5000 });
+        const trigger = control.getByRole("button").first();
+        const shown = (await trigger.innerText()).trim();
+        if (!new RegExp(from, "i").test(shown)) throw new Error(`<${component}> ${prop} shows "${shown}", not ${from}`);
+        await trigger.click();
+        await page.getByRole("option", { name: /^Teal\b/i }).first().click();
+        await until(async () => new RegExp(`<${component}\\b[^>]*\\b${prop}="teal"`).test(await text()), { message: `<${component}> ${prop}="teal" written` });
+        return `${component} ${prop} ${shown} → teal`;
+      };
+      const done = [await pick("DockIcon", "theme", "indigo"), await pick("MetricCard", "iconTheme", "blue"), await pick("Metric", "iconTheme", "green")];
+      return done.join(" · ");
+    }),
+  },
 ];
 
 /** A phone Screen without auto layout: its layers float in Boxes (as inserts there write them), with both bars. */
@@ -793,6 +816,29 @@ async function deepClick(page, id, name, index = 0, modifiers = ["Meta"], where 
   if (modifiers.includes("Meta") && !modifiers.includes("Shift")) await ownerOfLayer(page);
   await sleep(600);
 }
+
+/** A phone screen with an Indigo DockIcon, a Blue-icon MetricCard and a Green-icon Metric (FW-301). */
+const dockPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { DockIcon, Metric, MetricCard, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Dock" device="phone">
+        <Stack gap="md" padding="margin-compact">
+          <Text>Dr. An</Text>
+          <DockIcon icon="icon-code-02-line" theme="indigo" background="subtle" size="md" />
+          <MetricCard theme="default" label="Billable hours" value="5,900 h" icon="icon-clock-line" iconTheme="blue" />
+          <Metric label="Open tasks" value="12" icon="icon-folder-line" iconTheme="green" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
 
 /** The walk's phone screen (W-xx rows): text, two fields, a button, a list, a bottom bar whose tabs share the Home icon. */
 const walkPage = (title, project) => `// @zen-page ${JSON.stringify({ format: 1, title, ...(project ? { project } : {}) })}
