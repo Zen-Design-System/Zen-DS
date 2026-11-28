@@ -6,6 +6,7 @@ import { useStudioServer } from "../api";
 import { editGate, loopbackUrl } from "../gate";
 import { studioStore, useStudio } from "../store";
 import "./shell.css";
+import { editAnyway } from "../collab/presence";
 
 /** The Studio's own storage keys (store.ts): the role, theme, modes and panels, then the session (page, selection, undo). */
 const STUDIO_KEYS = { local: ["zen-studio:prefs"], session: ["zen-studio:session", "zen-studio:board-openings"] };
@@ -29,9 +30,10 @@ function resetStudioSettings() {
 export function ReadOnlyChip() {
   const role = useStudio((state) => state.role);
   const roleCeiling = useStudio((state) => state.roleCeiling);
+  const pageLock = useStudio((state) => state.pageLock);
   const localPage = useStudio((state) => state.localPage);
   const server = useStudioServer();
-  const gate = editGate({ role, localPage, roleCeiling }, server, { dev: import.meta.env.DEV, hostname: window.location.hostname });
+  const gate = editGate({ role, localPage, roleCeiling, pageLock }, server, { dev: import.meta.env.DEV, hostname: window.location.hostname });
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -80,6 +82,9 @@ export function ReadOnlyChip() {
           <div className="studio-gate__actions">
             {gate.reason === "viewer" ? (
               <Button appearance="main" level="primary" size="sm" onClick={() => { studioStore.setState({ role: "admin" }); setOpen(false); }}>Switch to Can edit</Button>
+            ) : null}
+            {gate.reason === "page-locked" ? (
+              <Button appearance="main" level="primary" size="sm" onClick={() => { editAnyway(); setOpen(false); }}>Edit anyway</Button>
             ) : null}
             {gate.reason === "not-loopback" ? (
               <Button appearance="main" level="primary" size="sm" onClick={() => window.location.assign(loopbackUrl(window.location.href))}>Open on 127.0.0.1</Button>

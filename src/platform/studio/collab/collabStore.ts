@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { pb, useAuthUser, type AuthUser } from "../../auth/pocketbase";
 import { accessOf, normalizeEmail, roleCeiling, type CloudAccess, type MemberRole } from "./collabModel";
-import { studioStore } from "../store";
+import { studioStore, useStudio } from "../store";
 
 /*
  * Zen Studio collaboration, GĐ 1 (docs/research/studio-collaboration-plan-2026-11-07.md): the signed-in person's seat
@@ -108,7 +108,9 @@ export const cloudProjectOf = (localId: string, projects: readonly SharedProject
 /** Holds the Studio's role under the open project's ceiling (StudioApp, once): a Can view member never edits it. */
 export function useRoleCeiling(localProject: string | null) {
   const { projects } = useCollab();
-  const ceiling = roleCeiling(accessOfLocal(localProject, projects));
+  // Someone else editing the open page (presence.ts soft lock) holds it too: the Studio views it meanwhile.
+  const locked = useStudio((current) => Boolean(current.pageLock));
+  const ceiling = locked ? "viewer" : roleCeiling(accessOfLocal(localProject, projects));
   useEffect(() => { studioStore.setState({ roleCeiling: ceiling }); }, [ceiling]);
 }
 

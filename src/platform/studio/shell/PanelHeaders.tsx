@@ -12,6 +12,7 @@ import { playStartOf, startPlay } from "../builder/proto/playStart";
 import { OpenOnPhone } from "../device/OpenOnPhone";
 import { useActiveProjectId, useCanvasPreview } from "../project/activeProject";
 import { openShare } from "../collab/shareState";
+import { PagePeople } from "../collab/PagePeople";
 import { useStudioDrafts } from "../sourceDrafts";
 import { canEdit, studioStore, useStudio } from "../store";
 import { toggleSidePanels, type PanelLayout } from "./layout";
@@ -228,6 +229,8 @@ export function TopBar({ layout, docPage }: { layout: PanelLayout; docPage: bool
             <IconButton appearance="flat" level="primary" size="sm" aria-label="Redo" aria-keyshortcuts="Shift+Meta+Z Shift+Control+Z" tooltip={tip("Redo", `⇧${modKey}Z`)} disabled={!writable || !redoCount} icon={<Icon name="icon-reverse-right-line" />} onClick={() => { void redoEdit(); }} />
           </span>
         )}
+        {/* The others on this page of a shared project (GĐ 3), beside the role. */}
+        {phone || !localPage ? null : <PagePeople />}
         {phone ? null : <RoleMenu />}
         {docPage ? null : <PresentButton />}
         {localPage && !phone ? <PhoneShare id={localPage} /> : null}

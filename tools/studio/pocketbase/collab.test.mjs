@@ -160,3 +160,21 @@ test("GĐ 2: pages, photos, comments and theme follow the roles, and an old vers
   ok(await call("dave", "PATCH", `/api/collections/studio_pages/records/${page.id}`, { trashed: true, base_version: 3, version: 4, updated_by: people.dave.id }), "dave trashes Home");
   ok(await call("alice", "DELETE", `/api/collections/studio_pages/records/${page.id}`), "alice deletes Home");
 });
+
+test("GĐ 3: presence rows — everyone in the project reads them, a person writes only their own", { skip }, async () => {
+  const project = ok(await call("alice", "POST", "/api/collections/studio_projects/records", { name: "Live", owner: people.alice.id, owner_email: people.alice.email, local_id: "live" }), "alice shares Live");
+  ok(await call("alice", "POST", "/api/collections/studio_members/records", { project: project.id, email: people.bob.email, role: "viewer" }), "bob, Can view");
+  const now = Date.now();
+  const mine = ok(await call("bob", "POST", "/api/collections/studio_presence/records", { project: project.id, page_id: "home", user: people.bob.id, email: people.bob.email, name: "bob", editing: false, seen: now }), "bob is on Home");
+  refused(await call("bob", "POST", "/api/collections/studio_presence/records", { project: project.id, page_id: "home", user: people.alice.id, email: people.alice.email, editing: true, seen: now }), "bob writes alice's row");
+  refused(await call("bob", "POST", "/api/collections/studio_presence/records", { project: project.id, page_id: "home", user: people.bob.id, email: people.bob.email, seen: now }), "bob twice on one page");
+  const hers = ok(await call("alice", "POST", "/api/collections/studio_presence/records", { project: project.id, page_id: "home", user: people.alice.id, email: people.alice.email, name: "alice", editing: true, seen: now }), "alice edits Home");
+  assert.equal((await list("bob", "studio_presence")).length, 2, "bob sees both");
+  refused(await call("bob", "PATCH", `/api/collections/studio_presence/records/${hers.id}`, { editing: false, seen: now }), "bob takes alice's lock");
+  refused(await call("bob", "DELETE", `/api/collections/studio_presence/records/${hers.id}`), "bob removes alice");
+  ok(await call("bob", "PATCH", `/api/collections/studio_presence/records/${mine.id}`, { editing: true, seen: now + 1 }), "bob renews his row (Edit anyway)");
+  refused(await call("bob", "PATCH", `/api/collections/studio_presence/records/${mine.id}`, { page_id: "other", seen: now + 2 }), "bob moves his row to another page");
+  refused(await call("carol", "POST", "/api/collections/studio_presence/records", { project: project.id, page_id: "home", user: people.carol.id, email: people.carol.email, seen: now }), "carol, no seat");
+  assert.equal((await list("carol", "studio_presence")).length, 0, "carol reads nothing");
+  ok(await call("bob", "DELETE", `/api/collections/studio_presence/records/${mine.id}`), "bob leaves");
+});

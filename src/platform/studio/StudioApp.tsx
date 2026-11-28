@@ -23,6 +23,7 @@ import { ExportDialog } from "./builder/export/ExportDialog";
 import { ShareDialog } from "./collab/ShareDialog";
 import { useSharedLink } from "./collab/SharedProjects";
 import { useCloudSync } from "./collab/cloudSync";
+import { usePagePresence } from "./collab/presence";
 import { useRoleCeiling } from "./collab/collabStore";
 import { Inspector } from "./inspector/Inspector";
 import { LayersPanel } from "./select/LayersPanel";
@@ -205,6 +206,8 @@ export function StudioApp() {
   useSharedLink();
   // The shared projects' cloud copies kept in step (GĐ 2, collab/cloudSync.ts).
   useCloudSync();
+  // Who is on the open page of a shared project, and its soft lock (GĐ 3, collab/presence.ts).
+  usePagePresence();
   const page = useStudio((state) => state.page);
   const collection = useStudio((state) => state.collection);
   const localPage = useStudio((state) => state.localPage);

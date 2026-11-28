@@ -115,6 +115,9 @@ export type StudioState = {
   /** The most the open project allows (collab/collabStore.ts, GĐ 1): "viewer" for a Can view member of a shared project,
    *  else "admin". Not remembered: it is read from the project's membership. */
   roleCeiling: StudioRole;
+  /** Someone else editing the open page of a shared project (collab/presence.ts, GĐ 3 soft lock): the Studio views it
+   *  until they leave or the person presses Edit anyway. Not remembered. */
+  pageLock: { name: string; email: string } | null;
   /** Colour mode of the Studio chrome (panels, toolbar). `preview.theme` (the canvas) always changes with it (shell/modes.ts setStudioTheme). */
   chromeTheme: "light" | "dark";
   preview: StudioPreviewSettings;

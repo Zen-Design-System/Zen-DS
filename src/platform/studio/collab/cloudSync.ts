@@ -10,6 +10,7 @@ import { changeComments, loadComments } from "../comments/commentStore";
 import { adoptProject, projectById } from "../project/projectStore";
 import { studioStore } from "../store";
 import { agreedOn, canWritePages, cloudHeaderProject, cloudPageIdOf, localPageOf, localProjectOf, planCloudSync, type CloudRow, type Known } from "./cloudModel";
+import type { PresenceRow } from "./presenceModel";
 import { useCollab, type SharedProject } from "./collabStore";
 
 /*
@@ -19,7 +20,9 @@ import { useCollab, type SharedProject } from "./collabStore";
  * copy in its own page store and the two are made to agree (cloudModel.ts planCloudSync) when the Studio opens, every
  * 20 s and a moment after a page here changes. Each save names the version it was made on: the server refuses one made
  * on an older version, so when two people saved, this copy goes to Version history, the cloud's newer one is taken and
- * the Studio says so; nothing is overwritten silently. A Can view member only takes. Realtime and the soft lock are GĐ 3.
+ * the Studio says so; nothing is overwritten silently. A Can view member only takes. GĐ 3: the server's realtime events
+ * (studio_pages, studio_comments, studio_presence) run a round at once, so a page someone else saves updates here within
+ * moments; the 20 s round stays as the fallback. Who is on a page is presence.ts.
  */
 
 /** Saving on an older version than the cloud's: refused by the server's rules. */
@@ -38,6 +41,15 @@ export interface CloudApi {
   downloadAsset(project: string, id: string): Promise<{ blob: Blob; name: string } | null>;
   readComments(project: string, pageId: string): Promise<{ id: string; data: PageComments; version: number } | null>;
   saveComments(project: string, pageId: string, data: PageComments, current: { id: string; version: number } | null): Promise<void>;
+  /** Who is on a page (GĐ 3, studio_presence). */
+  listPresence(project: string, pageId: string): Promise<PresenceRow[]>;
+  /** This person's row on a page, made or renewed (`id`: theirs from before); returns its id. */
+  setPresence(project: string, pageId: string, editing: boolean, id: string | null): Promise<string>;
+  removePresence(id: string): Promise<void>;
+  /** The server's word that pages, comments or presence changed (realtime); returns how to stop listening. */
+  subscribe(onChange: (collection: "studio_pages" | "studio_comments" | "studio_presence") => void): Promise<() => void>;
+  /** The person signed in (their user id, email and name), or null. */
+  me(): { id: string; email: string; name: string } | null;
 }
 
 const me = () => (pb.authStore.isValid ? pb.authStore.record : null);
@@ -98,14 +110,49 @@ const pocketbaseApi: CloudApi = {
       : pb.collection("studio_comments").create({ project, page_id: pageId, data, version: 1 });
     await save.catch((error) => { throw stale(error); });
   },
+  async listPresence(project, pageId) {
+    const rows = await pb.collection("studio_presence").getFullList({ filter: pb.filter("project = {:project} && page_id = {:pageId}", { project, pageId }) });
+    return rows.map((row) => ({ id: row.id, user: String(row.user), email: String(row.email), name: String(row.name ?? ""), editing: Boolean(row.editing), seen: Number(row.seen), created: Date.parse(String(row.created)) || 0 }));
+  },
+  async setPresence(project, pageId, editing, id) {
+    const user = me();
+    if (!user) throw Object.assign(new Error("Signed out"), { status: 401 });
+    if (id) {
+      const kept = await pb.collection("studio_presence").update(id, { editing, seen: Date.now() }).catch(() => null);
+      if (kept) return kept.id;
+    }
+    const row = await pb.collection("studio_presence").getFirstListItem(pb.filter("project = {:project} && page_id = {:pageId} && user = {:user}", { project, pageId, user: user.id })).catch(() => null);
+    if (row) return (await pb.collection("studio_presence").update(row.id, { editing, seen: Date.now() })).id;
+    return (await pb.collection("studio_presence").create({ project, page_id: pageId, user: user.id, email: user.email, name: String(user.name ?? ""), editing, seen: Date.now() })).id;
+  },
+  async removePresence(id) {
+    await pb.collection("studio_presence").delete(id).catch(() => undefined);
+  },
+  async subscribe(onChange) {
+    const stops = await Promise.all((["studio_pages", "studio_comments", "studio_presence"] as const).map((name) => pb.collection(name).subscribe("*", () => onChange(name)).catch(() => async () => undefined)));
+    return () => { stops.forEach((stop) => void stop()); };
+  },
+  me() {
+    const user = me();
+    return user ? { id: user.id, email: String(user.email ?? ""), name: String(user.name ?? "") } : null;
+  },
 };
 
 /** The E2E's stand-in cloud (dev only; collabStore.ts's fixture `cloud`): the same rules on plain lists, no network. */
-type FixtureCloud = { pages: Array<{ id: string; project: string; page_id: string; title: string; text: string; version: number; trashed: boolean }>; data: Record<string, unknown>; comments: Record<string, { id: string; data: PageComments; version: number }> };
+type FixtureCloud = {
+  pages: Array<{ id: string; project: string; page_id: string; title: string; text: string; version: number; trashed: boolean }>;
+  data: Record<string, unknown>;
+  comments: Record<string, { id: string; data: PageComments; version: number }>;
+  /** Presence rows (GĐ 3), by project and page; the E2E adds other people's. */
+  presence?: Array<PresenceRow & { project: string; page_id: string }>;
+  /** What the Studio listens with; the E2E calls them as the server's realtime events. */
+  listeners?: Array<(collection: string) => void>;
+};
+type Fixture = { me: { id: string; email: string }; cloud?: FixtureCloud };
+const fixture = (): Fixture | null => (import.meta.env.DEV && typeof window !== "undefined" ? (window as { __zenStudioCollab?: Fixture }).__zenStudioCollab ?? null : null);
 const fixtureCloud = (): FixtureCloud | null => {
-  if (!import.meta.env.DEV || typeof window === "undefined") return null;
-  const fixture = (window as { __zenStudioCollab?: { cloud?: FixtureCloud } }).__zenStudioCollab;
-  return fixture ? (fixture.cloud ??= { pages: [], data: {}, comments: {} }) : null;
+  const stand = fixture();
+  return stand ? (stand.cloud ??= { pages: [], data: {}, comments: {} }) : null;
 };
 const fixtureApi = (cloud: FixtureCloud): CloudApi => ({
   async listPages(project) { return cloud.pages.filter((page) => page.project === project).map((page) => ({ id: page.id, pageId: page.page_id, title: page.title, version: page.version, trashed: page.trashed })); },
@@ -134,9 +181,38 @@ const fixtureApi = (cloud: FixtureCloud): CloudApi => ({
     if ((now?.version ?? 0) !== (current?.version ?? 0)) throw new StaleError("stale");
     cloud.comments[key] = { id: now?.id ?? key, data, version: (now?.version ?? 0) + 1 };
   },
+  async listPresence(project, pageId) { return (cloud.presence ?? []).filter((row) => row.project === project && row.page_id === pageId).map(({ project: _p, page_id: _q, ...row }) => ({ ...row })); },
+  async setPresence(project, pageId, editing, id) {
+    const who = fixture()!.me;
+    const rows = (cloud.presence ??= []);
+    const row = rows.find((item) => item.id === id) ?? rows.find((item) => item.project === project && item.page_id === pageId && item.user === who.id);
+    if (row) { Object.assign(row, { editing, seen: Date.now() }); return row.id; }
+    const made = { id: `fxp-${rows.length + 1}`, project, page_id: pageId, user: who.id, email: who.email, name: "", editing, seen: Date.now(), created: Date.now() };
+    rows.push(made);
+    return made.id;
+  },
+  async removePresence(id) { cloud.presence = (cloud.presence ?? []).filter((row) => row.id !== id); },
+  async subscribe(onChange) {
+    const listener = (collection: string) => onChange(collection as "studio_pages");
+    (cloud.listeners ??= []).push(listener);
+    return () => { cloud.listeners = (cloud.listeners ?? []).filter((item) => item !== listener); };
+  },
+  me() { const who = fixture()!.me; return { id: who.id, email: who.email, name: "" }; },
 });
 
-const api = (): CloudApi => { const cloud = fixtureCloud(); return cloud ? fixtureApi(cloud) : pocketbaseApi; };
+/** The cloud this Studio talks to: PocketBase, or the E2E's stand-in. */
+export const cloudApi = (): CloudApi => { const cloud = fixtureCloud(); return cloud ? fixtureApi(cloud) : pocketbaseApi; };
+const api = cloudApi;
+
+/** Where each page of a shared project is in the cloud (filled by each round): presence.ts finds the open page's. */
+export type CloudPlace = { project: SharedProject; pageId: string };
+const places = new Map<string, CloudPlace>();
+let placesVersion = 0;
+const placeListeners = new Set<() => void>();
+const placed = () => { placesVersion += 1; placeListeners.forEach((listener) => listener()); };
+export const cloudPlaceOf = (localId: string | null) => (localId ? places.get(localId) ?? null : null);
+/** Re-renders when the places change (a page pulled, made or shared). */
+export const useCloudPlaces = () => useSyncExternalStore((listener) => { placeListeners.add(listener); return () => { placeListeners.delete(listener); }; }, () => placesVersion);
 
 /* ── what this browser last agreed on ── */
 
@@ -204,6 +280,7 @@ async function syncProject(cloud: CloudApi, project: SharedProject, records: Pag
   for (const record of mine) { const entry = known.pages[knownKey(project.id, record.id)]; if (entry) agreed.set(record.id, entry); }
   for (const row of rows) { const id = localPageOf(project, row); const entry = known.pages[knownKey(project.id, id)]; if (entry) agreed.set(id, entry); }
   const steps = planCloudSync(project, rows, mine.map((record) => ({ id: record.id, text: record.text, trashed: record.trashedAt !== undefined })), agreed, textHash);
+  for (const row of rows) places.set(localPageOf(project, row), { project, pageId: row.pageId });
   const photos = canWritePages(project) && steps.some((step) => step.kind === "push" || step.kind === "create") ? await cloud.listAssets(project.id) : new Set<string>();
   const conflicts: string[] = [];
   // Comments are joined for the page open here and the pages this round moved (not every page every round).
@@ -230,6 +307,7 @@ async function syncProject(cloud: CloudApi, project: SharedProject, records: Pag
         if (step.kind === "create") {
           const made = await cloud.createPage(project.id, cloudPageIdOf(step.id), { title: record.title, text });
           known.pages[key] = agreedOn(made.id, made.version, record.text, textHash);
+          places.set(step.id, { project, pageId: cloudPageIdOf(step.id) });
         } else {
           const version = await cloud.savePage(step.row.id, { title: record.title, text, trashed: record.trashedAt !== undefined }, step.known.version);
           known.pages[key] = agreedOn(step.row.id, version, record.text, textHash);
@@ -280,6 +358,7 @@ export function syncCloudNow(projects: readonly SharedProject[] = lastProjects):
         const conflicts: string[] = [];
         for (const project of lastProjects) conflicts.push(...await syncProject(cloud, project, records, known));
         await writeKnown();
+        placed();
         if (conflicts.length) announceEditStatus({ kind: "error", message: `Someone saved ${conflicts.join(", ")} first: theirs is open, yours is in Version history`, at: Date.now() });
       } while (again);
       setStatus({ syncing: false, error: null, at: Date.now() });
@@ -303,8 +382,13 @@ export function useCloudSync() {
     void syncCloudNow(projects);
     const timer = window.setInterval(() => void syncCloudNow(projects), 20_000);
     let soon = 0;
-    const unsubscribe = subscribePages(() => { window.clearTimeout(soon); soon = window.setTimeout(() => void syncCloudNow(projects), 2000); });
-    return () => { window.clearInterval(timer); window.clearTimeout(soon); unsubscribe(); };
+    const later = (ms: number) => { window.clearTimeout(soon); soon = window.setTimeout(() => void syncCloudNow(projects), ms); };
+    const unsubscribe = subscribePages(() => later(2000));
+    // GĐ 3: the server says a page or comments changed: a round at once (presence.ts listens for presence).
+    let stopRealtime: (() => void) | null = null;
+    let live = true;
+    void api().subscribe((collection) => { if (collection !== "studio_presence") later(300); }).then((stop) => { if (live) stopRealtime = stop; else stop(); });
+    return () => { live = false; window.clearInterval(timer); window.clearTimeout(soon); unsubscribe(); stopRealtime?.(); };
     // `key` stands for the projects and roles.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, key]);
