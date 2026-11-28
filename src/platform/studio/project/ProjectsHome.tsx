@@ -19,7 +19,7 @@ import { useStudio } from "../store";
 import { projectBrand, type Project } from "../../../../tools/studio/project-theme.mjs";
 import { openProjectHome, useHomeView } from "./activeProject";
 import { openProjectSetup } from "./ProjectSetup";
-import { DRAFTS, trashProject, useProject, useProjects } from "./projectStore";
+import { DRAFTS, isShared, trashProject, useProject, useProjects } from "./projectStore";
 import "./project.css";
 import { SharedProjects } from "../collab/SharedProjects";
 
@@ -140,7 +140,8 @@ function ProjectHome({ project }: { project: Project | null }) {
         headingLevel={2}
         title={pages.length ? `Pick a page of ${name}` : project ? `Make the first page of ${name}` : "Make your first page"}
         primaryAction={admin ? { label: "New page", onClick: () => setDialog("page") } : undefined}
-        secondaryAction={admin ? (project ? { label: "Project settings", onClick: () => openProjectSetup({ kind: "edit", id: project.id }) } : { label: "New folder", onClick: () => setDialog("folder") }) : undefined}
+        // A project shared with this person keeps its owner's settings (projectStore.isShared): no Project settings here.
+        secondaryAction={admin ? (project ? (isShared(project.id) ? undefined : { label: "Project settings", onClick: () => openProjectSetup({ kind: "edit", id: project.id }) }) : { label: "New folder", onClick: () => setDialog("folder") }) : undefined}
       >
         {project ? `Pages here draw in ${name}'s theme.` : "Drafts use the Zen theme. Put pages in a project to give them its theme."}
       </EmptyState>

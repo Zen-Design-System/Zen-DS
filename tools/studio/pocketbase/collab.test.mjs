@@ -53,15 +53,15 @@ before(async () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   tokens.su = ok(await call(null, "POST", "/api/collections/_superusers/auth-with-password", { identity: su.email, password: su.password }), "superuser sign-in").token;
-  // alice and bob hold seats, carol does not.
-  for (const name of ["alice", "bob", "carol"]) {
+  // alice, bob and dave hold seats, carol does not.
+  for (const name of ["alice", "bob", "carol", "dave"]) {
     const email = `${name}@studio-collab.test`;
     const password = secret();
     const record = ok(await call("su", "POST", "/api/collections/users/records", { email, password, passwordConfirm: password, verified: true, name }), `create ${name}`);
     people[name] = { id: record.id, email };
     tokens[name] = ok(await call(null, "POST", "/api/collections/users/auth-with-password", { identity: email, password }), `${name} signs in`).token;
   }
-  for (const name of ["alice", "bob"]) ok(await call("su", "POST", "/api/collections/studio_seats/records", { email: people[name].email }), `seat for ${name}`);
+  for (const name of ["alice", "bob", "dave"]) ok(await call("su", "POST", "/api/collections/studio_seats/records", { email: people[name].email }), `seat for ${name}`);
 });
 
 after(() => {
@@ -111,4 +111,52 @@ test("projects and members: the owner shares, members see, roles hold on the ser
   // Deleting the project takes its members with it.
   ok(await call("alice", "DELETE", `/api/collections/studio_projects/records/${project.id}`), "alice deletes Shop");
   assert.equal((await list("su", "studio_members")).length, 0, "its members went with it");
+});
+
+test("GĐ 2: pages, photos, comments and theme follow the roles, and an old version never overwrites a newer one", { skip }, async () => {
+  const project = ok(await call("alice", "POST", "/api/collections/studio_projects/records", { name: "Book", owner: people.alice.id, owner_email: people.alice.email, local_id: "book", data: { name: "Book" } }), "alice shares Book");
+  ok(await call("alice", "POST", "/api/collections/studio_members/records", { project: project.id, email: people.bob.email, role: "viewer" }), "bob, Can view");
+  ok(await call("alice", "POST", "/api/collections/studio_members/records", { project: project.id, email: people.dave.email, role: "editor" }), "dave, Can edit");
+
+  // Pages: the owner and editors write, a viewer reads only; each save names the version it was made on.
+  const page = ok(await call("dave", "POST", "/api/collections/studio_pages/records", { project: project.id, page_id: "home", title: "Home", text: "v1", version: 1, updated_by: people.dave.id }), "dave makes Home");
+  refused(await call("bob", "POST", "/api/collections/studio_pages/records", { project: project.id, page_id: "bob", title: "Bob", text: "x", version: 1, updated_by: people.bob.id }), "a viewer makes a page");
+  refused(await call("bob", "PATCH", `/api/collections/studio_pages/records/${page.id}`, { text: "bob was here", base_version: 1, version: 2, updated_by: people.bob.id }), "a viewer saves a page");
+  refused(await call("dave", "POST", "/api/collections/studio_pages/records", { project: project.id, page_id: "late", title: "Late", text: "x", version: 3, updated_by: people.dave.id }), "a new page that does not start at 1");
+  refused(await call("dave", "PATCH", `/api/collections/studio_pages/records/${page.id}`, { text: "as alice", base_version: 1, version: 2, updated_by: people.alice.id }), "a save in someone else's name");
+  ok(await call("dave", "PATCH", `/api/collections/studio_pages/records/${page.id}`, { text: "v2", base_version: 1, version: 2, updated_by: people.dave.id }), "dave saves on version 1");
+  refused(await call("alice", "PATCH", `/api/collections/studio_pages/records/${page.id}`, { text: "alice on v1", base_version: 1, version: 2, updated_by: people.alice.id }), "alice saves on the old version 1");
+  ok(await call("alice", "PATCH", `/api/collections/studio_pages/records/${page.id}`, { text: "v3", base_version: 2, version: 3, updated_by: people.alice.id }), "alice saves on version 2");
+  refused(await call("dave", "PATCH", `/api/collections/studio_pages/records/${page.id}`, { page_id: "moved", base_version: 3, version: 4, updated_by: people.dave.id }), "a page moved to another id");
+  assert.deepEqual((await list("bob", "studio_pages")).map((item) => [item.page_id, item.text, item.version]), [["home", "v3", 3]], "bob reads the newest");
+  assert.equal((await list("carol", "studio_pages")).length, 0, "carol reads nothing");
+
+  // Comments: every member writes them, versioned the same way.
+  const thread = ok(await call("bob", "POST", "/api/collections/studio_comments/records", { project: project.id, page_id: "home", data: { threads: [] }, version: 1 }), "bob comments");
+  ok(await call("dave", "PATCH", `/api/collections/studio_comments/records/${thread.id}`, { data: { threads: [1] }, base_version: 1, version: 2 }), "dave answers");
+  refused(await call("bob", "PATCH", `/api/collections/studio_comments/records/${thread.id}`, { data: { threads: [] }, base_version: 1, version: 2 }), "bob's comments on the old version");
+  refused(await call("carol", "POST", "/api/collections/studio_comments/records", { project: project.id, page_id: "x", data: {}, version: 1 }), "carol comments");
+
+  // Photos: editors upload, members read.
+  const upload = async (who, assetId) => {
+    const form = new FormData();
+    form.set("project", project.id);
+    form.set("asset_id", assetId);
+    form.set("file", new Blob([new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10])], { type: "image/png" }), `${assetId}`);
+    const response = await fetch(`${base}/api/collections/studio_assets/records`, { method: "POST", headers: { authorization: tokens[who] }, body: form });
+    return { status: response.status, body: await response.json().catch(() => null) };
+  };
+  ok(await upload("dave", "photo-abc.png"), "dave uploads a photo");
+  refused(await upload("bob", "photo-def.png"), "a viewer uploads a photo");
+  refused(await upload("dave", "photo-abc.png"), "the same photo twice");
+  assert.equal((await list("bob", "studio_assets")).length, 1, "bob sees the photo");
+
+  // Theme: the owner's.
+  ok(await call("alice", "PATCH", `/api/collections/studio_projects/records/${project.id}`, { data: { name: "Book", theme: "warm" } }), "alice changes the theme");
+  refused(await call("dave", "PATCH", `/api/collections/studio_projects/records/${project.id}`, { data: { name: "Book", theme: "cold" } }), "an editor changes the theme");
+
+  // Deleting for good is the owner's; an editor trashes with a save.
+  refused(await call("dave", "DELETE", `/api/collections/studio_pages/records/${page.id}`), "an editor deletes a page for good");
+  ok(await call("dave", "PATCH", `/api/collections/studio_pages/records/${page.id}`, { trashed: true, base_version: 3, version: 4, updated_by: people.dave.id }), "dave trashes Home");
+  ok(await call("alice", "DELETE", `/api/collections/studio_pages/records/${page.id}`), "alice deletes Home");
 });

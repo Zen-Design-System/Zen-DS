@@ -122,6 +122,10 @@ function syncFonts(project: Project) {
     .catch(() => undefined);
 }
 
+/** A project someone shared with this person (collab/cloudSync.ts, `shared-<cloud id>`): kept in this browser only, its
+ *  settings its owner's. */
+export const isShared = (id: string) => id.startsWith("shared-");
+
 /** Writes to the dev server's folder: true when it took it, false when no server answered (a build, no token: the
  *  browser's copy is the project until one does); throws when the server refused it. */
 async function serverWrite(action: "write" | "trash", body: unknown): Promise<boolean> {
@@ -146,7 +150,8 @@ function load(): Promise<void> {
     const remote = await serverList().catch(() => null);
     if (remote) {
       const known = new Set(remote.map((project) => project.id));
-      const onlyHere = local.filter((project) => !known.has(project.id) && pending.has(project.id));
+      // A project shared with this person (isShared) lives in this browser only: the folder never has it.
+      const onlyHere = local.filter((project) => !known.has(project.id) && (pending.has(project.id) || isShared(project.id)));
       for (const project of onlyHere) markSynced(project.id, await serverWrite("write", { project }).catch(() => false));
       for (const id of [...pending]) if (known.has(id)) pending.delete(id);
       projects = byName([...remote, ...onlyHere]);
@@ -182,9 +187,26 @@ export async function createProject(name: string, theme: ProjectTheme, locale?: 
   return project;
 }
 
+/**
+ * Takes a project as the cloud copy of a shared project has it (collab/cloudSync.ts): the project of that id is made or
+ * replaced, as it is, in this browser (and the dev server's folder for a project of the owner's own). Unchanged: nothing
+ * written. Returns it, or null when it is not a project.
+ */
+export async function adoptProject(raw: unknown): Promise<Project | null> {
+  await load();
+  const { project } = normalizeProject(raw);
+  if (!project || project.id === DRAFTS) return null;
+  const current = projects.find((item) => item.id === project.id);
+  if (current && JSON.stringify(current) === JSON.stringify(project)) return current;
+  if (!isShared(project.id)) markSynced(project.id, await serverWrite("write", { project }).catch(() => false));
+  await commit(current ? projects.map((item) => (item.id === project.id ? project : item)) : [...projects, project]);
+  return project;
+}
+
 /** Saves a project's new name, theme or language (Project settings), or its libraries (the Libraries dialog). */
 export async function updateProject(id: string, change: { name?: string; theme?: ProjectTheme; libraries?: ProjectLibraries; locale?: ProjectLocale }): Promise<Project> {
   await load();
+  if (isShared(id)) throw new Error("Only the project's owner changes its settings");
   const current = projects.find((project) => project.id === id);
   if (!current) throw new Error("The project is gone");
   const { project, errors } = normalizeProject({ ...current, ...change, updatedAt: Date.now() });
@@ -198,7 +220,7 @@ export async function updateProject(id: string, change: { name?: string; theme?:
 /** Moves a project's folder to the trash (.zen-studio/trash/projects/); its pages stay and show under Drafts. */
 export async function trashProject(id: string): Promise<void> {
   await load();
-  await serverWrite("trash", { id });
+  if (!isShared(id)) await serverWrite("trash", { id });
   pending.delete(id);
   await commit(projects.filter((project) => project.id !== id));
 }

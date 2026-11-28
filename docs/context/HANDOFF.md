@@ -116,7 +116,10 @@ Last updated: 2026-11-22.
   touch the live instance); `src/platform/studio/collab/` (collabModel + selftest, collabStore, ShareDialog,
   SharedProjects, SeatGate); `state.roleCeiling` caps `state.role` (store.ts `withRole`; `chosenRole` is the saved pick);
   `npm run studio:build:hosted` (VITE_STUDIO_HOSTED=1). E2E FW-302…304 (stand-in server `window.__zenStudioCollab`). Next:
-  GĐ 2 cloud PageMirror, GĐ 3 realtime + soft lock.
+  GĐ 2 (2026-11-28, branch `zen/feat/studio-collab-g2-20261128`
+  on GĐ 1): `collab/cloudModel.ts` (+ selftest: ids, planCloudSync) and `collab/cloudSync.ts` (CloudApi over PocketBase
+  or the E2E stand-in; known versions in IndexedDB `collab-cloud`); members keep `shared-<id>` / `cloud-<record>`;
+  `projectStore.adoptProject`, `pageStore.allPageRecords` / `subscribePages`. Next: GĐ 3 realtime + soft lock.
 - **Studio UI/UX review (2026-10-27, docs only):** `docs/research/studio-ux-review-2026-10-27.md` — five hands-on
   walks on the user's pages, the Figma-key E2E walk, axe, a UX-writing audit (40 strings), 15 screenshots. Ranked
   proposal §7 approved by the user 2026-10-27, in order: P0 double-click / Enter land on DOM parts with a CSS panel and ⌘A / ⌘D die after

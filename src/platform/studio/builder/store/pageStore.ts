@@ -187,6 +187,13 @@ export async function listPages(): Promise<PageMeta[]> {
   return live();
 }
 
+/** Every page this browser keeps, the Trash's too, with its text: the cloud copy of a shared project
+ *  (collab/cloudSync.ts) is compared with them. */
+export async function allPageRecords(): Promise<PageRecord[]> {
+  await loadAll();
+  return [...cache.values()];
+}
+
 /** A live page's record (cache first); null when missing or in the Trash. */
 export async function getPage(id: string): Promise<PageRecord | null> {
   const record = await recordOf(id);
@@ -669,6 +676,8 @@ export async function syncMirror(): Promise<void> {
 /* ── hooks ──────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 const subscribe = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
+/** Runs `listener` after any page here changes (the cloud copy saves the change, collab/cloudSync.ts). */
+export const subscribePages = subscribe;
 const useVersion = () => useSyncExternalStore(subscribe, () => version, () => version);
 
 /** The live page's record as it is now (re-renders on every write, here or in another tab); null until read, when gone or trashed. */
