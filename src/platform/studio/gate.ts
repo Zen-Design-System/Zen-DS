@@ -7,7 +7,7 @@ import type { StudioState } from "./types";
  * chip shows (`short` is the Inspector status line), with the fix when there is one. Before the first ping answers, the gate is "connecting" (no chip).
  */
 
-export type EditGateReason = "production" | "viewer" | "shared-viewer" | "connecting" | "not-loopback" | "no-server" | "fs-readonly";
+export type EditGateReason = "production" | "viewer" | "shared-viewer" | "page-locked" | "connecting" | "not-loopback" | "no-server" | "fs-readonly";
 export type EditGate =
   | { ok: true }
   | { ok: false; reason: EditGateReason; title: string; detail: string; short: string };
@@ -27,7 +27,9 @@ export function loopbackUrl(href: string): string {
   return url.toString();
 }
 
-export function editGate(state: Pick<StudioState, "role"> & Partial<Pick<StudioState, "localPage" | "roleCeiling">>, server: ServerView, env: { dev: boolean; hostname: string }): EditGate {
+export function editGate(state: Pick<StudioState, "role"> & Partial<Pick<StudioState, "localPage" | "roleCeiling" | "pageLock">>, server: ServerView, env: { dev: boolean; hostname: string }): EditGate {
+  // Someone else editing this page of a shared project holds its soft lock (collab/presence.ts): view until they leave.
+  if (state.localPage && state.pageLock) return { ok: false, reason: "page-locked", short: `${state.pageLock.name} is editing`, title: `${state.pageLock.name} is editing this page`, detail: "You see their changes as they save. Edit anyway to change it too: when you both save, the later save keeps the other in Version history." };
   // A project shared with you as Can view (collab/collabStore.ts): only its owner can give you Can edit.
   if (state.localPage && state.roleCeiling === "viewer") return { ok: false, reason: "shared-viewer", short: "View only", title: "You can view this project", detail: "Its owner shared it with you as Can view. Ask them for Can edit to make changes." };
   // A builder page lives in this browser (Studio builder GĐ2): only the role decides, on any host and in a build.

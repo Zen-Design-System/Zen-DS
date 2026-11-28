@@ -59,7 +59,9 @@ higher `version` since PocketBase rules have no arithmetic; polling every 20 s u
   Version history; it never overwrites silently.
 - A migration path: move pages that live on a machine into a cloud project.
 
-**GĐ 3 — Seeing each other**
+**GĐ 3 — Seeing each other** (built 2026-11-29 on `zen/feat/studio-collab-g3-20261128`: `studio_presence`,
+`collab/presenceModel.ts` + `presence.ts`, `PagePeople`, gate reason `page-locked`; realtime through PocketBase
+subscriptions with the 20 s round as fallback)
 - Realtime: when someone else saves, the open page updates.
 - Avatars of the people on the page in the top bar (each person already has a colour).
 - **Soft lock:** "Bích is editing this page"; the next person views until the editor leaves or they press "Edit anyway".

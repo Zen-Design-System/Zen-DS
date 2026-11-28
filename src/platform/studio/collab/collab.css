@@ -11,3 +11,6 @@
    marked with the Studio's selection colour. */
 .studio-projects__shared { display: grid; gap: var(--zen-spacing-gap-medium, 16px); }
 .studio-projects__shared li[data-linked] .studio-projects__card { outline: 2px solid var(--zen-color-border-info-solid-default); outline-offset: 2px; }
+
+/* The others on the open page (collab/PagePeople.tsx): beside the role, the avatars on the bar's centre line. */
+.studio-page-people { display: inline-flex; align-items: center; }

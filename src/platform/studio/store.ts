@@ -21,6 +21,7 @@ const defaults: StudioState = {
   role: "admin",
   chosenRole: "admin",
   roleCeiling: "admin",
+  pageLock: null,
   chromeTheme: "light",
   preview: { theme: "light", density: "compact", componentTheme: "neutral-s1", typography: "dashboard", radius: "rounded", emphasis: "medium", contrast: "standard" },
   viewports: {},
@@ -90,6 +91,7 @@ function initialState(): StudioState {
     // The saved role is the one the person picked; the open project's ceiling comes from its membership once read.
     chosenRole: prefs.role ?? defaults.role,
     roleCeiling: defaults.roleCeiling,
+    pageLock: null,
   };
 }
 

@@ -176,6 +176,9 @@ async function openSharedPage(ctx, page, cloudId, projectName, title) {
   await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 15_000 });
 }
 
+/** The stand-in server's realtime event for `collection` (collab/cloudSync.ts fixture listeners). */
+const emit = (page, collection) => page.evaluate((name) => (window.__zenStudioCollab.cloud.listeners ?? []).forEach((listener) => listener(name)), collection);
+
 /** Opens the page `id` in a fresh browser context (no viewport remembered for it): its first view. */
 async function openFirst(ctx, id) {
   const { page } = await ctx.studio({ fresh: true });
@@ -965,15 +968,15 @@ export const rows = [
   {
     id: "FW-305", feature: "A shared project's pages from the cloud (collaboration GĐ 2): a Can edit member opens Shop from Shared with you, its page Landing comes from the cloud and opens with its text, and a change here (a new name) is saved to the cloud on the version it was made on (v1 → v2), its header naming the owner's project", wp: "collab GĐ2 2026-11-28", timeout: 90_000,
     async run(ctx) {
-      const shop = { id: "c-shop", name: "Shop", owner: "u-al", ownerEmail: "al@studio-e2e.test", localId: "shop", access: "editor" };
-      const cloud = { pages: [{ id: "fx-home", project: "c-shop", page_id: "home", title: "Landing", text: cloudPageText("Landing", "shop", "Hello from the cloud"), version: 1, trashed: false }], data: {}, comments: {} };
+      const shop = { id: "c-shop-305", name: "Shop", owner: "u-al", ownerEmail: "al@studio-e2e.test", localId: "shop", access: "editor" };
+      const cloud = { pages: [{ id: "fx-305", project: "c-shop-305", page_id: "home", title: "Landing", text: cloudPageText("Landing", "shop", "Hello from the cloud"), version: 1, trashed: false }], data: {}, comments: {} };
       await collabSession(ctx, { me: { id: "u-bob", email: "bob@studio-e2e.test" }, seat: true, projects: [shop], members: {}, cloud });
       try {
         const { page } = await ctx.studio();
-        await openSharedPage(ctx, page, "c-shop", "Shop", "Landing");
+        await openSharedPage(ctx, page, "c-shop-305", "Shop", "Landing");
         await until(async () => /Hello from the cloud/.test(await page.locator(".studio-world").innerText()), { timeout: 20_000, message: "Landing's text on the canvas" });
         await renamePage(page, "Landing 2");
-        const saved = await until(async () => { const row = (await cloudPages(page)).find((item) => item.id === "fx-home"); return row && row.version === 2 && row.title === "Landing 2" ? row : null; }, { timeout: 20_000, message: "the new name saved to the cloud as version 2" });
+        const saved = await until(async () => { const row = (await cloudPages(page)).find((item) => item.id === "fx-305"); return row && row.version === 2 && row.title === "Landing 2" ? row : null; }, { timeout: 20_000, message: "the new name saved to the cloud as version 2" });
         if (!/"project":"shop"/.test(saved.text)) throw new Error(`the cloud's copy does not name the owner's project: ${saved.text.split("\n")[0]}`);
         return "Shared with you › Shop › Landing: text from the cloud · renamed Landing 2 → cloud v2, header project shop";
       } finally {
@@ -984,19 +987,19 @@ export const rows = [
   {
     id: "FW-306", feature: "Two people save one page (collaboration GĐ 2): someone else saves Landing in the cloud while this member changes it here; the save made on the old version is refused, the cloud's newer Landing opens, this copy is kept in Version history, and the Studio says who saved first — nothing is overwritten silently", wp: "collab GĐ2 2026-11-28", timeout: 90_000,
     async run(ctx) {
-      const shop = { id: "c-shop", name: "Shop", owner: "u-al", ownerEmail: "al@studio-e2e.test", localId: "shop", access: "editor" };
-      const cloud = { pages: [{ id: "fx-home", project: "c-shop", page_id: "home", title: "Landing", text: cloudPageText("Landing", "shop", "First words"), version: 1, trashed: false }], data: {}, comments: {} };
+      const shop = { id: "c-shop-306", name: "Shop", owner: "u-al", ownerEmail: "al@studio-e2e.test", localId: "shop", access: "editor" };
+      const cloud = { pages: [{ id: "fx-306", project: "c-shop-306", page_id: "home", title: "Landing", text: cloudPageText("Landing", "shop", "First words"), version: 1, trashed: false }], data: {}, comments: {} };
       await collabSession(ctx, { me: { id: "u-bob", email: "bob@studio-e2e.test" }, seat: true, projects: [shop], members: {}, cloud });
       try {
         const { page } = await ctx.studio();
-        await openSharedPage(ctx, page, "c-shop", "Shop", "Landing");
+        await openSharedPage(ctx, page, "c-shop-306", "Shop", "Landing");
         await until(async () => /First words/.test(await page.locator(".studio-world").innerText()), { timeout: 20_000, message: "Landing opens" });
         // Someone else saves version 2 in the cloud.
-        await page.evaluate((text) => { const row = window.__zenStudioCollab.cloud.pages.find((item) => item.id === "fx-home"); Object.assign(row, { text, title: "Landing", version: 2 }); }, cloudPageText("Landing", "shop", "Their words"));
+        await page.evaluate((text) => { const row = window.__zenStudioCollab.cloud.pages.find((item) => item.id === "fx-306"); Object.assign(row, { text, title: "Landing", version: 2 }); }, cloudPageText("Landing", "shop", "Their words"));
         await renamePage(page, "Mine");
         await until(async () => /Their words/.test(await page.locator(".studio-world").innerText()), { timeout: 30_000, message: "the cloud's newer Landing opens" });
         const said = await until(async () => { const text = await statusText(page); return /saved Landing first/.test(text) ? text : null; }, { timeout: 10_000, message: "the Studio says someone saved first" });
-        const row = (await cloudPages(page)).find((item) => item.id === "fx-home");
+        const row = (await cloudPages(page)).find((item) => item.id === "fx-306");
         if (row.version !== 2 || !/Their words/.test(row.text)) throw new Error(`the cloud's Landing was overwritten: v${row.version} ${row.text.slice(0, 60)}`);
         return `their v2 kept in the cloud and opened here · said: ${said.slice(0, 80)}`;
       } finally {
@@ -1026,6 +1029,88 @@ export const rows = [
         const data = await page.evaluate(() => window.__zenStudioCollab.cloud.data);
         if (!Object.values(data).some((item) => item?.name === "E2E Cloud")) throw new Error(`the project's settings did not go up: ${JSON.stringify(data).slice(0, 120)}`);
         return `shared → ${id} in the cloud at v1 (header e2e-cloud) · settings up`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "FW-308", feature: "Realtime (collaboration GĐ 3): with Landing open, someone else saves it in the cloud and the server says so; Landing shows their text within moments, well before the 20 s round", wp: "collab GĐ3 2026-11-29", timeout: 90_000,
+    async run(ctx) {
+      const shop = { id: "c-shop-308", name: "Shop", owner: "u-al", ownerEmail: "al@studio-e2e.test", localId: "shop", access: "editor" };
+      const cloud = { pages: [{ id: "fx-308", project: "c-shop-308", page_id: "landing", title: "Landing", text: cloudPageText("Landing", "shop", "Before"), version: 1, trashed: false }], data: {}, comments: {}, presence: [] };
+      await collabSession(ctx, { me: { id: "u-bob", email: "bob@studio-e2e.test" }, seat: true, projects: [shop], members: {}, cloud });
+      try {
+        const { page } = await ctx.studio();
+        await openSharedPage(ctx, page, "c-shop-308", "Shop", "Landing");
+        await until(async () => /Before/.test(await page.locator(".studio-world").innerText()), { timeout: 20_000, message: "Landing opens" });
+        await sleep(2500);
+        const t0 = Date.now();
+        await page.evaluate((text) => { Object.assign(window.__zenStudioCollab.cloud.pages[0], { text, version: 2 }); }, cloudPageText("Landing", "shop", "After their save"));
+        await emit(page, "studio_pages");
+        await until(async () => /After their save/.test(await page.locator(".studio-world").innerText()), { timeout: 6000, message: "their save on the canvas within 6 s" });
+        return `their v2 on the canvas ${Date.now() - t0} ms after the server's event`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "FW-309", feature: "Who is on the page (collaboration GĐ 3): Al viewing Landing shows in the top bar beside the role; Cy arriving and editing joins at once (the server's presence event), named first as editing; this person's own row is in the cloud", wp: "collab GĐ3 2026-11-29", timeout: 90_000,
+    async run(ctx) {
+      const shop = { id: "c-shop-309", name: "Shop", owner: "u-al", ownerEmail: "al@studio-e2e.test", localId: "shop", access: "viewer" };
+      const now = Date.now();
+      const cloud = { pages: [{ id: "fx-309", project: "c-shop-309", page_id: "landing", title: "Landing", text: cloudPageText("Landing", "shop", "Hello"), version: 1, trashed: false }], data: {}, comments: {},
+        presence: [{ id: "p-al", project: "c-shop-309", page_id: "landing", user: "u-al", email: "al@studio-e2e.test", name: "Al", editing: false, seen: now, created: now - 60_000 }] };
+      await collabSession(ctx, { me: { id: "u-bob", email: "bob@studio-e2e.test" }, seat: true, projects: [shop], members: {}, cloud });
+      try {
+        const { page } = await ctx.studio();
+        await openSharedPage(ctx, page, "c-shop-309", "Shop", "Landing");
+        const people = page.getByRole("group", { name: /^On this page:/ });
+        await until(async () => /Al \(viewing\)/.test((await people.getAttribute("aria-label").catch(() => "")) ?? ""), { timeout: 20_000, message: "Al in the top bar" });
+        await page.evaluate(() => { window.__zenStudioCollab.cloud.presence.push({ id: "p-cy", project: "c-shop-309", page_id: "landing", user: "u-cy", email: "cy@studio-e2e.test", name: "Cy", editing: true, seen: Date.now(), created: Date.now() }); });
+        await emit(page, "studio_presence");
+        const said = await until(async () => { const label = await people.getAttribute("aria-label"); return /^On this page: Cy \(editing\), Al \(viewing\)$/.test(label ?? "") ? label : null; }, { timeout: 5000, message: "Cy joins, editing, named first" });
+        const mine = await page.evaluate(() => window.__zenStudioCollab.cloud.presence.find((row) => row.user === "u-bob"));
+        if (!mine || mine.editing) throw new Error(`this person's row is missing or says editing (a Can view member): ${JSON.stringify(mine)}`);
+        return `${said} · own row in the cloud, viewing`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "FW-310", feature: "Soft lock (collaboration GĐ 3): Al editing Landing holds it, so a Can edit member opens it in Can view with \"Al is editing this page\"; when Al leaves the lock lifts by itself; Al back first holds it again, and Edit anyway lets this person edit beside them (their row says editing)", wp: "collab GĐ3 2026-11-29", timeout: 120_000,
+    async run(ctx) {
+      const shop = { id: "c-shop-310", name: "Shop", owner: "u-al", ownerEmail: "al@studio-e2e.test", localId: "shop", access: "editor" };
+      const now = Date.now();
+      const al = (created) => ({ id: "p-al", project: "c-shop-310", page_id: "landing", user: "u-al", email: "al@studio-e2e.test", name: "Al", editing: true, seen: Date.now(), created });
+      const cloud = { pages: [{ id: "fx-310", project: "c-shop-310", page_id: "landing", title: "Landing", text: cloudPageText("Landing", "shop", "Hello"), version: 1, trashed: false }], data: {}, comments: {}, presence: [{ ...al(now - 60_000), seen: now }] };
+      await collabSession(ctx, { me: { id: "u-bob", email: "bob@studio-e2e.test" }, seat: true, projects: [shop], members: {}, cloud });
+      try {
+        const { page } = await ctx.studio();
+        await openSharedPage(ctx, page, "c-shop-310", "Shop", "Landing");
+        const role = page.getByRole("button", { name: /^Role: / });
+        const roleIs = (want, message, timeout = 15_000) => until(async () => (await role.getAttribute("aria-label")) === `Role: ${want}`, { timeout, message });
+        await roleIs("Can view", "locked: Can view");
+        await page.getByRole("button", { name: /View only|is editing/ }).first().click();
+        const panel = page.locator(".studio-gate__panel");
+        await panel.waitFor({ state: "visible", timeout: 3000 });
+        if (!/Al is editing this page/.test(await panel.innerText())) throw new Error(`the note does not name Al: ${await panel.innerText()}`);
+        await page.keyboard.press("Escape");
+        // Al leaves: the lock lifts by itself.
+        await page.evaluate(() => { const cloud = window.__zenStudioCollab.cloud; cloud.presence = cloud.presence.filter((row) => row.user !== "u-al"); });
+        await emit(page, "studio_presence");
+        await roleIs("Can edit", "the lock lifts when Al leaves", 5000);
+        // Al back, having opened it first: Al holds it again; Edit anyway.
+        await page.evaluate((row) => { window.__zenStudioCollab.cloud.presence.push({ ...row, seen: Date.now() }); }, al(now - 120_000));
+        await emit(page, "studio_presence");
+        await roleIs("Can view", "Al holds it again", 5000);
+        await page.getByRole("button", { name: /View only|is editing/ }).first().click();
+        await panel.getByRole("button", { name: "Edit anyway" }).click();
+        await roleIs("Can edit", "Edit anyway", 5000);
+        const mine = await until(async () => { const row = await page.evaluate(() => window.__zenStudioCollab.cloud.presence.find((item) => item.user === "u-bob")); return row?.editing ? row : null; }, { timeout: 5000, message: "this person's row says editing" });
+        return `Al editing → Can view, "Al is editing this page" · Al leaves → Can edit · Al back → Can view · Edit anyway → Can edit, own row editing (${mine.id})`;
       } finally {
         await ctx.studio({ fresh: true });
       }

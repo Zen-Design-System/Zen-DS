@@ -97,3 +97,27 @@ saves, conflicts kept in Version history, a migration path from a machine to a c
   project's home offered Project settings to a member (only its owner saves them).
 - Gate `npm run qa -- --isolated --files=…` PASS: static steps, Studio E2E 475 works · 0 broken in 5 shards (NO-12 timed
   out once under load and passed on retry; alone, `--no-retry`, it works in 11 s). `npm run build` passes.
+
+## Studio collaboration GĐ 3: seeing each other, soft lock (tier L, branch zen/feat/studio-collab-g3-20261128)
+
+Stacked on GĐ 2 (PR #440). Plan GĐ 3: realtime updates, avatars of the people on the page, a soft lock ("Bích is
+editing this page"; the next person views until the editor leaves or presses Edit anyway).
+
+- **Backend.** `pb_migrations/1796000000_studio_collab_presence.js`: `studio_presence` (project, page_id, user, email,
+  name, editing, seen epoch ms, created); members read, a person writes and removes only their own row, one row per
+  person and page. `collab.test.mjs` 4/4.
+- **Client.** `collab/presenceModel.ts` (pure, selftest 14: live rows within 45 s, one per person, the first editor holds
+  the lock, Edit anyway, a viewer never claims edit), `collab/presence.ts` (this person's row renewed every 15 s, removed
+  on leave and with a keepalive request when the tab closes; reads on every renewal and on the server's presence event;
+  publishes `state.pageLock`), CloudApi gains presence and `subscribe` (PocketBase realtime on pages, comments, presence;
+  the E2E stand-in's `listeners`); a page or comments event runs a sync round at once (`cloudPlaceOf` names where the open
+  page is). `state.pageLock` caps the role like a Can view membership; gate reason `page-locked` ("<name> is editing this
+  page", Edit anyway in the View only note). `PagePeople`: the others' AvatarStack beside the role.
+- E2E FW-308 (realtime), FW-309 (who is on the page), FW-310 (soft lock: locked, lifts, Edit anyway).
+- Runs (Giám sát's slot 00:13): FW-308 (their save on the canvas 446 ms after the server's event), FW-309, FW-310 work
+  on the first try. In the shell + gate + prototype run (98/98) FW-308 passed only on retry: the rows shared one cloud
+  project and record id, and the E2E server's pages folder kept FW-305/306's copy of that page, so FW-308 met a second
+  page of the project mid-conflict. Each cloud row now has its own project and record ids; FW-305…310 back to back,
+  `--no-retry`: 6/6.
+- Gate `npm run qa -- --isolated --files=…` PASS: static steps, Studio E2E 478 works · 0 broken in 4 shards (NO-11 timed
+  out once under load and passed on retry; alone, `--no-retry`, it works in 11 s). `npm run build` passes.
