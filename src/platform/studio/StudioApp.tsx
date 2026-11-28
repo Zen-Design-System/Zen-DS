@@ -22,6 +22,7 @@ import { DetachDialog } from "./inspector/DetachAction";
 import { ExportDialog } from "./builder/export/ExportDialog";
 import { ShareDialog } from "./collab/ShareDialog";
 import { useSharedLink } from "./collab/SharedProjects";
+import { useCloudSync } from "./collab/cloudSync";
 import { useRoleCeiling } from "./collab/collabStore";
 import { Inspector } from "./inspector/Inspector";
 import { LayersPanel } from "./select/LayersPanel";
@@ -202,6 +203,8 @@ export function StudioApp() {
   useRoleCeiling(useActiveProjectId());
   // A share link (?shared=<id>) opens the Studio home, where "Shared with you" marks the project.
   useSharedLink();
+  // The shared projects' cloud copies kept in step (GĐ 2, collab/cloudSync.ts).
+  useCloudSync();
   const page = useStudio((state) => state.page);
   const collection = useStudio((state) => state.collection);
   const localPage = useStudio((state) => state.localPage);

@@ -51,7 +51,9 @@ an owner or editor may still pick Can view for themself)
   project.
 - `RoleMenu` reads the role from membership; nobody picks their own role any more.
 
-**GĐ 2 — Pages saved to the cloud**
+**GĐ 2 — Pages saved to the cloud** (built 2026-11-28 on `zen/feat/studio-collab-g2-20261128`: `studio_pages` ·
+`studio_assets` · `studio_comments` · `studio_projects.data`, `collab/cloudSync.ts`; saves carry `base_version` and a
+higher `version` since PocketBase rules have no arithmetic; polling every 20 s until GĐ 3's realtime)
 - A `cloud` `PageMirror`: page text + document, images, comments and project theme saved in PocketBase.
 - Each save carries a version number. When someone else saved first, Studio reports the conflict and keeps both in
   Version history; it never overwrites silently.

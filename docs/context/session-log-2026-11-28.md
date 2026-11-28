@@ -66,3 +66,34 @@ BACKLOG-user-and-later line was brought up to date before any code.
   member leaves; deleting the project takes its members.
 - Gate `npm run qa -- --isolated --files=…` PASS: static steps, Studio E2E 472 works · 0 broken in 5 shards, no retries.
   `npm run build` passes.
+
+## Studio collaboration GĐ 2: a shared project's pages in the cloud (tier L, branch zen/feat/studio-collab-g2-20261128)
+
+Stacked on GĐ 1 (PR #439). Plan GĐ 2: page text, images, comments and project theme saved in PocketBase, versioned
+saves, conflicts kept in Version history, a migration path from a machine to a cloud project.
+
+- **Probed first** on the local PocketBase 0.39.11: rules have no arithmetic (`version + 1` is refused at migration
+  time), so a save sends `base_version` (the version it read) and a higher `version`, and the rule is
+  `@request.body.base_version = version && @request.body.version > version`; an aliased join
+  (`@collection.studio_members:me.…`) keeps project, email and role on one member row (a viewer is refused even with an
+  editor in the project); a text field's default max is 5000 characters, so pages take `max: 5000000`.
+- **Backend.** `pb_migrations/1795900000_studio_collab_pages.js`: `studio_pages` (owner + editors write, versioned, a
+  page trashed by a save, deleted for good by the owner), `studio_assets` (photo files by Studio asset id), `studio_comments`
+  (one JSON per page, every member writes, versioned), `studio_projects.data` (the owner's settings). `collab.test.mjs`
+  3/3 (a new test for all of it).
+- **Client.** `collab/cloudModel.ts` (pure: ids, header project, planCloudSync → pull / push / create / conflict /
+  trash-local; a viewer never sends; selftest 17) and `collab/cloudSync.ts` (CloudApi over PocketBase or the E2E's
+  stand-in `window.__zenStudioCollab.cloud`; what each page last agreed on in IndexedDB `collab-cloud`; settings: the
+  owner's go up, others adopt `shared-<id>` via `projectStore.adoptProject`, kept out of the dev folder; photos up with a
+  writer's push, down with a pull; comments joined with page-comments.mjs mergeComments for the open page and the pages
+  a round moved; a stale save → the cloud's page with reason "conflict" (this copy in Version history) and "Someone saved
+  … first" in the status). Runs at start, every 20 s and 2 s after a page changes (`pageStore.subscribePages`).
+- **UI.** Shared with you's cards open the project (`shared-<id>`); sharing a project uploads its pages (the migration
+  path; a draft moved into a shared project goes up the same way).
+- E2E FW-305 (member pulls and pushes v2), FW-306 (conflict), FW-307 (sharing uploads), ids from Giám sát.
+- Runs (Giám sát's slot 23:12): FW-307 worked at once; FW-305/306 first failed in the scenario (a page named "Home"
+  matched the top bar's Home crumb, so the row left the project); renamed Landing and opened from the Pages panel, both
+  work. Shell + gate + prototype 95/95, no retries; baseline records the three. Met on the way and fixed: a shared
+  project's home offered Project settings to a member (only its owner saves them).
+- Gate `npm run qa -- --isolated --files=…` PASS: static steps, Studio E2E 475 works · 0 broken in 5 shards (NO-12 timed
+  out once under load and passed on retry; alone, `--no-retry`, it works in 11 s). `npm run build` passes.

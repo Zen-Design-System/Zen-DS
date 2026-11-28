@@ -17,6 +17,11 @@ How to maintain it:
 - `@zen-ds/vue` 0.1.0 is ready to publish: `npm install @zen-ds/vue` with `import "@zen-ds/vue/styles.css"` (the same
   stylesheet as React), wave 1's 39 components with their types. It publishes from its own tag (`vue-v0.1.0`); React's
   release tags stay `vX.Y.Z`.
+- Zen Studio: a shared project's pages, photos, comments and theme are saved to the cloud (collaboration, phase 2).
+  Everyone in it opens its pages from Shared with you, and changes reach the others within moments (when the Studio
+  opens, every 20 seconds and right after a change). When two people save one page, the later save does not overwrite
+  the earlier one: the newer page opens, the other version is kept in Version history and the Studio says who saved
+  first. Can view members see the pages and comment; sharing a project takes its pages to the cloud.
 - Zen Studio: share a project with other accounts (collaboration, phase 1). Share in the top bar invites people by email
   as Can edit or Can view, changes or removes them and copies the link; the Studio home lists the projects shared with
   you. A Can view member can't switch themselves to Can edit: the role menu and the View only note say to ask the owner.

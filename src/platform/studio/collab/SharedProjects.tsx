@@ -4,13 +4,15 @@ import { Card } from "../../../components/Card";
 import { Heading, Text } from "../../../components/Text";
 import { openProjectHome } from "../project/activeProject";
 import { ACCESS_LABELS } from "./collabModel";
+import { sharedProjectId } from "./cloudModel";
 import { useCollab } from "./collabStore";
 import "./collab.css";
 
 /*
  * The Studio home's "Shared with you" (GĐ 1): the projects others shared with the signed-in person, with their role and
  * who shared them. A share link (`?shared=<cloud id>`, collabModel.ts shareLink) opens the home on this list and marks
- * that project. Their pages open in this Studio once cloud saving is on (GĐ 2, the cloud PageMirror).
+ * that project. A card opens the project: its pages come to this Studio from the cloud and stay in step (GĐ 2,
+ * cloudSync.ts).
  */
 
 const sharedParam = () => (typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("shared"));
@@ -38,16 +40,16 @@ export function SharedProjects() {
       <header className="studio-projects__head">
         <Heading level={2} textStyle="Heading/4" id="studio-shared-title">Shared with you</Heading>
       </header>
-      {note ? <Text as="p" textStyle="Body/Small/Regular" tone="base">{note}</Text> : (
-        <Text as="p" textStyle="Body/Small/Regular" tone="light">Their pages open here once cloud saving is on.</Text>
-      )}
+      {note ? <Text as="p" textStyle="Body/Small/Regular" tone="base">{note}</Text> : null}
       {shared.length ? (
         <ul className="studio-projects__grid" aria-label="Shared with you">
           {shared.map((project) => (
             <li key={project.id} ref={project.id === linked ? linkedRef : undefined} data-linked={project.id === linked ? "" : undefined}>
               <Card theme="border" spacing="sm" className="studio-projects__card">
                 <div className="studio-projects__text">
-                  <Text as="span" textStyle="Body/Small/Bold" truncate>{project.name}</Text>
+                  <button type="button" className="studio-projects__open" onClick={() => openProjectHome(sharedProjectId(project.id))}>
+                    <Text as="span" textStyle="Body/Small/Bold" truncate>{project.name}</Text>
+                  </button>
                   <Text as="span" textStyle="Caption/Regular" tone="light" truncate>Shared by {project.ownerEmail}</Text>
                 </div>
                 <Badge size="sm" theme={project.access === "editor" ? "accent" : "neutral"} background="subtle" leadingIcon={false}>{ACCESS_LABELS[project.access]}</Badge>

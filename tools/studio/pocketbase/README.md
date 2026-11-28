@@ -1,4 +1,4 @@
-# Zen Studio collaboration — backend and hosting (GĐ 1)
+# Zen Studio collaboration — backend and hosting (GĐ 1–2)
 
 Plan: `docs/research/studio-collaboration-plan-2026-11-07.md`. Decisions (user, 2026-11-22): one editor per page with a
 soft lock (GĐ 1–3), the PocketBase cloud instance Studio already signs in with, the domain `studio.dizai.studio`, and
@@ -12,6 +12,7 @@ instance, Polar, DNS and secrets are never touched from a session.
 | File | What |
 | --- | --- |
 | `pb_migrations/1795800000_studio_collab.js` | `studio_seats`, `studio_projects`, `studio_members` and their API rules |
+| `pb_migrations/1795900000_studio_collab_pages.js` | GĐ 2: `studio_pages`, `studio_assets`, `studio_comments`, `studio_projects.data` |
 | `collab.test.mjs` | The rules against a throwaway local PocketBase (`npm run studio:collab-test`) |
 
 The collections, and who may do what (the server refuses everything else):
@@ -21,10 +22,17 @@ The collections, and who may do what (the server refuses everything else):
 | `studio_seats` (email) | a person reads their own seat | superusers only (the developer fills it from Polar) |
 | `studio_projects` (name, owner, owner_email, local_id) | its owner and its members, with a seat | a seat holder creates one as its owner; only the owner renames or deletes it; the owner never changes |
 | `studio_members` (project, email, role editor/viewer, invited_by) | everyone in the project, with a seat | the owner invites, changes a role, removes; a member may leave |
+| `studio_pages` (project, page_id, title, text, version, base_version, trashed, updated_by) | everyone in the project | the owner and Can edit members; a save names the version it was made on (`base_version`) and a higher `version`, so a save on an older version is refused; deleting for good is the owner's |
+| `studio_assets` (project, asset_id, name, file) | everyone in the project | the owner and Can edit members upload; the owner deletes |
+| `studio_comments` (project, page_id, data, version) | everyone in the project | every member (Can view too), versioned as pages |
+| `studio_projects.data` (the project's theme, language, libraries) | everyone in the project | the owner |
 
 The Studio UI (src/platform/studio/collab): Share in the top bar (invite by email as Can edit / Can view, change, remove,
 Copy link), "Shared with you" on the Studio home, and the role menu capped by the membership (a Can view member never
-switches to Can edit). Pages, images and comments go to the cloud with GĐ 2.
+switches to Can edit). GĐ 2 (src/platform/studio/collab/cloudSync.ts): a shared project's pages, photos, comments and
+theme are kept in the cloud and in each member's Studio, made to agree when the Studio opens, every 20 s and after a
+change; when two people saved one page, the later save is refused, the cloud's page is taken and the other copy goes to
+Version history. Members keep the project as `shared-<cloud id>` and its pages as `cloud-<record id>`.
 
 ## Test locally
 
@@ -39,7 +47,7 @@ npm run studio:collab-test
    ```bash
    ./pocketbase serve --dir /tmp/zen-studio-pb --migrationsDir tools/studio/pocketbase/pb_migrations
    ```
-   Admin UI › Settings › Export collections (the three `studio_*`), then on the live instance Settings › Import
+   Admin UI › Settings › Export collections (every `studio_*`), then on the live instance Settings › Import
    collections. Check the five rules of each against the migration file before saving.
 2. **Seats.** In `studio_seats`, one row per seat holder's Google email (lower case), from Polar's seats. Until a row
    exists for an account, the hosted Studio shows "No Zen Studio seat" and the server refuses it every shared project.
