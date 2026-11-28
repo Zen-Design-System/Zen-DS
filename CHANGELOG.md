@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- `@zen-ds/vue` 0.1.0 is ready to publish: `npm install @zen-ds/vue` with `import "@zen-ds/vue/styles.css"` (the same
+  stylesheet as React), wave 1's 39 components with their types. It publishes from its own tag (`vue-v0.1.0`); React's
+  release tags stay `vX.Y.Z`.
 - Zen Studio: share a project with other accounts (collaboration, phase 1). Share in the top bar invites people by email
   as Can edit or Can view, changes or removes them and copies the link; the Studio home lists the projects shared with
   you. A Can view member can't switch themselves to Can edit: the role menu and the View only note say to ask the owner.

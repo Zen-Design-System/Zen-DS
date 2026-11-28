@@ -156,6 +156,8 @@
     "html:parity": "node tools/code-languages/html-parity.mjs",
     "vue:parity": "node tools/code-languages/vue-parity.mjs",
     "vue:check": "node tools/code-languages/vue-check.mjs",
+    "vue:build": "node tools/code-languages/vue-build.mjs",
+    "vue:verify-package": "node tools/code-languages/vue-verify-package.mjs",
     "examples:check": "node tools/code-languages/examples-check.mjs",
     "ai-ui:eval": "node tools/ai-ui/eval.mjs",
     "ai-kit:build": "node tools/ai-kit/build.mjs",

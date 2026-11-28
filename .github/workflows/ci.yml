@@ -61,6 +61,8 @@ jobs:
         run: npm run build
       - name: Package (pack, install in a temp app, budgets, zen-usage, MCP, zen-ds)
         run: npm run verify:package
+      - name: Vue package (build, pack, install in a temp Vue app, vue-tsc, budgets, SSR)
+        run: npm run vue:verify-package -- --reuse-lib
 
   # Light and dark run as two jobs side by side, each with its own dev server. One after the other they took 32–37 min on
   # main (2026-11-24/26: light 16–21, dark 16–17, setup 2), and pages that did not answer in 180 s (each costs 3 min, then

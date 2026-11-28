@@ -2,7 +2,43 @@
 
 Zen for Vue 3 (Code view P3, plan `docs/research/code-languages-plan-2026-10-03.md` §3.C, §12). Native Vue components
 that render the same markup, classes and `data-*` attributes as `@zen-ds/react`, so the same `styles.css` draws them.
-Not published yet: the package builds and ships once the user approves a release.
+
+## Install
+
+From the licensed registry, as `@zen-ds/react` (`npx zen-ds init` adds the `@zen-ds` line to `.npmrc`):
+
+```bash
+npm install @zen-ds/vue
+```
+
+```ts
+// main.ts
+import "@zen-ds/vue/styles.css"; // once; "@zen-ds/vue/reset.css" after it is an optional page reset
+```
+
+```vue
+<script setup lang="ts">
+import { Button, Stack } from "@zen-ds/vue";
+</script>
+
+<template>
+  <Stack direction="row" gap="sm">
+    <Button level="primary" start-icon="icon-plus-line" @click="save">Save changes</Button>
+  </Stack>
+</template>
+```
+
+Vue 3.5+ is a peer dependency. Wave 1 ships today (`waves.json`); the rest of the library follows in later waves.
+
+## The package build
+
+`npm run vue:build` writes `dist/`: one ES module per source file, the web core they import under `dist/core` (the
+`@zen-ds/core` alias resolves inside this repo only, so the core ships inside the package), declarations from tsc on
+TypeScript 5, and `@zen-ds/react`'s `styles.css`, `reset.css` and fonts as they are (it runs `npm run build:lib` first).
+`npm run vue:verify-package` packs it into `dist-pack/vue/`, installs it in a throwaway app
+(`examples/vue-consumer-smoke`) and checks exports, that only `vue` lies outside the package, `vue-tsc` with
+`skipLibCheck: false`, a `vite build` held to its budgets, and `renderToString` in Node. CI runs it on every pull
+request; a `vue-vX.Y.Z` tag publishes (`.github/workflows/release.yml`, job `publish-vue`).
 
 ## How it stays the same as React
 
