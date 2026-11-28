@@ -28,9 +28,10 @@ function resetStudioSettings() {
  */
 export function ReadOnlyChip() {
   const role = useStudio((state) => state.role);
+  const roleCeiling = useStudio((state) => state.roleCeiling);
   const localPage = useStudio((state) => state.localPage);
   const server = useStudioServer();
-  const gate = editGate({ role, localPage }, server, { dev: import.meta.env.DEV, hostname: window.location.hostname });
+  const gate = editGate({ role, localPage, roleCeiling }, server, { dev: import.meta.env.DEV, hostname: window.location.hostname });
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);

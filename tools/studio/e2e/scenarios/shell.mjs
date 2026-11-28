@@ -97,6 +97,40 @@ export default function Page() {
 }
 `;
 
+/** A page of project `project` with one text (the collaboration rows, GĐ 1). */
+const collabPage = (project) => (title) => `// @zen-page ${JSON.stringify({ format: 1, title, project })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop">
+        <Text>Share me</Text>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/**
+ * The Studio session from here on answers as `fixture` says instead of PocketBase (collab/collabStore.ts reads
+ * window.__zenStudioCollab in dev): a seat, the projects shared with the person, their members. No request leaves the
+ * machine. Call `ctx.studio({ fresh: true })` after the row to drop it.
+ */
+async function collabSession(ctx, fixture) {
+  const { page } = await ctx.studio({ fresh: true });
+  await page.context().addInitScript((value) => { window.__zenStudioCollab = value; }, fixture);
+}
+
+/** A select's trigger in `scope` by its name (the Zen SelectField button), and the option it then shows. */
+async function pick(scope, page, name, option) {
+  await scope.getByRole("combobox", { name }).or(scope.getByRole("button", { name })).first().click();
+  await page.getByRole("option", { name: option, exact: true }).click();
+}
+
 /** Opens the page `id` in a fresh browser context (no viewport remembered for it): its first view. */
 async function openFirst(ctx, id) {
   const { page } = await ctx.studio({ fresh: true });
@@ -783,6 +817,101 @@ export const rows = [
         const photos = (await hint.innerText()).trim();
         if (photos !== "Drop or upload pictures, up to 5 MB each") throw new Error(`the Photos hint reads "${photos}"`);
         return `"${text}" + info · Photos: "${photos}" + info`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "FW-302", feature: "Share a project (collaboration GĐ 1): the top bar's Share opens Share <project> for its owner; an invalid email is named, an invite as Can view lists the person, their role changes to Can edit and they can be removed, and Copy link is offered once shared; answers come from a stand-in server (no network)", wp: "collab GĐ1 2026-11-28", timeout: 90_000,
+    async run(ctx) {
+      const project = "e2e-share";
+      const { defaultProjectTheme } = await import("../../project-theme.mjs");
+      const now = Date.now();
+      await ctx.api.writeProject({ id: project, name: "E2E Share", theme: defaultProjectTheme(), createdAt: now, updatedAt: now });
+      await collabSession(ctx, { me: { id: "u-al", email: "al@studio-e2e.test" }, seat: true, projects: [], members: {} });
+      try {
+        const { page } = await seededPage(ctx, collabPage(project), /Share me/);
+        await page.locator(".studio-topbar").getByRole("button", { name: "Share", exact: true }).click();
+        const dialog = page.getByRole("dialog", { name: "Share E2E Share" });
+        await dialog.waitFor({ state: "visible", timeout: 5000 });
+        if (await dialog.getByRole("button", { name: "Copy link" }).count()) throw new Error("Copy link is offered before the project is shared");
+        const email = dialog.getByRole("textbox", { name: "Email" });
+        await email.fill("bob@studio-e2e.test, nope");
+        await dialog.getByRole("button", { name: "Invite" }).click();
+        await until(async () => /Not an email: nope/.test(await dialog.innerText()), { message: "the invalid email is named" });
+        await email.fill("bob@studio-e2e.test");
+        await pick(dialog, page, "Role", "Can view");
+        await dialog.getByRole("button", { name: "Invite" }).click();
+        const people = dialog.getByRole("list", { name: "People with access" });
+        await until(async () => /bob@studio-e2e\.test/.test(await people.innerText()), { message: "bob listed" });
+        const bobRole = people.getByRole("combobox", { name: "Role of bob@studio-e2e.test" }).or(people.getByRole("button", { name: /Role of bob@studio-e2e\.test/ })).first();
+        if (!/Can view/.test(await bobRole.innerText())) throw new Error(`bob is not Can view: ${await bobRole.innerText()}`);
+        if (!/al@studio-e2e\.test/.test(await people.innerText()) || !/Owner/.test(await people.innerText())) throw new Error(`the owner is not listed: ${await people.innerText()}`);
+        await pick(people, page, "Role of bob@studio-e2e.test", "Can edit");
+        await until(async () => /Can edit/.test(await bobRole.innerText()), { message: "bob becomes Can edit" });
+        if (!(await dialog.getByRole("button", { name: "Copy link" }).count())) throw new Error("no Copy link once shared");
+        await people.getByRole("button", { name: "Remove bob@studio-e2e.test" }).click();
+        await until(async () => !/bob@studio-e2e\.test/.test(await people.innerText()), { message: "bob removed" });
+        await page.keyboard.press("Escape");
+        await dialog.waitFor({ state: "hidden", timeout: 3000 });
+        return "Share E2E Share: invalid email named · bob invited as Can view · changed to Can edit · removed · Copy link once shared";
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "FW-303", feature: "A Can view member (collaboration GĐ 1): on a page of a project shared with them as Can view the Studio works in Can view, the role menu's Can edit is off and asks the owner, the View only chip says the owner shared it and offers no Switch to Can edit, and Share lists the people read-only with no Invite", wp: "collab GĐ1 2026-11-28", timeout: 90_000,
+    async run(ctx) {
+      const shared = { id: "c-shop", name: "Shop", owner: "u-al", ownerEmail: "al@studio-e2e.test", localId: "shop", access: "viewer" };
+      await collabSession(ctx, { me: { id: "u-bob", email: "bob@studio-e2e.test" }, seat: true, projects: [shared], members: { "c-shop": [{ id: "m-bob", email: "bob@studio-e2e.test", role: "viewer" }] } });
+      try {
+        const { page } = await seededPage(ctx, collabPage("shared-c-shop"), /Share me/);
+        const role = page.getByRole("button", { name: /^Role: / });
+        await until(async () => (await role.getAttribute("aria-label")) === "Role: Can view", { message: "the Studio works in Can view" });
+        await role.click();
+        const canEdit = page.getByRole("menuitemradio", { name: /Can edit/ });
+        if ((await canEdit.getAttribute("aria-disabled")) !== "true" && !(await canEdit.isDisabled())) throw new Error("Can edit can be picked by a Can view member");
+        if (!/owner/i.test(await canEdit.innerText())) throw new Error(`Can edit does not point to the owner: ${await canEdit.innerText()}`);
+        await page.keyboard.press("Escape");
+        await page.getByRole("button", { name: /View only/ }).first().click();
+        const gate = page.locator(".studio-gate__panel");
+        await gate.waitFor({ state: "visible", timeout: 3000 });
+        if (!/You can view this project/.test(await gate.innerText())) throw new Error(`the chip does not say the project is shared as Can view: ${await gate.innerText()}`);
+        if (await gate.getByRole("button", { name: "Switch to Can edit" }).count()) throw new Error("the chip offers Switch to Can edit");
+        await page.keyboard.press("Escape");
+        await page.locator(".studio-topbar").getByRole("button", { name: "Share", exact: true }).click();
+        const dialog = page.getByRole("dialog", { name: "Share Shop" });
+        await dialog.waitFor({ state: "visible", timeout: 5000 });
+        if (!/Shared by al@studio-e2e\.test/.test(await dialog.innerText())) throw new Error(`Share does not name the owner: ${await dialog.innerText()}`);
+        if (await dialog.getByRole("button", { name: "Invite" }).count()) throw new Error("a Can view member can invite");
+        if (await dialog.getByRole("textbox", { name: "Email" }).count()) throw new Error("a Can view member has the email field");
+        await page.keyboard.press("Escape");
+        return "Can view: role menu's Can edit off (asks the owner) · chip: shared as Can view, no Switch · Share read-only, Shared by al@";
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "FW-304", feature: "Shared with you (collaboration GĐ 1): the Studio home lists the projects others shared, with who shared them and the role; a share link (?shared=<id>) opens the home with that project marked", wp: "collab GĐ1 2026-11-28", timeout: 60_000,
+    async run(ctx) {
+      const projects = [
+        { id: "c-shop", name: "Shop", owner: "u-al", ownerEmail: "al@studio-e2e.test", localId: "shop", access: "viewer" },
+        { id: "c-crm", name: "CRM", owner: "u-cy", ownerEmail: "cy@studio-e2e.test", localId: "crm", access: "editor" },
+      ];
+      await collabSession(ctx, { me: { id: "u-bob", email: "bob@studio-e2e.test" }, seat: true, projects, members: {} });
+      try {
+        const { page } = await ctx.studio();
+        await page.goto(`${ctx.server.url}/studio.html?shared=c-crm`, { waitUntil: "domcontentloaded" });
+        const list = page.getByRole("list", { name: "Shared with you" });
+        await list.waitFor({ state: "visible", timeout: 30_000 });
+        const text = (await list.innerText()).replace(/\s+/g, " ");
+        for (const want of ["Shop", "Shared by al@studio-e2e.test", "Can view", "CRM", "Shared by cy@studio-e2e.test", "Can edit"]) if (!text.includes(want)) throw new Error(`"${want}" missing from Shared with you: ${text}`);
+        const linked = await list.locator("li[data-linked]").innerText();
+        if (!/CRM/.test(linked)) throw new Error(`the linked project is not marked: ${linked}`);
+        return "home: Shop (Can view, al@) and CRM (Can edit, cy@) · ?shared=c-crm marks CRM";
       } finally {
         await ctx.studio({ fresh: true });
       }

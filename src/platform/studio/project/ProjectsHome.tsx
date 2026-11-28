@@ -21,6 +21,7 @@ import { openProjectHome, useHomeView } from "./activeProject";
 import { openProjectSetup } from "./ProjectSetup";
 import { DRAFTS, trashProject, useProject, useProjects } from "./projectStore";
 import "./project.css";
+import { SharedProjects } from "../collab/SharedProjects";
 
 /*
  * The Studio home (toolbar Document | Studio, no page open), Figma's file browser since 2026-10-17: the projects grid
@@ -61,6 +62,8 @@ function ProjectsGrid() {
           </li>
         ) : null}
       </ul>
+      {/* Projects others shared with you (collab/SharedProjects.tsx, GĐ 1). */}
+      <SharedProjects />
     </div>
   );
 }

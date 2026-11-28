@@ -47,6 +47,7 @@ function StatusLine() {
   const edit = useStudioEditStatus();
   const local = useInspectorStatus();
   const role = useStudio((state) => state.role);
+  const roleCeiling = useStudio((state) => state.roleCeiling);
   const localPage = useStudio((state) => state.localPage);
   const server = useStudioServer();
   const drafts = useStudioDrafts();
@@ -75,7 +76,7 @@ function StatusLine() {
   } else {
     const shown = drafts.drafts.length ? " · others' unsaved changes are shown" : "";
     // Not editable: the gate's reason (gate.ts; the toolbar's Read-only chip explains it and offers the fix).
-    const gate = editGate({ role, localPage }, server, { dev: import.meta.env.DEV, hostname: window.location.hostname });
+    const gate = editGate({ role, localPage, roleCeiling }, server, { dev: import.meta.env.DEV, hostname: window.location.hostname });
     text = editable ? (localPage ? "Changes save at once" : drafting ? `Changes stay unsaved: ${saveShortcut} to save` : "Changes save to the source file at once")
       : gate.ok ? "Connecting to the Studio server…" : `${gate.short}${role === "viewer" ? shown : ""}`;
   }

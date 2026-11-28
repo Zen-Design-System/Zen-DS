@@ -23,7 +23,7 @@ const roles: Record<StudioRole, { label: string; caption: string }> = {
 /** A person's own hue for their initial (user, 2026-10-15: "dùng màu"), the same on every load: picked from the Avatar
  *  hues by their id, as Figma gives each collaborator a colour. */
 const PERSON_HUES = avatarThemes.filter((theme) => theme !== "photo" && theme !== "neutral" && theme !== "accent");
-function hueOf(key: string): AvatarTheme {
+export function hueOf(key: string): AvatarTheme {
   let hash = 0;
   for (const char of key) hash = (hash * 31 + char.codePointAt(0)!) >>> 0;
   return PERSON_HUES[hash % PERSON_HUES.length];
@@ -31,6 +31,8 @@ function hueOf(key: string): AvatarTheme {
 
 export function RoleMenu() {
   const role = useStudio((state) => state.role);
+  // A Can view member of a shared project (collab/collabStore.ts) can't pick Can edit: only its owner gives it.
+  const ceiling = useStudio((state) => state.roleCeiling);
   const user = useAuthUser();
   const initial = Array.from((user?.name || user?.email || "").trim())[0]?.toUpperCase() ?? "";
   const [open, setOpen] = useState(false);
@@ -67,7 +69,8 @@ export function RoleMenu() {
             tabIndex={-1}
             className="zen-menu__item"
             label={roles[id].label}
-            caption={roles[id].caption}
+            caption={id === "admin" && ceiling === "viewer" ? "Ask the project's owner for Can edit" : roles[id].caption}
+            disabled={id === "admin" && ceiling === "viewer"}
             leading={<Icon name={id === "admin" ? "icon-edit-02-line" : "icon-eye-line"} size="base" decorative />}
             selected={id === role}
             onSelect={() => { studioStore.setState({ role: id }); setOpen(false); }}

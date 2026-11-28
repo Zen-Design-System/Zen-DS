@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { PlatformPage } from "../PlatformExamples";
+import { effectiveRole } from "./collab/collabModel";
 import { HISTORY_LIMIT } from "./history";
 import type { StudioFrameOverride, StudioState, StudioViewport } from "./types";
 
@@ -18,6 +19,8 @@ const defaults: StudioState = {
   collection: null,
   tool: "select",
   role: "admin",
+  chosenRole: "admin",
+  roleCeiling: "admin",
   chromeTheme: "light",
   preview: { theme: "light", density: "compact", componentTheme: "neutral-s1", typography: "dashboard", radius: "rounded", emphasis: "medium", contrast: "standard" },
   viewports: {},
@@ -84,6 +87,9 @@ function initialState(): StudioState {
     redo: (session.redo ?? []).slice(-HISTORY_LIMIT),
     presenting: null,
     drawer: null,
+    // The saved role is the one the person picked; the open project's ceiling comes from its membership once read.
+    chosenRole: prefs.role ?? defaults.role,
+    roleCeiling: defaults.roleCeiling,
   };
 }
 
@@ -91,12 +97,25 @@ let state: StudioState = typeof window === "undefined" ? defaults : initialState
 const listeners = new Set<() => void>();
 let persistTimer: number | undefined;
 
+/**
+ * A patch that picks a role (`role` or `chosenRole`) or moves the ceiling (`roleCeiling`) also sets the role the Studio
+ * works in (collab/collabModel.ts effectiveRole): a Can view member's "Switch to Can edit" stays Can view, and the pick
+ * comes back once they open a project that allows editing.
+ */
+function withRole(current: StudioState, patch: Partial<StudioState>): Partial<StudioState> {
+  if (!("role" in patch) && !("chosenRole" in patch) && !("roleCeiling" in patch)) return patch;
+  const chosenRole = patch.chosenRole ?? patch.role ?? current.chosenRole;
+  const roleCeiling = patch.roleCeiling ?? current.roleCeiling;
+  return { ...patch, chosenRole, roleCeiling, role: effectiveRole(chosenRole, roleCeiling) };
+}
+
 /** Write the persisted parts now. */
 export function flushStudioStore() {
   window.clearTimeout(persistTimer);
-  const { page, localPage, space, collection, tool, viewports, selection, leftTab, inspectorTab, frameOverrides, undo, redo, role, chromeTheme, preview, panels } = state;
+  const { page, localPage, space, collection, tool, viewports, selection, leftTab, inspectorTab, frameOverrides, undo, redo, chromeTheme, preview, panels } = state;
   write(() => window.sessionStorage, SESSION_KEY, { page, localPage, space, collection, tool, selection, leftTab, inspectorTab, frameOverrides, undo, redo } satisfies SessionPart);
-  write(() => window.localStorage, PREFS_KEY, { role, chromeTheme, preview, panels, viewports } satisfies PrefsPart);
+  // The role saved is the one picked, never one a project's ceiling forced (leaving it brings the pick back).
+  write(() => window.localStorage, PREFS_KEY, { role: state.chosenRole, chromeTheme, preview, panels, viewports } satisfies PrefsPart);
 }
 
 function persist() {
@@ -113,7 +132,7 @@ if (typeof window !== "undefined") {
 export const studioStore = {
   getState: () => state,
   setState(update: Partial<StudioState> | ((current: StudioState) => Partial<StudioState>)) {
-    const patch = typeof update === "function" ? update(state) : update;
+    const patch = withRole(state, typeof update === "function" ? update(state) : update);
     let changed = false;
     for (const key of Object.keys(patch) as Array<keyof StudioState>) if (patch[key] !== state[key]) { changed = true; break; }
     if (!changed) return;

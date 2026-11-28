@@ -2,6 +2,7 @@ import { StrictMode, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import { PlatformApp } from "./platform/PlatformApp";
 import { AuthGate } from "./platform/auth/AuthGate";
+import { SeatGate } from "./platform/studio/collab/SeatGate";
 // The docs platform shows every icon (gallery, examples): register the whole set so nothing waits for a lazy bucket.
 import "./icons/all";
 import "./styles/fonts.css";
@@ -27,7 +28,8 @@ function pickUi(): "studio" | "classic" {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthGate>
-      {pickUi() === "studio" ? <Suspense fallback={null}><StudioApp /></Suspense> : <PlatformApp />}
+      {/* The hosted Studio (studio.dizai.studio) opens for seat holders only (platform/studio/collab/SeatGate.tsx). */}
+      {pickUi() === "studio" ? <SeatGate><Suspense fallback={null}><StudioApp /></Suspense></SeatGate> : <PlatformApp />}
     </AuthGate>
   </StrictMode>,
 );

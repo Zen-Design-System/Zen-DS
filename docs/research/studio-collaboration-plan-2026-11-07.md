@@ -1,7 +1,9 @@
 # Zen Studio: working with other accounts (plan, 2026-11-07)
 
-Status: **plan only, saved for later (user, 2026-11-07: "lưu plan lại làm sau")**. Nothing is built. The decisions in
-§3 come first; each phase in §4 is its own PR and needs its own approval (Scope lock).
+Status: **GĐ 1–3 approved (user, 2026-11-22; started 2026-11-28, "làm đi")**, one PR each; GĐ 4–5 not approved. Saved
+for later on 2026-11-07 ("lưu plan lại làm sau"). §3 answered 2026-11-22: phases 1–3 (one editor per page, soft lock);
+the current PocketBase cloud instance + `studio.dizai.studio`; only licence holders / seats (Polar). GĐ 1 is built on
+branch `zen/feat/studio-collab-g1-20261128` (backend and runbook: `tools/studio/pocketbase/`).
 
 User's question: "làm sao để collaborate với tài khoản khác?", then "plan để làm được chuyện đó".
 
@@ -39,7 +41,9 @@ pages and projects only.
 
 ## 4. Phases
 
-**GĐ 1 — Host Studio + sharing with real permissions**
+**GĐ 1 — Host Studio + sharing with real permissions** (built 2026-11-28: `studio_seats` · `studio_projects` ·
+`studio_members`; pages, assets and comments collections moved to GĐ 2, which writes them; a Can view member is capped,
+an owner or editor may still pick Can view for themself)
 - Build Studio as a static web app on the chosen domain; Google sign-in as today.
 - PocketBase collections: `projects`, `project_members` (email + role Owner / Can edit / Can view), `pages`, `assets`,
   `comments`. Permissions live in PocketBase API rules, so the server refuses, not only the UI.

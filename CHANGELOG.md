@@ -14,6 +14,12 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: share a project with other accounts (collaboration, phase 1). Share in the top bar invites people by email
+  as Can edit or Can view, changes or removes them and copies the link; the Studio home lists the projects shared with
+  you. A Can view member can't switch themselves to Can edit: the role menu and the View only note say to ask the owner.
+  Access is decided by the server (PocketBase rules), and only accounts with a Zen Studio seat open shared projects. The
+  hosted Studio (`npm run studio:build:hosted`, for `studio.dizai.studio`) asks for a seat at sign-in. Pages themselves
+  move to the cloud in phase 2.
 - Zen Studio: a DockIcon's Theme (and the icon theme of a Metric or MetricCard) can be picked in the Inspector again. Its 25 themes are
   named DockIconTheme in the API docs, which left the Inspector with no list to offer.
 - Zen Studio project settings: each status color (Positive, Negative, Warning, Info) takes a color of the project's
