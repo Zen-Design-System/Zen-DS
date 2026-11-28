@@ -1,10 +1,23 @@
 {
   "name": "@zen-ds/vue",
-  "version": "0.0.0",
-  "private": true,
-  "description": "Zen Design System for Vue 3: native components on the same markup and styles.css as @zen-ds/react (Code view P3, wave 1). Not published yet.",
+  "version": "0.1.0",
+  "description": "Zen Design System for Vue 3: native components on the same markup and styles.css as @zen-ds/react (wave 1).",
+  "license": "SEE LICENSE IN dist/LICENSE.md",
   "type": "module",
-  "sideEffects": ["**/*.css", "./src/_shared/core-icons.ts"],
-  "exports": { ".": "./src/index.ts" },
-  "peerDependencies": { "vue": "^3.5.0" }
+  "sideEffects": ["**/*.css", "./src/_shared/core-icons.ts", "./dist/_shared/core-icons.js"],
+  "files": ["dist", "README.md"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./reset.css": "./dist/reset.css",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "peerDependencies": { "vue": "^3.5.0" },
+  "publishConfig": { "registry": "https://npm.dizai.studio/" }
 }

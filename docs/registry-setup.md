@@ -405,3 +405,4 @@ Nguồn: [Polar, quốc gia nhận chi trả](https://polar.sh/docs/merchant-of-
 | Lượt dùng theo licence | `podman exec zen-registry node /verdaccio/plugins/verdaccio-zen-license/usage-report.js [YYYY-MM]` |
 | Deploy lại sau khi kit đổi | trên Mac: `tools/registry/deploy/podman/deploy.sh root@51.79.205.10 -i ~/.ssh/zen-registry` |
 | Phát hành bản mới | tăng `version` trong `package.json`, commit, `git tag vX.Y.Z && git push origin vX.Y.Z` (workflow Release publish) |
+| Phát hành `@zen-ds/vue` | tăng `version` trong `platforms/vue/package.json`, commit, `git tag vue-vX.Y.Z && git push origin vue-vX.Y.Z` (job riêng của workflow Release) |

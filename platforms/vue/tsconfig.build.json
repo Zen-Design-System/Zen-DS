@@ -1,0 +1,12 @@
+{
+  "$comment": "Declarations for the package build (tools/code-languages/vue-build.mjs): the public entry and what it reaches, web core included; the parity fixtures stay out.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": "../.."
+  },
+  "files": ["src/index.ts"],
+  "include": []
+}
