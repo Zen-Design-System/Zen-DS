@@ -110,6 +110,13 @@ Last updated: 2026-11-22.
   Play's mode (the opposite of the page) or the page's `prototypeBackground` (a `#RRGGBB` or a fill key; Prototype settings › Background,
   `proto/prototypeBackground.ts`); `data-stage` (its painted side) colours what sits on it. Present of example frames
   keeps the page's Canvas. E2E FW-296, FW-297.
+- **Studio collaboration GĐ 1 (2026-11-28, user approved GĐ 1–3 on 11-22):** branch `zen/feat/studio-collab-g1-20261128`.
+  PocketBase `studio_seats` · `studio_projects` · `studio_members` with server-side rules
+  (`tools/studio/pocketbase/`, test `npm run studio:collab-test`, runbook README: a developer applies it, sessions never
+  touch the live instance); `src/platform/studio/collab/` (collabModel + selftest, collabStore, ShareDialog,
+  SharedProjects, SeatGate); `state.roleCeiling` caps `state.role` (store.ts `withRole`; `chosenRole` is the saved pick);
+  `npm run studio:build:hosted` (VITE_STUDIO_HOSTED=1). E2E FW-302…304 (stand-in server `window.__zenStudioCollab`). Next:
+  GĐ 2 cloud PageMirror, GĐ 3 realtime + soft lock.
 - **Studio UI/UX review (2026-10-27, docs only):** `docs/research/studio-ux-review-2026-10-27.md` — five hands-on
   walks on the user's pages, the Figma-key E2E walk, axe, a UX-writing audit (40 strings), 15 screenshots. Ranked
   proposal §7 approved by the user 2026-10-27, in order: P0 double-click / Enter land on DOM parts with a CSS panel and ⌘A / ⌘D die after

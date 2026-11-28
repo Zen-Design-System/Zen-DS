@@ -41,10 +41,13 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   (2026-10-25: about 2 minutes, optional; close the line if the user skips it.)
 
 ## Later phase (Giai đoạn sau)
-- **Studio collaboration with other accounts — saved for later (user, 2026-11-07: "lưu plan lại làm sau"):** plan
-  `docs/research/studio-collaboration-plan-2026-11-07.md` (GĐ 1 host + Share with PocketBase roles, GĐ 2 cloud
-  `PageMirror`, GĐ 3 realtime + soft lock, GĐ 4 team comments, GĐ 5 CRDT multiplayer). To answer when it starts
-  (§3): editing model, hosting + domain, who may sign in. Nothing built.
+- **Studio collaboration with other accounts — started (user 2026-11-22 approved GĐ 1–3; 2026-11-28 "làm đi"):** plan
+  `docs/research/studio-collaboration-plan-2026-11-07.md`. §3 answered 2026-11-22: one editor per page with a soft lock
+  (GĐ 1–3), PocketBase cloud + `studio.dizai.studio`, only licence holders / seats (Polar) sign in. GĐ 1 (host + Share
+  with PocketBase roles) → GĐ 2 (cloud `PageMirror`) → GĐ 3 (realtime + soft lock), one PR each, in progress on branch
+  `zen/feat/studio-collab-g1-20261128` (session "dark mode Play"). Sessions never deploy, push hooks or rules to the live
+  PocketBase, or touch Polar, DNS or secrets: a developer deploys (runbook in the PR). GĐ 4 (team comments) and GĐ 5 (CRDT
+  multiplayer) are not approved.
 - **Code view in other languages — started (user, 2026-11-12: "Code view: HTML/CSS"; on hold since 2026-10-08):**
   order HTML/CSS → Vue → Swift → Flutter → Svelte. Plan `docs/research/code-languages-plan-2026-10-03.md`, phases
   P1–P9, each approved on its own; P1 + P2 approved. §8 answered 2026-11-12: web strategy A (native Vue/Svelte on the

@@ -1,6 +1,7 @@
 node_modules/
 dist/
 dist-platform/
+dist-studio/
 dist-pack/
 storybook-static/
 .DS_Store

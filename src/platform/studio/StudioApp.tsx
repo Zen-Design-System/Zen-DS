@@ -20,6 +20,9 @@ import { SnippetCode } from "../code/SnippetCode";
 import { detachSelection } from "./inspector/detach";
 import { DetachDialog } from "./inspector/DetachAction";
 import { ExportDialog } from "./builder/export/ExportDialog";
+import { ShareDialog } from "./collab/ShareDialog";
+import { useSharedLink } from "./collab/SharedProjects";
+import { useRoleCeiling } from "./collab/collabStore";
 import { Inspector } from "./inspector/Inspector";
 import { LayersPanel } from "./select/LayersPanel";
 import { AssetsPanel } from "./edit/assets/AssetsPanel";
@@ -74,7 +77,7 @@ import { AgentPanel } from "./agent/AgentPanel";
 import { AiChip } from "./mcp/AiChip";
 import { startMcpRuntime } from "./mcp/runtime";
 import "./studio.css";
-import { useCanvasPreview, useRememberPageProject } from "./project/activeProject";
+import { useActiveProjectId, useCanvasPreview, useRememberPageProject } from "./project/activeProject";
 import { LibrariesDialog } from "./project/LibrariesDialog";
 import { openLibraries } from "./project/libraries";
 
@@ -195,6 +198,10 @@ export function StudioApp() {
   useRenameKeys();
   useLockKeys();
   useRememberPageProject();
+  // A shared project's membership caps the role (GĐ 1, collab/collabStore.ts): a Can view member never edits it.
+  useRoleCeiling(useActiveProjectId());
+  // A share link (?shared=<id>) opens the Studio home, where "Shared with you" marks the project.
+  useSharedLink();
   const page = useStudio((state) => state.page);
   const collection = useStudio((state) => state.collection);
   const localPage = useStudio((state) => state.localPage);
@@ -718,6 +725,7 @@ export function StudioApp() {
           <VariablesWindow />
           <DetachDialog />
           <ExportDialog />
+          <ShareDialog />
           <SlotConfirm />
           <SharedConfirm />
           <DraftsDialog />

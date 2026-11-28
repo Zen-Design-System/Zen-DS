@@ -7,7 +7,7 @@ import type { StudioState } from "./types";
  * chip shows (`short` is the Inspector status line), with the fix when there is one. Before the first ping answers, the gate is "connecting" (no chip).
  */
 
-export type EditGateReason = "production" | "viewer" | "connecting" | "not-loopback" | "no-server" | "fs-readonly";
+export type EditGateReason = "production" | "viewer" | "shared-viewer" | "connecting" | "not-loopback" | "no-server" | "fs-readonly";
 export type EditGate =
   | { ok: true }
   | { ok: false; reason: EditGateReason; title: string; detail: string; short: string };
@@ -27,7 +27,9 @@ export function loopbackUrl(href: string): string {
   return url.toString();
 }
 
-export function editGate(state: Pick<StudioState, "role"> & Partial<Pick<StudioState, "localPage">>, server: ServerView, env: { dev: boolean; hostname: string }): EditGate {
+export function editGate(state: Pick<StudioState, "role"> & Partial<Pick<StudioState, "localPage" | "roleCeiling">>, server: ServerView, env: { dev: boolean; hostname: string }): EditGate {
+  // A project shared with you as Can view (collab/collabStore.ts): only its owner can give you Can edit.
+  if (state.localPage && state.roleCeiling === "viewer") return { ok: false, reason: "shared-viewer", short: "View only", title: "You can view this project", detail: "Its owner shared it with you as Can view. Ask them for Can edit to make changes." };
   // A builder page lives in this browser (Studio builder GĐ2): only the role decides, on any host and in a build.
   if (state.localPage) return state.role === "viewer" ? { ok: false, reason: "viewer", short: "View only", title: "You can view only", detail: "You see the page but can't change it. Switch to Can edit to make changes." } : { ok: true };
   if (!env.dev) return { ok: false, reason: "production", short: "View only — editing needs the Studio server", title: "This is a built site", detail: "Changes can't be saved here — open the Studio on the computer that runs it." };

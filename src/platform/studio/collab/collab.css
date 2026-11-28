@@ -1,0 +1,13 @@
+/* Share dialog (collab/ShareDialog.tsx): the email field takes the row beside a fixed role select; each person is one
+   row, their email truncating before the role. */
+.studio-share__emails { flex: 1 1 auto; min-width: 0; }
+.studio-share__role { flex: 0 0 136px; }
+.studio-share__people { margin: 0; padding: 0; list-style: none; }
+.studio-share__person { min-width: 0; }
+.studio-share__email { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-share__member-role { flex: 0 0 120px; }
+
+/* The Studio home's "Shared with you" (collab/SharedProjects.tsx): below the projects, the project a share link names
+   marked with the Studio's selection colour. */
+.studio-projects__shared { display: grid; gap: var(--zen-spacing-gap-medium, 16px); }
+.studio-projects__shared li[data-linked] .studio-projects__card { outline: 2px solid var(--zen-color-border-info-solid-default); outline-offset: 2px; }

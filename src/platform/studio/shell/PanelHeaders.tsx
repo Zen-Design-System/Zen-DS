@@ -10,7 +10,8 @@ import { presentFrame } from "../board/presentFrame";
 import { openExport } from "../builder/export/exportState";
 import { playStartOf, startPlay } from "../builder/proto/playStart";
 import { OpenOnPhone } from "../device/OpenOnPhone";
-import { useCanvasPreview } from "../project/activeProject";
+import { useActiveProjectId, useCanvasPreview } from "../project/activeProject";
+import { openShare } from "../collab/shareState";
 import { useStudioDrafts } from "../sourceDrafts";
 import { canEdit, studioStore, useStudio } from "../store";
 import { toggleSidePanels, type PanelLayout } from "./layout";
@@ -60,6 +61,7 @@ export function BrandMenu({ layout }: { layout: PanelLayout }) {
   const undoCount = useStudio((state) => state.undo.length);
   const redoCount = useStudio((state) => state.redo.length);
   const role = useStudio((state) => state.role);
+  const ceiling = useStudio((state) => state.roleCeiling);
   const writable = useWritable();
   const user = useAuthUser();
   const space = useStudio((state) => state.space);
@@ -73,7 +75,7 @@ export function BrandMenu({ layout }: { layout: PanelLayout }) {
         ...(phone ? [
           { id: "undo", label: "Undo", shortcut: `${modKey}Z`, disabled: !writable || !undoCount, onSelect: () => { void undoEdit(); } },
           { id: "redo", label: "Redo", shortcut: `⇧${modKey}Z`, disabled: !writable || !redoCount, onSelect: () => { void redoEdit(); } },
-          { id: "role", label: role === "admin" ? "Switch to Can view" : "Switch to Can edit", onSelect: () => studioStore.setState({ role: role === "admin" ? "viewer" : "admin" }) },
+          { id: "role", label: role === "admin" ? "Switch to Can view" : "Switch to Can edit", disabled: role === "viewer" && ceiling === "viewer", onSelect: () => studioStore.setState({ role: role === "admin" ? "viewer" : "admin" }) },
           ...(localPage ? [{ id: "export", label: "Export…", onSelect: () => openExport(localPage) }] : []),
           { type: "separator" as const, id: "phone-separator" },
         ] : []),
@@ -168,6 +170,12 @@ function PhoneShare({ id }: { id: string }) {
   return <OpenOnPhone page={id} title={record?.title ?? id} text={record?.text} start={start} modes={preview} brand={brand} locale={locale} />;
 }
 
+/** Figma's Share (collab/ShareDialog.tsx, GĐ 1): who else can open the open page's project, and as what. */
+function ShareButton() {
+  const project = useActiveProjectId();
+  return <Button appearance="main" level="tertiary" size="sm" startIcon={<Icon name="icon-users-line" decorative />} aria-haspopup="dialog" onClick={() => openShare(project)}>Share</Button>;
+}
+
 /** The admin's drafts (count · Save all) or the viewer's note, then Export on a page you made (B4's primary action; the
  * one place it lives since 2026-11-01 — the Page section's Export… repeated it). On a phone Export is in the menu. */
 function PrimaryAction({ phone }: { phone: boolean }) {
@@ -223,6 +231,7 @@ export function TopBar({ layout, docPage }: { layout: PanelLayout; docPage: bool
         {phone ? null : <RoleMenu />}
         {docPage ? null : <PresentButton />}
         {localPage && !phone ? <PhoneShare id={localPage} /> : null}
+        {localPage && !phone ? <ShareButton /> : null}
         <PrimaryAction phone={phone} />
         {rightDocked || docPage ? null : <IconButton appearance="flat" level="primary" size="sm" aria-label="Inspector" aria-expanded={drawer === "right"} aria-controls="studio-right" icon={<Icon name="icon-layout-right-line" />} onClick={() => studioStore.setState({ drawer: drawer === "right" ? null : "right" })} />}
       </div>

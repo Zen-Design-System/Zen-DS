@@ -107,7 +107,14 @@ export type StudioState = {
   space: "document" | "studio";
   collection: string | null;
   tool: StudioTool;
+  /** The role the Studio works in: `chosenRole` held under `roleCeiling` (store.ts keeps it so). Read it to know whether
+   *  the person may edit; write `role` (or `chosenRole`) to pick one, never above the ceiling. */
   role: StudioRole;
+  /** The role the person picked (Can edit / Can view), remembered with the preferences. */
+  chosenRole: StudioRole;
+  /** The most the open project allows (collab/collabStore.ts, GĐ 1): "viewer" for a Can view member of a shared project,
+   *  else "admin". Not remembered: it is read from the project's membership. */
+  roleCeiling: StudioRole;
   /** Colour mode of the Studio chrome (panels, toolbar). `preview.theme` (the canvas) always changes with it (shell/modes.ts setStudioTheme). */
   chromeTheme: "light" | "dark";
   preview: StudioPreviewSettings;
